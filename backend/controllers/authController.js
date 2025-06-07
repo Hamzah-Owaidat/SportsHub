@@ -121,6 +121,51 @@ exports.getMe = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc      Login/Register user with Google
+// @route     GET /api/auth/google/callback
+// @access    Public
+exports.loginWithGoogle = asyncHandler(async (req, res) => {
+  const googleProfile = req.user;
+
+  let user = await User.findOne({ email: googleProfile.email });
+
+  if (!user) {
+    const userRole = await Role.findOne({ name: "user" });
+    if (!userRole) {
+      return res.status(400).json({
+        status: "fail",
+        message: "Default role 'user' not found",
+      });
+    }
+
+    user = await User.create({
+      username: googleProfile.name,
+      email: googleProfile.email,
+      password: "GoogleAuth",
+      passwordConfirm: "GoogleAuth",
+      isActive: true,
+      profileImage: googleProfile.picture || null,
+      termsAccepted: true,
+      role: {
+        id: userRole._id,
+        name: userRole.name,
+      },
+      authProvider: "google",
+      createdBy: null,
+      updatedBy: null,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+  }
+
+  // Generate JWT token
+  const token = user.getSignedJwtToken();
+
+  // ✅ Redirect to your frontend with token in query or hash
+  const redirectUrl = `${process.env.FRONTEND_URL}/auth/callback?token=${token}`;
+  res.redirect(redirectUrl);
+});
+
 // Get token from model, create cookie and send response
 const sendTokenResponse = (user, statusCode, res) => {
   // Create token

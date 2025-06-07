@@ -20,3 +20,8 @@ export async function getCurrentUser(){
     const response = await api.get('/auth/me');
     return response.data;
 }
+
+export function loginWithGoogle() {
+  // Redirect the user to the backend Google auth route
+  window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`;
+}

@@ -12,10 +12,17 @@ import Actions from "../ui/actions/Actions"
 import Image from "next/image";
 import Pagination from "./Pagination";
 import Toggle from "../ui/button/Toggle";
+import { getAllUsers, deleteUser, updateUser } from '@/lib/api/dashboard/dashboard';
+import { Badge } from "lebify-ui"
 
-import { API_URL } from "../../../index";
 
-// Update the User interface to match your API response
+
+interface Role {
+  id: string;
+  name: string;
+  _id: string;
+}
+
 interface User {
   _id: string;
   username: string;
@@ -23,45 +30,59 @@ interface User {
   email: string;
   phoneNumber: string;
   profileImage?: string;
-  role: string;
-  createdAt: Date;
-  updatedAt: Date;
+  role: Role;
+  isVerified?: boolean;
+  createdAt: string; // or Date (but you will need to convert)
+  updatedAt: string; // or Date
 }
+
 
 export default function UsersTable() {
   const [tableData, setTableData] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const itemsPerPage = 5;
   
-  // Fetch data from API
   useEffect(() => {
-    setLoading(true);
-    fetch(`${API_URL}/dashboard/users-table`)
-      .then(response => response.json())
-      .then(responseData => {
-        // Extract users from the nested response structure
-        if (responseData.status === "success" && responseData.data && responseData.data.users) {
-          // Convert string dates to Date objects and ensure correct data types
-          const formattedData = responseData.data.users.map((user: User) => ({
-            ...user,
-            isActive: user.isActive === true,
+    const fetchUsers = async () => {
+      try {
+        const users = await getAllUsers();
+        setTableData(users);
+      } catch (error) {
+        console.error('Failed to fetch users:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-            role: user.role?.name,
-            createdAt: new Date(user.createdAt),
-            updatedAt: new Date(user.updatedAt)
-          }));
-          setTableData(formattedData);
-        } else {
-          console.error("Unexpected API response format:", responseData);
-        }
-        setLoading(false);
-      })
-      .catch(error => {
-        console.error("Error fetching user data:", error);
-        setLoading(false);
-      });
+    fetchUsers();
   }, []);
+
+  const handleDelete = async (id: string) => {
+    const confirmed = window.confirm('Are you sure you want to delete this user?');
+    if (!confirmed) return;
+
+    try {
+      await deleteUser(id);
+      setTableData(prev => prev.filter(user => user._id !== id));
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+    }
+  };
+
+  const handleEdit = (id: string) => {
+    setEditingUserId(id);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingUserId(null);
+  };
+
+
 
   // Calculate pagination using the fetched data
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -130,6 +151,12 @@ export default function UsersTable() {
                   isHeader
                   className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                 >
+                  Verified
+                </TableCell>
+                <TableCell
+                  isHeader
+                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                >
                   Created At
                 </TableCell>
                 <TableCell
@@ -180,7 +207,7 @@ export default function UsersTable() {
                           {user.username}
                         </span>
                         <span className="block text-gray-500 text-theme-xs dark:text-gray-400">
-                          {user.role || 'No role assigned'}
+                          {user.role?.name || 'No role assigned'}
                         </span>
                       </div>
                     </TableCell>
@@ -194,22 +221,30 @@ export default function UsersTable() {
                     </TableCell>
 
                     <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                      <Toggle 
-                        checked={user.isActive} 
-                        size="md" 
-                        onChange={() => {console.log('Toggle clicked', user._id)}}
-                      />
+                      {user.isActive ? (
+                        <Badge variant="light" propColor="#33FF57" isBordered={false}>Active</Badge>
+                      ) : (
+                        <Badge variant="light" color="error">Inactive</Badge>
+                      )}
+                    </TableCell>
+
+                    <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                      {user.isVerified ? (
+                        <Badge variant="light" propColor="#33FF57" isBordered={false}>Yes</Badge>
+                      ) : (
+                        <Badge variant="light" color="error">No</Badge>
+                      )}
                     </TableCell>
 
                     <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                      {user.createdAt.toLocaleDateString()}
+                      {new Date(user.createdAt).toLocaleDateString()}
                     </TableCell>
 
                     <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
                       <Actions 
-                        onEdit={() => console.log('Edit clicked', user._id)}
+                        onEdit={() => handleEdit(user._id)}
                         onView={() => console.log('View clicked', user._id)}
-                        onDelete={() => console.log('Delete clicked', user._id)}
+                        onDelete={() => handleDelete(user._id)}
                         isLastRow={index === currentUsers.length - 1}
                       />
                     </TableCell>
@@ -231,6 +266,7 @@ export default function UsersTable() {
           />
         </div>
       )}
+
     </div>
   );
 }

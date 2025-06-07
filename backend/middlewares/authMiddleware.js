@@ -8,6 +8,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
  * Middleware to check if the user is authenticated
  */
 exports.isAuthenticated = (req, res, next) => {
+  console.log('isAuthenticated middleware running...');
   try {
     // Get token from Authorization header
     const authHeader = req.headers.authorization;
@@ -31,7 +32,7 @@ exports.isAuthenticated = (req, res, next) => {
     
     // Verify token
     const decoded = jwt.verify(token, JWT_SECRET);
-    
+
     // Attach user data to request object
     req.user = decoded;
     
@@ -56,6 +57,7 @@ exports.isAuthenticated = (req, res, next) => {
  * Must be used after isAuthenticated middleware
  */
 exports.isAdmin = (req, res, next) => {
+  console.log('isAdmin middleware running...');
   // Check if user exists and has admin role
   if (!req.user || req.user.role !== 'admin') {
     return res.status(403).json({
@@ -72,6 +74,7 @@ exports.isAdmin = (req, res, next) => {
  * @param {string|string[]} roles - Role or array of roles allowed to access
  */
 exports.hasRole = (roles) => {
+  console.log('hasRole middleware running...');
   return (req, res, next) => {
     // Make sure user exists
     if (!req.user) {

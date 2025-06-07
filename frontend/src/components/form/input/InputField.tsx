@@ -15,6 +15,7 @@ interface InputProps {
   success?: boolean;
   error?: boolean;
   hint?: string; // Optional hint text
+  accept?: string;
 }
 
 const Input: FC<InputProps> = ({
@@ -32,6 +33,7 @@ const Input: FC<InputProps> = ({
   success = false,
   error = false,
   hint,
+  accept,
 }) => {
   // Determine input styles based on state (disabled, success, error)
   const inputClasses = `h-11 w-full rounded-lg border border-gray-300 outline-none appearance-none px-4 py-2.5 text-sm placeholder:text-gray-400 dark:bg-stone-950 dark:text-white/90 dark:placeholder:text-white/30 dark:border-gray-700 ${className}`;
@@ -49,6 +51,7 @@ const Input: FC<InputProps> = ({
         max={max}
         step={step}
         disabled={disabled}
+        accept={accept}
         className={inputClasses}
       />
 

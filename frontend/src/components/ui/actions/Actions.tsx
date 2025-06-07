@@ -41,7 +41,7 @@ const Actions: React.FC<ActionsProps> = ({ onEdit, onView, onDelete, isLastRow =
       </button>
 
       {isOpen && (
-        <div className={`absolute right-full mr-3 ${isLastRow ? 'bottom-0' : 'top-0'} w-36 bg-white dark:bg-gray-800 rounded-md shadow-lg z-10 border border-gray-200 dark:border-gray-700`}>
+        <div className={`absolute right-full mr-3 ${isLastRow ? 'bottom-0' : 'top-0'} w-36 bg-white dark:bg-stone-800 rounded-md shadow-lg z-10 border border-gray-200 dark:border-stone-700`}>
           <div className="py-1">
             {onEdit && (
               <button
@@ -62,7 +62,7 @@ const Actions: React.FC<ActionsProps> = ({ onEdit, onView, onDelete, isLastRow =
                   onView();
                   setIsOpen(false);
                 }}
-                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-600 border-b-1 dark:border-gray-600"
+                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-600 border-b-1 dark:border-stone-800"
               >
                 <Eye className="h-4 w-4 mr-2" />
                 View

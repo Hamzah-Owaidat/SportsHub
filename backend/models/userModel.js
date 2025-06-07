@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const validator = require("validator");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
 const userSchema = new mongoose.Schema({
   username: {
@@ -52,15 +52,8 @@ const userSchema = new mongoose.Schema({
 
   phoneNumber: {
     type: String,
-    required: [true, "Phone number is required"],
-    unique: true,
-    trim: true,
-    validate: {
-      validator: function(v) {
-        // Validates international phone numbers
-        return /^\+?[1-9]\d{1,14}$/.test(v);
-      },
-      message: props => `${props.value} is not a valid phone number! Please use international format (e.g., +1234567890)`,
+    required: function () {
+      return this.authProvider !== "google"; // Only require if not from Google
     },
   },
 
@@ -91,15 +84,21 @@ const userSchema = new mongoose.Schema({
   termsAccepted: {
     type: Boolean,
     required: [true, "You must accept the terms and conditions and privacy policy"],
-    default: false
+    default: false,
   },
 
   role: {
     type: {
-      id: { type: mongoose.Schema.Types.ObjectId, ref: 'Role' },
-      name: { type: String }
+      id: { type: mongoose.Schema.Types.ObjectId, ref: "Role" },
+      name: { type: String },
     },
-    required: true
+    required: true,
+  },
+
+  authProvider: {
+    type: String,
+    enum: ["local", "google"],
+    default: "local",
   },
 
   createdBy: {
@@ -172,7 +171,8 @@ userSchema.methods.createPasswordResetToken = function () {
 
 userSchema.methods.getSignedJwtToken = function () {
   return jwt.sign(
-    { id: this._id,
+    {
+      id: this._id,
       role: this.role.name,
       username: this.username,
       email: this.email,
