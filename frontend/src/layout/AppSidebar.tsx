@@ -28,7 +28,7 @@ const navItems: NavItem[] = [
   {
     name: "Users",
     icon: <UserCircleIcon />,
-    path: "dashboard/users",
+    path: "/dashboard/users",
   },
 ];
 
@@ -37,8 +37,7 @@ const othersItems: NavItem[] = [
     icon: <LockIcon />,
     name: "Security",
     subItems: [
-      { name: "Roles", path: "/line-chart", pro: false },
-      { name: "Permissions", path: "/bar-chart", pro: false },
+      { name: "Roles", path: "/dashboard/roles" }
     ],
   },  
 ];

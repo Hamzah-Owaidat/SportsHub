@@ -8,7 +8,9 @@ require("./config/passport");
 const dashboardRoute = require("./routes/dashboardRoute");
 const authRoute = require("./routes/authRoute");
 const roleRoute = require("./routes/roleRoute");
-const uploadRoute = require("./routes/uploadRoute");  // We'll create this new route
+const uploadRoute = require("./routes/uploadRoute"); 
+
+const stadiumRoute = require("./routes/stadiumRoute"); // Import stadium routes
 
 const app = express();
 
@@ -30,5 +32,7 @@ app.use("/api/dashboard", dashboardRoute);
 app.use("/api/auth", authRoute);
 app.use("/api/roles", roleRoute);
 app.use("/api/upload", uploadRoute);
+
+app.use("/api/stadiums", stadiumRoute);
 
 module.exports = app;

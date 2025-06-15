@@ -1,23 +1,24 @@
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
+import RolesTable from "@/components/tables/RolesTable";
 import UsersTable from "@/components/tables/UsersTable";
 import { Metadata } from "next";
 import React from "react";
 
 export const metadata: Metadata = {
-  title: "Dashboard |  Users",
+  title: "Dashboard |  Roles",
   description:
-    "This is Next.js Users Table",
+    "This is Next.js Roles Table",
   // other metadata
 };
 
-export default function UsersPage() {
+export default function RolesPage() {
   return (
     <div>
-      <PageBreadcrumb pageTitle="Users Table" />
+      <PageBreadcrumb pageTitle="Roles Table" />
       <div className="space-y-6">
-        <ComponentCard title="Users Table">
-          <UsersTable />
+        <ComponentCard title="Roles Table">
+          <RolesTable />
         </ComponentCard>
       </div>
     </div>

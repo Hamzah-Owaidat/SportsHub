@@ -1,32 +1,38 @@
 const mongoose = require("mongoose");
 
-const slotSchema = new mongoose.Schema({
-  startTime: {
-    type: String,
-    required: true, // e.g., "15:00"
+const slotSchema = new mongoose.Schema(
+  {
+    startTime: {
+      type: String,
+      required: true, // e.g., "15:00"
+    },
+    endTime: {
+      type: String,
+      required: true, // e.g., "16:30"
+    },
+    isBooked: {
+      type: Boolean,
+      default: false,
+    },
+    bookingId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Booking",
+      default: null,
+    },
   },
-  endTime: {
-    type: String,
-    required: true, // e.g., "16:30"
-  },
-  isBooked: {
-    type: Boolean,
-    default: false,
-  },
-  bookingId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Booking",
-    default: null,
-  },
-}, { _id: false });
+  { _id: false }
+);
 
-const calendarEntrySchema = new mongoose.Schema({
-  date: {
-    type: Date,
-    required: true,
+const calendarEntrySchema = new mongoose.Schema(
+  {
+    date: {
+      type: Date,
+      required: true,
+    },
+    slots: [slotSchema],
   },
-  slots: [slotSchema],
-}, { _id: false });
+  { _id: false }
+);
 
 const stadiumSchema = new mongoose.Schema({
   ownerId: {
@@ -38,12 +44,14 @@ const stadiumSchema = new mongoose.Schema({
   name: {
     type: String,
     required: [true, "Stadium name is required"],
+    lowercase: true,
     trim: true,
   },
 
   location: {
     type: String,
     required: [true, "Location is required"],
+    lowercase: true,
     trim: true,
   },
 
@@ -93,6 +101,9 @@ const stadiumSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+},{
+  // 🎯 SOLUTION: Force collection name to 'stadiums'
+  collection: 'stadiums'
 });
 
 // Update `updatedAt` timestamp automatically
@@ -100,6 +111,8 @@ stadiumSchema.pre("save", function (next) {
   this.updatedAt = Date.now();
   next();
 });
+
+stadiumSchema.index({ ownerId: 1, name: 1, location: 1 }, { unique: true });
 
 const Stadium = mongoose.model("Stadium", stadiumSchema);
 

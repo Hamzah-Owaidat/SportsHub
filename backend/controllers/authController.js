@@ -203,6 +203,7 @@ exports.loginWithGoogleToken = asyncHandler(async (req, res) => {
         email: googleProfile.email,
         password: "GoogleAuth",
         passwordConfirm: "GoogleAuth",
+        phoneNumber: googleProfile.phoneNumber || null,
         isActive: true,
         profilePhoto: googleProfile.picture || null,
         termsAccepted: true,
@@ -240,7 +241,7 @@ exports.loginWithGoogleToken = asyncHandler(async (req, res) => {
 // @route     GET /api/auth/google/url
 // @access    Public
 exports.getGoogleAuthUrl = asyncHandler(async (req, res) => {
-  const redirectUri = `${process.env.API_URL}/api/auth/google/web-callback`;
+  const redirectUri = process.env.GOOGLE_REDIRECT_URI;
   
   try {
     const authUrl = googleAuthService.generateAuthUrl(redirectUri);
@@ -272,7 +273,7 @@ exports.handleGoogleWebCallback = asyncHandler(async (req, res) => {
   }
 
   try {
-    const redirectUri = `${process.env.API_URL}/api/auth/google/web-callback`;
+    const redirectUri = process.env.GOOGLE_REDIRECT_URI;
     const googleProfile = await googleAuthService.exchangeCodeForTokens(code, redirectUri);
 
     // Find or create user (same logic as token method)
@@ -289,6 +290,7 @@ exports.handleGoogleWebCallback = asyncHandler(async (req, res) => {
         email: googleProfile.email,
         password: "GoogleAuth",
         passwordConfirm: "GoogleAuth",
+        phoneNumber: googleProfile.phoneNumber || null,
         isActive: true,
         profilePhoto: googleProfile.picture || null,
         termsAccepted: true,
@@ -346,5 +348,6 @@ const sendTokenResponse = (user, statusCode, res) => {
   res.status(statusCode).cookie("token", token, options).json({
     success: true,
     token,
+    user
   });
 };

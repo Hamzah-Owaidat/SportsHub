@@ -107,10 +107,3 @@ export function renderGoogleSignInButton(elementId: string, options?: any) {
         );
     }
 }
-
-// Sign out from Google
-export function googleSignOut() {
-    if (typeof window !== 'undefined' && (window as any).google) {
-        (window as any).google.accounts.id.disableAutoSelect();
-    }
-}

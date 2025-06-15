@@ -12,7 +12,7 @@ const getToken = (): string | null => {
 
 // Create Axios instance with token
 const axiosInstance = axios.create({
-  baseURL: `${API_URL}/dashboard/users`,
+  baseURL: `${API_URL}/dashboard/`,
 });
 
 // Add token to headers
@@ -25,7 +25,7 @@ axiosInstance.interceptors.request.use((config) => {
 });
 
 export const getAllUsers = async () => {
-  const res = await axiosInstance.get('/');
+  const res = await axiosInstance.get('users');
   // Return the users array nested inside data.users
   return res.data?.data?.users || [];
 };
@@ -50,7 +50,7 @@ export const addUser = async (userData) => {
       }
     });
 
-    const response = await axiosInstance.post('/', formData, {
+    const response = await axiosInstance.post('users', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -67,7 +67,7 @@ export const addUser = async (userData) => {
 
 // Update a user
 export const updateUser = async (id, updatedData) => {
-  const response = await axiosInstance.put(`/${id}`, updatedData);
+  const response = await axiosInstance.put(`users/${id}`, updatedData);
   return response.data.data.user;
 };
 
@@ -75,3 +75,9 @@ export const updateUser = async (id, updatedData) => {
 export const deleteUser = async (id) => {
   await axiosInstance.delete(`/${id}`);
 };
+
+export const getAllRoles = async () => {
+  const res = await axiosInstance.get('roles');
+  // Return the roles array nested inside data.roles
+  return res.data?.data || [];
+}

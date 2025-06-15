@@ -1,20 +1,44 @@
 const express = require("express");
 const router = express.Router();
-const { getAllUsers, showDashboard, deleteUser, updateUser, addUser } = require("../controllers/dashboardController");
-const { isAuthenticated, isAdmin } = require("../middlewares/authMiddleware");
-const upload = require('../middlewares/upload');
+const usersController = require("../controllers/dashboard/usersController");
+const rolesController = require("../controllers/dashboard/rolesController");
+const stadiumController = require("../controllers/dashboard/stadiumsController");
+const { authMiddleware } = require("../middlewares/authMiddleware");
+const upload = require("../middlewares/upload");
 // const { cookiesMiddleware } = require("../middlewares/cookieMiddleware");
 
 // Dashboard home page
-router.get("/", isAuthenticated, isAdmin, showDashboard);
+// router.get("/", isAuthenticated, isAdmin, showDashboard);
 
-// Get all users for the dashboard
-router.get("/users", isAuthenticated, isAdmin, getAllUsers);
+// Dashboard users management
+router.get("/users", authMiddleware.admin, usersController.getAllUsers);
+router.get("/users/:id", authMiddleware.admin, usersController.getUser);
+router.post("/users", authMiddleware.admin, upload.single("profilePhoto"), usersController.addUser);
+router.put("/users/:id", authMiddleware.admin, usersController.updateUser);
+router.delete("/users/:id", authMiddleware.admin, usersController.deleteUser);
 
-router.post("/users", isAuthenticated, isAdmin, upload.single('profilePhoto'), addUser);
-router.put("/users/:id", isAuthenticated, isAdmin, updateUser);
-router.delete("/users/:id", isAuthenticated, isAdmin, deleteUser);
+// Dashboard roles management
+router.get("/roles", authMiddleware.admin, rolesController.getAllRoles);
+router.post("/roles", authMiddleware.admin, rolesController.createRole);
+router.put("/roles/:id", authMiddleware.admin, rolesController.updateRole);
+router.delete("/roles/:id", authMiddleware.admin, rolesController.deleteRole);
 
-
+// Dashboard stadium management
+router.get("/stadiums", authMiddleware.role(["admin"]), stadiumController.getAllStadiums);
+router.get("/stadiums/:id", authMiddleware.role(["admin", "stadiumOwner"]), stadiumController.getStadiumById);
+router.post("/stadiums", authMiddleware.stadiumOwner, stadiumController.addStadium);
+router.put("/stadiums/:id", authMiddleware.owns("stadiumModel", "id", "ownerId"), stadiumController.updateStadium);
+router.delete("/stadiums/:id", authMiddleware.owns("stadiumModel", "id", "ownerId"), stadiumController.deleteStadium);
+router.get("/stadiums/owner/:ownerId", authMiddleware.role(["admin"]), stadiumController.getStadiumsByOwner);
+router.post(
+  "/stadiums/:id/calendar",
+  authMiddleware.owns("stadiumModel", "id", "ownerId"),
+  stadiumController.addCalendarEntry
+);
+router.put(
+  "/stadiums/:id/calendar",
+  authMiddleware.owns("stadiumModel", "id", "ownerId"),
+  stadiumController.updateCalendarEntry
+);
 
 module.exports = router;

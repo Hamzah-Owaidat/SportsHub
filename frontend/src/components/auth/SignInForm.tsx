@@ -51,7 +51,7 @@ export default function SignInForm() {
         setErrors({ general: data.message || "Login failed. Try again." });
       } else {
         localStorage.setItem("token", data.token);
-        router.push("/dashboard");
+        router.push("/home");
       }
     } catch (err: any) {
       const apiErrors = err?.response?.data?.message;
@@ -75,19 +75,6 @@ export default function SignInForm() {
             </p>
           </div>
           <div>
-            <div className="grid grid-cols-1 gap-3">
-              <GoogleSignInButton
-                disabled={loading}
-                onSuccess={(data) => {
-                  // Custom success handler if needed
-                  console.log('Google sign-in successful:', data);
-                }}
-                onError={(error) => {
-                  setErrors({ general: error });
-                }}
-                className="w-full"
-              />
-            </div>
             <div className="relative py-3 sm:py-5">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-200 dark:border-stone-800"></div>
