@@ -10,7 +10,8 @@ const authRoute = require("./routes/authRoute");
 const roleRoute = require("./routes/roleRoute");
 const uploadRoute = require("./routes/uploadRoute"); 
 
-const stadiumRoute = require("./routes/stadiumRoute"); // Import stadium routes
+const stadiumRoute = require("./routes/stadiumRoute");
+const academyRoute = require("./routes/academyRoute");
 
 const app = express();
 
@@ -34,5 +35,6 @@ app.use("/api/roles", roleRoute);
 app.use("/api/upload", uploadRoute);
 
 app.use("/api/stadiums", stadiumRoute);
+app.use("/api/academies", academyRoute);
 
 module.exports = app;

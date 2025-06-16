@@ -3,6 +3,7 @@ const router = express.Router();
 const usersController = require("../controllers/dashboard/usersController");
 const rolesController = require("../controllers/dashboard/rolesController");
 const stadiumController = require("../controllers/dashboard/stadiumsController");
+const academyController = require("../controllers/dashboard/academiesController");
 const { authMiddleware } = require("../middlewares/authMiddleware");
 const upload = require("../middlewares/upload");
 // const { cookiesMiddleware } = require("../middlewares/cookieMiddleware");
@@ -39,6 +40,21 @@ router.put(
   "/stadiums/:id/calendar",
   authMiddleware.owns("stadiumModel", "id", "ownerId"),
   stadiumController.updateCalendarEntry
+);
+
+// Dashboard academy management
+router.get("/academies", authMiddleware.role(["admin"]), academyController.getAllAcademies);
+router.post("/academies", authMiddleware.academyOwner, academyController.addAcademy);
+router.get("/academies/:id", authMiddleware.role(["admin", "academyOwner"]), academyController.getAcademyById);
+router.put(
+  "/academies/:id",
+  authMiddleware.owns("academyModel", "id", "ownerId"),
+  academyController.updateAcademy
+);
+router.delete(
+  "/academies/:id",
+  authMiddleware.owns("academyModel", "id", "ownerId"),
+  academyController.deleteAcademy
 );
 
 module.exports = router;

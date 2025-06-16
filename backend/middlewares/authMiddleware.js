@@ -301,6 +301,7 @@ const authMiddleware = {
   stadiumOwner: [authenticate(), authorize('stadiumOwner')],
   referee: [authenticate(), authorize('referee')],
   teamLeader: [authenticate(), authorize('teamLeader')],
+  academyOwner: [authenticate(), authorize('academyOwner')],
   
   // Common role combinations
   adminOrOwner: [authenticate(), authorize(['admin', 'stadiumOwner'])],
@@ -314,7 +315,7 @@ const authMiddleware = {
   sportsManagers: [authenticate(), authorize(['admin', 'referee', 'teamLeader'])],
   
   // All authenticated users
-  authenticated: [authenticate(), authorize(['admin', 'user', 'stadiumOwner', 'referee', 'teamLeader'])],
+  authenticated: [authenticate(), authorize(['admin', 'user', 'stadiumOwner', 'referee', 'teamLeader', 'academyOwner'])],
   
   // Elevated privileges (admin + specialized roles)
   elevated: [authenticate(), authorize(['admin', 'stadiumOwner', 'referee', 'teamLeader'])],
