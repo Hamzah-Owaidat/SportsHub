@@ -36,6 +36,11 @@ const tournamentSchema = new mongoose.Schema({
       ref: "Team",
     },
   ],
+  maxTeams: {
+    type: Number,
+    required: [true, "Maximum number of teams is required"],
+    min: [2, "At least two teams must be allowed"],
+  },
   startDate: {
     type: Date,
     required: [true, "Start date is required"],

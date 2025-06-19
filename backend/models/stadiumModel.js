@@ -60,7 +60,7 @@ const stadiumSchema = new mongoose.Schema({
     default: [],
   },
 
-  pricePerHour: {
+  pricePerMatch: {
     type: Number,
     required: true,
     min: [0, "Price per hour must be a positive number"],

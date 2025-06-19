@@ -1,6 +1,25 @@
 const Stadium = require("../../models/stadiumModel"); // Adjust path as needed
 const mongoose = require("mongoose");
 
+const generateSlots = require("../../utils/generateSlots"); // Adjust path if needed
+
+const fillCalendarWithSlots = async (stadium, days = 7) => {
+  for (let i = 0; i < days; i++) {
+    const date = new Date();
+    date.setDate(date.getDate() + i);
+    date.setHours(0, 0, 0, 0);
+
+    const dateExists = stadium.calendar.some((entry) => entry.date.toDateString() === date.toDateString());
+    if (!dateExists) {
+      const slots = generateSlots(stadium.workingHours.start, stadium.workingHours.end);
+      stadium.calendar.push({
+        date,
+        slots,
+      });
+    }
+  }
+  await stadium.save();
+};
 // Get all stadiums
 const getAllStadiums = async (req, res) => {
   try {
@@ -64,7 +83,7 @@ const addStadium = async (req, res) => {
       name,
       location,
       photos,
-      pricePerHour,
+      pricePerMatch,
       penaltyPolicy,
       workingHours,
       calendar,
@@ -127,10 +146,10 @@ const addStadium = async (req, res) => {
     }
 
     // Validate required fields
-    if (!name || !location || !pricePerHour || !penaltyPolicy || !workingHours) {
+    if (!name || !location || !pricePerMatch || !penaltyPolicy || !workingHours) {
       return res.status(400).json({
         success: false,
-        message: "Missing required fields: name, location, pricePerHour, penaltyPolicy, workingHours",
+        message: "Missing required fields: name, location, pricePerMatch, penaltyPolicy, workingHours",
       });
     }
 
@@ -169,7 +188,7 @@ const addStadium = async (req, res) => {
       name,
       location,
       photos: photos || [],
-      pricePerHour,
+      pricePerMatch,
       penaltyPolicy: {
         hoursBefore: penaltyPolicy.hoursBefore,
         penaltyAmount: penaltyPolicy.penaltyAmount,
@@ -178,12 +197,14 @@ const addStadium = async (req, res) => {
         start: workingHours.start,
         end: workingHours.end,
       },
-      calendar: calendar || [],
+      calendar: [],
       createdAt: new Date(),
       updatedAt: new Date(),
     });
 
     const savedStadium = await newStadium.save();
+
+    await fillCalendarWithSlots(savedStadium, 7);
 
     // Populate owner info before sending response
     await savedStadium.populate("ownerId", "username email");
@@ -237,6 +258,22 @@ const updateStadium = async (req, res) => {
         success: false,
         message: "Stadium not found",
       });
+    }
+
+    // If workingHours updated, clear and refill calendar slots for next 7 days
+    if (updateData.workingHours && updateData.workingHours.start && updateData.workingHours.end) {
+      // Clear calendar entries for next 7 days (or you can clear all, your choice)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      updatedStadium.calendar = updatedStadium.calendar.filter(
+        (entry) => entry.date < today || entry.date > new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)
+      );
+
+      await updatedStadium.save();
+
+      // Fill calendar again with new slots
+      await fillCalendarWithSlots(updatedStadium, 7);
     }
 
     res.status(200).json({

@@ -6,10 +6,7 @@ const asyncHandler = require("express-async-handler");
 // @route   GET /dashboard/users
 // @access  Admin
 exports.getAllUsers = asyncHandler(async (req, res) => {
-  const users = await User.find()
-    .populate('createdBy', 'username')
-    .populate('updatedBy', 'username')
-    .lean();
+  const users = await User.find().populate("createdBy", "username").populate("updatedBy", "username").lean();
 
   const transformedUsers = users.map((user) => ({
     ...user,
@@ -31,9 +28,7 @@ exports.getAllUsers = asyncHandler(async (req, res) => {
 // @route   GET /dashboard/users/:id
 // @access  Admin
 exports.getUser = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.params.id)
-    .populate('createdBy', 'username')
-    .populate('updatedBy', 'username');
+  const user = await User.findById(req.params.id).populate("createdBy", "username").populate("updatedBy", "username");
 
   if (!user) {
     return res.status(404).json({
@@ -66,8 +61,8 @@ exports.addUser = asyncHandler(async (req, res) => {
   } = req.body;
 
   // Debug: Check if req.user exists
-  console.log('req.user:', req.user);
-  console.log('req.user._id:', req.user?.id);
+  // console.log("req.user:", req.user);
+  // console.log("req.user._id:", req.user?.id);
 
   // Validation
   if (!username || !email || !password || !passwordConfirm || !roleId) {
@@ -79,22 +74,21 @@ exports.addUser = asyncHandler(async (req, res) => {
 
   if (password !== passwordConfirm) {
     return res.status(400).json({
-      status: "error", 
+      status: "error",
       message: "Passwords do not match",
     });
   }
 
   // Check for existing user
-  const existingUser = await User.findOne({ 
-    $or: [{ email }, { username }] 
+  const existingUser = await User.findOne({
+    $or: [{ email }, { username }],
   });
-  
+
   if (existingUser) {
     return res.status(400).json({
       status: "error",
-      message: existingUser.email === email ? 
-        "User already exists with this email" : 
-        "User already exists with this username",
+      message:
+        existingUser.email === email ? "User already exists with this email" : "User already exists with this username",
     });
   }
 
@@ -110,7 +104,8 @@ exports.addUser = asyncHandler(async (req, res) => {
   // Handle profile photo
   let profilePhotoPath = null;
   if (req.file) {
-    profilePhotoPath = `/images/user/${req.file.filename}`;
+    const domain = process.env.Base_IMAGE_URL;
+    profilePhotoPath = `${domain}/images/user/${req.file.filename}`;
   }
 
   // Prepare user data
@@ -135,19 +130,19 @@ exports.addUser = asyncHandler(async (req, res) => {
     userData.updatedBy = req.user.id;
   }
 
-  console.log('userData before create:', userData);
+  console.log("userData before create:", userData);
 
   // Create user
   const newUser = await User.create(userData);
 
-  console.log('newUser after create:', newUser);
+  console.log("newUser after create:", newUser);
 
   // Populate the created user only if createdBy/updatedBy exist
   let populatedUser;
   if (newUser.createdBy || newUser.updatedBy) {
     populatedUser = await User.findById(newUser.id)
-      .populate('createdBy', 'username email')
-      .populate('updatedBy', 'username email');
+      .populate("createdBy", "username email")
+      .populate("updatedBy", "username email");
   } else {
     populatedUser = newUser;
   }
@@ -166,14 +161,7 @@ exports.addUser = asyncHandler(async (req, res) => {
 // @access  Admin
 exports.updateUser = asyncHandler(async (req, res) => {
   const userId = req.params.id;
-  const { 
-    username, 
-    email, 
-    role: roleId, 
-    profilePhoto, 
-    isActive, 
-    phoneNumber 
-  } = req.body;
+  const { username, email, role: roleId, profilePhoto, isActive, phoneNumber } = req.body;
 
   // Check if user exists
   const existingUser = await User.findById(userId);
@@ -193,13 +181,13 @@ exports.updateUser = asyncHandler(async (req, res) => {
   }
 
   const updateFields = {};
-  
+
   // Build update fields
   if (username !== undefined) {
     // Check for duplicate username (excluding current user)
-    const duplicateUsername = await User.findOne({ 
-      username, 
-      id: { $ne: userId } 
+    const duplicateUsername = await User.findOne({
+      username,
+      id: { $ne: userId },
     });
     if (duplicateUsername) {
       return res.status(400).json({
@@ -209,12 +197,12 @@ exports.updateUser = asyncHandler(async (req, res) => {
     }
     updateFields.username = username;
   }
-  
+
   if (email !== undefined) {
     // Check for duplicate email (excluding current user)
-    const duplicateEmail = await User.findOne({ 
-      email, 
-      id: { $ne: userId } 
+    const duplicateEmail = await User.findOne({
+      email,
+      id: { $ne: userId },
     });
     if (duplicateEmail) {
       return res.status(400).json({
@@ -224,7 +212,7 @@ exports.updateUser = asyncHandler(async (req, res) => {
     }
     updateFields.email = email;
   }
-  
+
   if (roleId !== undefined) {
     // Validate role
     const roleData = await Role.findById(roleId);
@@ -239,11 +227,11 @@ exports.updateUser = asyncHandler(async (req, res) => {
       name: roleData.name,
     };
   }
-  
+
   if (profilePhoto !== undefined) updateFields.profilePhoto = profilePhoto;
   if (isActive !== undefined) updateFields.isActive = isActive;
   if (phoneNumber !== undefined) updateFields.phoneNumber = phoneNumber;
-  
+
   // Always update these fields
   updateFields.updatedBy = req.user?.id;
   updateFields.updatedAt = Date.now();
@@ -253,16 +241,12 @@ exports.updateUser = asyncHandler(async (req, res) => {
     updateFields.profilePhoto = `/images/user/${req.file.filename}`;
   }
 
-  const updatedUser = await User.findByIdAndUpdate(
-    userId, 
-    updateFields, 
-    {
-      new: true,
-      runValidators: true,
-    }
-  )
-    .populate('createdBy', 'username email')
-    .populate('updatedBy', 'username email');
+  const updatedUser = await User.findByIdAndUpdate(userId, updateFields, {
+    new: true,
+    runValidators: true,
+  })
+    .populate("createdBy", "username email")
+    .populate("updatedBy", "username email");
 
   // Create dynamic success message
   let message = "User updated successfully";

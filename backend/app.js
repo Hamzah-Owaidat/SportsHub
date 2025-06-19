@@ -8,10 +8,12 @@ require("./config/passport");
 const dashboardRoute = require("./routes/dashboardRoute");
 const authRoute = require("./routes/authRoute");
 const roleRoute = require("./routes/roleRoute");
-const uploadRoute = require("./routes/uploadRoute"); 
+const uploadRoute = require("./routes/uploadRoute");
 
 const stadiumRoute = require("./routes/stadiumRoute");
 const academyRoute = require("./routes/academyRoute");
+const tournamentRoute = require("./routes/tournamentRoute");
+const bookingRoute = require("./routes/bookingRoute");
 
 const app = express();
 
@@ -36,5 +38,7 @@ app.use("/api/upload", uploadRoute);
 
 app.use("/api/stadiums", stadiumRoute);
 app.use("/api/academies", academyRoute);
+app.use("/api/tournaments", tournamentRoute);
+app.use("/api/bookings", bookingRoute);
 
 module.exports = app;

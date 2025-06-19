@@ -19,7 +19,7 @@ exports.getAllRoles = asyncHandler(async (req, res) => {
 // @desc    Create a new role
 // @route   POST /dashboard/roles
 // @access  Admin
-exports.createRole = asyncHandler(async (req, res) => {
+exports.addRole = asyncHandler(async (req, res) => {
   const { name } = req.body;
   
   // Assuming you have user ID from authentication middleware (req.user.id)
