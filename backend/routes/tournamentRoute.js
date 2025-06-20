@@ -5,7 +5,7 @@ const tournamentController = require('../controllers/tournamentController');
 const { authMiddleware } = require('../middlewares/authMiddleware');
 
 
-router.get('/', authMiddleware.role(['user', 'teamLeader']), tournamentController.getAllTournaments);
+router.get('/', authMiddleware.auth, tournamentController.getAllTournaments);
 router.post("/join", authMiddleware.teamLeader, tournamentController.joinTournament);
 
 
