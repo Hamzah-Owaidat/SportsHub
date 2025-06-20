@@ -9,27 +9,32 @@ import {
 } from "../ui/table";
 
 import Actions from "../ui/actions/Actions"
-import Image from "next/image";
 import Pagination from "./Pagination";
-import Toggle from "../ui/button/Toggle";
-import { getAllRoles } from '@/lib/api/dashboard/dashboard';
-import { Badge } from "lebify-ui"
+import { deleteRole, getAllRoles } from '@/lib/api/dashboard/dashboard';
 import { Role } from "@/types/Role";
+import { toast } from "react-toastify";
 
 
+interface RolesTableProps {
+    tableData: Role[];
+    setTableData: React.Dispatch<React.SetStateAction<Role[]>>;
+    loading: boolean;
+    setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+}
 
 
+export default function RolesTable({
+    tableData,
+    setTableData,
+    loading,
+    setLoading,
+}: RolesTableProps) {
 
-export default function UsersTable() {
-    const [tableData, setTableData] = useState<Role[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
     const [currentPage, setCurrentPage] = useState(1);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingRoleId, setEditingRoleId] = useState<string | null>(null);
     const itemsPerPage = 5;
 
     useEffect(() => {
-        const fetchUsers = async () => {
+        const fetchRoles = async () => {
             try {
                 const roles = await getAllRoles();
                 setTableData(roles);
@@ -40,15 +45,23 @@ export default function UsersTable() {
             }
         };
 
-        fetchUsers();
+        fetchRoles();
     }, []);
 
 
+    const handleDelete = async (id: string) => {
+        const confirmed = window.confirm('Are you sure you want to delete this role?');
+        if (!confirmed) return;
 
-    const handleEdit = (id: string) => {
-        setEditingRoleId(id);
-        setIsModalOpen(true);
+        try {
+            await deleteRole(id);
+            toast.success('Role deleted successfully');
+            setTableData(prev => prev.filter(role => role._id !== id));
+        } catch (error) {
+            console.error('Failed to delete role:', error);
+        }
     };
+
 
 
 
@@ -144,7 +157,6 @@ export default function UsersTable() {
                                 currentRoles.map((role, index) => (
                                     <TableRow key={role._id}>
 
-
                                         <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                             {role.name}
                                         </TableCell>
@@ -157,7 +169,6 @@ export default function UsersTable() {
                                             {role.updatedBy?.username || 'N/A'}
                                         </TableCell>
 
-
                                         <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
                                             {new Date(role.createdAt).toLocaleDateString()}
                                         </TableCell>
@@ -169,8 +180,7 @@ export default function UsersTable() {
                                         <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
                                             <Actions
                                                 onEdit={() => console.log('View clicked', role._id)}
-                                                onView={() => console.log('View clicked', role._id)}
-                                                onDelete={() => console.log('View clicked', role._id)}
+                                                onDelete={() => handleDelete(role._id)}
                                                 isLastRow={index === currentRoles.length - 1}
                                             />
                                         </TableCell>

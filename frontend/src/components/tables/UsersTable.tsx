@@ -11,40 +11,34 @@ import {
 import Actions from "../ui/actions/Actions"
 import Image from "next/image";
 import Pagination from "./Pagination";
-import Toggle from "../ui/button/Toggle";
-import { getAllUsers, deleteUser, updateUser } from '@/lib/api/dashboard/dashboard';
+import { getAllUsers, deleteUser } from '@/lib/api/dashboard/dashboard';
 import { Badge } from "lebify-ui"
+import { User } from "@/types/User";
+import { toast } from "react-toastify";
 
 
 
-interface Role {
-  id: string;
-  name: string;
-  _id: string;
-}
 
-interface User {
-  _id: string;
-  username: string;
-  isActive: boolean;
-  email: string;
-  phoneNumber: string;
-  profileImage?: string;
-  role: Role;
-  isVerified?: boolean;
-  createdAt: string; // or Date (but you will need to convert)
-  updatedAt: string; // or Date
+interface UsersTableProps {
+  tableData: User[];
+  setTableData: React.Dispatch<React.SetStateAction<User[]>>;
+  loading: boolean;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 
-export default function UsersTable() {
-  const [tableData, setTableData] = useState<User[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+export default function UsersTable({
+  tableData,
+  setTableData,
+  loading,
+  setLoading,
+}: UsersTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const itemsPerPage = 5;
   
+
+
+
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -60,29 +54,19 @@ export default function UsersTable() {
     fetchUsers();
   }, []);
 
+
   const handleDelete = async (id: string) => {
     const confirmed = window.confirm('Are you sure you want to delete this user?');
     if (!confirmed) return;
 
     try {
       await deleteUser(id);
+      toast.success('User deleted successfully');
       setTableData(prev => prev.filter(user => user._id !== id));
     } catch (error) {
       console.error('Failed to delete user:', error);
     }
   };
-
-  const handleEdit = (id: string) => {
-    setEditingUserId(id);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setEditingUserId(null);
-  };
-
-
 
   // Calculate pagination using the fetched data
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -95,16 +79,6 @@ export default function UsersTable() {
     setCurrentPage(pageNumber);
   };
 
-  // Handle status toggle - update to use active field instead of status
-  // const handleStatusToggle = (id: string, isActive: boolean) => {
-  //   setTableData(prevData => 
-  //     prevData.map(item => 
-  //       item._id === id 
-  //         ? { ...item, active: isActive } 
-  //         : item
-  //     )
-  //   );
-  // };
 
   // In your render method, update the table to match the new data structure
   return (
@@ -186,18 +160,25 @@ export default function UsersTable() {
                   <TableRow key={user._id}>
                     <TableCell className="px-5 py-4 sm:px-6 text-start">
                       <div className="w-10 h-10 overflow-hidden rounded-full bg-gray-200 flex items-center justify-center">
-                        {user.profileImage && user.profileImage !== "null" ? (
+                        {user && user.profilePhoto && user.profilePhoto !== "null" ? (
                           <Image
                             width={40}
                             height={40}
-                            src={user.profileImage}
+                            className="object-cover w-full h-full"
+                            loading="lazy"
+                            src={
+                              user.profilePhoto.startsWith('http')
+                                ? user.profilePhoto
+                                : `http://localhost:8080${user.profilePhoto}`
+                            }
                             alt={user.username}
                           />
                         ) : (
                           <span className="text-gray-600 font-medium">
-                            {user.username.substring(0, 2).toUpperCase()}
+                            {user ? user.username.substring(0, 2).toUpperCase() : 'NA'}
                           </span>
                         )}
+
                       </div>
                     </TableCell>
 
@@ -241,8 +222,8 @@ export default function UsersTable() {
                     </TableCell>
 
                     <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                      <Actions 
-                        onEdit={() => handleEdit(user._id)}
+                      <Actions
+                        onEdit={() => console.log('Edit clicked', user._id)}
                         onView={() => console.log('View clicked', user._id)}
                         onDelete={() => handleDelete(user._id)}
                         isLastRow={index === currentUsers.length - 1}
@@ -255,18 +236,17 @@ export default function UsersTable() {
           </Table>
         </div>
       </div>
-      
+
       {/* Pagination */}
       {!loading && tableData.length > 0 && (
         <div className="flex justify-center py-4">
-          <Pagination 
+          <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={handlePageChange}
           />
         </div>
       )}
-
     </div>
   );
 }

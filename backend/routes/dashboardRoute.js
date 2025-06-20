@@ -34,16 +34,6 @@ router.post("/stadiums", authMiddleware.stadiumOwner, stadiumController.addStadi
 router.put("/stadiums/:id", authMiddleware.owns("stadiumModel", "id", "ownerId"), stadiumController.updateStadium);
 router.delete("/stadiums/:id", authMiddleware.owns("stadiumModel", "id", "ownerId"), stadiumController.deleteStadium);
 router.get("/stadiums/owner/:ownerId", authMiddleware.role(["admin"]), stadiumController.getStadiumsByOwner);
-router.post(
-  "/stadiums/:id/calendar",
-  authMiddleware.owns("stadiumModel", "id", "ownerId"),
-  stadiumController.addCalendarEntry
-);
-router.put(
-  "/stadiums/:id/calendar",
-  authMiddleware.owns("stadiumModel", "id", "ownerId"),
-  stadiumController.updateCalendarEntry
-);
 router.get(
   "/stadiums/:id/bookings",
   authMiddleware.owns("stadiumModel", "id", "ownerId"),

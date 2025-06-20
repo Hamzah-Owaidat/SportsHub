@@ -3,22 +3,38 @@ const mongoose = require("mongoose");
 
 const generateSlots = require("../../utils/generateSlots"); // Adjust path if needed
 
-const fillCalendarWithSlots = async (stadium, days = 7) => {
-  for (let i = 0; i < days; i++) {
-    const date = new Date();
-    date.setDate(date.getDate() + i);
-    date.setHours(0, 0, 0, 0);
+const fillCalendarWithSlots = async (stadium, startDate = new Date(), endDate = null) => {
+  if (!endDate) {
+    endDate = new Date();
+    endDate.setMonth(endDate.getMonth() + 6); // 6 months ahead by default
+  }
 
-    const dateExists = stadium.calendar.some((entry) => entry.date.toDateString() === date.toDateString());
+  const currentDate = new Date(startDate);
+  currentDate.setHours(0, 0, 0, 0);
+
+  const finalDate = new Date(endDate);
+  finalDate.setHours(0, 0, 0, 0);
+
+  const newCalendarEntries = [];
+
+  while (currentDate <= finalDate) {
+    const dateExists = stadium.calendar.some((entry) => entry.date.toDateString() === currentDate.toDateString());
+
     if (!dateExists) {
       const slots = generateSlots(stadium.workingHours.start, stadium.workingHours.end);
-      stadium.calendar.push({
-        date,
+      newCalendarEntries.push({
+        date: new Date(currentDate),
         slots,
       });
     }
+
+    currentDate.setDate(currentDate.getDate() + 1);
   }
-  await stadium.save();
+
+  if (newCalendarEntries.length > 0) {
+    stadium.calendar.push(...newCalendarEntries);
+    await stadium.save();
+  }
 };
 // Get all stadiums
 const getAllStadiums = async (req, res) => {
@@ -78,95 +94,52 @@ const getStadiumById = async (req, res) => {
 // Add new stadium
 const addStadium = async (req, res) => {
   try {
-    const {
-      ownerId, // Only used by admin
-      name,
-      location,
-      photos,
-      pricePerMatch,
-      penaltyPolicy,
-      workingHours,
-      calendar,
-    } = req.body;
+    const { ownerId, name, location, photos, pricePerMatch, penaltyPolicy, workingHours, maxPlayers } = req.body;
 
-    // Get user info from the authenticated request
-    const loggedInUser = req.user; // Assuming auth middleware adds user to req
+    const loggedInUser = req.user;
     const userRole = loggedInUser.role;
     const userId = loggedInUser.userId || loggedInUser.id;
 
     let finalOwnerId;
 
-    // Determine owner based on user role
     if (userRole === "admin") {
-      // Admin can specify ownerId or use their own ID
       if (ownerId) {
-        // Validate the provided ownerId
         if (!mongoose.Types.ObjectId.isValid(ownerId)) {
-          return res.status(400).json({
-            success: false,
-            message: "Invalid owner ID",
-          });
+          return res.status(400).json({ success: false, message: "Invalid owner ID" });
         }
 
-        // Optional: Verify the ownerId belongs to a user with stadiumOwner role
-        const User = require("../../models/userModel"); // Adjust path as needed
+        const User = require("../../models/userModel");
         const targetOwner = await User.findById(ownerId);
-        if (!targetOwner) {
-          return res.status(400).json({
-            success: false,
-            message: "Owner not found",
-          });
-        }
-        if (targetOwner.role !== "stadiumOwner" && targetOwner.role !== "admin") {
-          return res.status(400).json({
-            success: false,
-            message: "Specified user is not a stadium owner",
-          });
+        if (!targetOwner || (targetOwner.role !== "stadiumOwner" && targetOwner.role !== "admin")) {
+          return res.status(400).json({ success: false, message: "Invalid stadium owner" });
         }
 
         finalOwnerId = ownerId;
       } else {
-        // If admin doesn't specify ownerId, use their own ID
         finalOwnerId = userId;
       }
     } else if (userRole === "stadiumOwner") {
-      // Stadium owner can only create stadiums for themselves
       if (ownerId && ownerId !== userId.toString()) {
-        return res.status(403).json({
-          success: false,
-          message: "Stadium owners can only create stadiums for themselves",
-        });
+        return res.status(403).json({ success: false, message: "Cannot assign to another user" });
       }
       finalOwnerId = userId;
     } else {
-      return res.status(403).json({
-        success: false,
-        message: "Insufficient permissions to create stadium",
-      });
+      return res.status(403).json({ success: false, message: "Unauthorized" });
     }
 
-    // Validate required fields
-    if (!name || !location || !pricePerMatch || !penaltyPolicy || !workingHours) {
+    if (!name || !location || !pricePerMatch || !penaltyPolicy || !workingHours || !maxPlayers) {
       return res.status(400).json({
         success: false,
-        message: "Missing required fields: name, location, pricePerMatch, penaltyPolicy, workingHours",
+        message: "Missing required fields: name, location, pricePerMatch, penaltyPolicy, workingHours, maxPlayers",
       });
     }
 
-    // Validate penaltyPolicy structure
     if (!penaltyPolicy.hoursBefore || !penaltyPolicy.penaltyAmount) {
-      return res.status(400).json({
-        success: false,
-        message: "penaltyPolicy must include hoursBefore and penaltyAmount",
-      });
+      return res.status(400).json({ success: false, message: "Invalid penalty policy" });
     }
 
-    // Validate workingHours structure
     if (!workingHours.start || !workingHours.end) {
-      return res.status(400).json({
-        success: false,
-        message: "workingHours must include start and end times",
-      });
+      return res.status(400).json({ success: false, message: "Invalid working hours" });
     }
 
     const existingStadium = await Stadium.findOne({
@@ -176,37 +149,29 @@ const addStadium = async (req, res) => {
     });
 
     if (existingStadium) {
-      return res.status(400).json({
-        success: false,
-        message: "A stadium with this name and location already exists for this owner.",
-      });
+      return res.status(400).json({ success: false, message: "Stadium already exists" });
     }
 
-    // Create new stadium
     const newStadium = new Stadium({
       ownerId: finalOwnerId,
       name,
       location,
       photos: photos || [],
       pricePerMatch,
-      penaltyPolicy: {
-        hoursBefore: penaltyPolicy.hoursBefore,
-        penaltyAmount: penaltyPolicy.penaltyAmount,
-      },
-      workingHours: {
-        start: workingHours.start,
-        end: workingHours.end,
-      },
+      penaltyPolicy,
+      workingHours,
+      maxPlayers,
       calendar: [],
       createdAt: new Date(),
       updatedAt: new Date(),
     });
 
     const savedStadium = await newStadium.save();
+    const today = new Date();
+    const endDate = new Date();
+    endDate.setDate(today.getDate() + 14);
 
-    await fillCalendarWithSlots(savedStadium, 7);
-
-    // Populate owner info before sending response
+    await fillCalendarWithSlots(stadium, today, endDate);
     await savedStadium.populate("ownerId", "username email");
 
     res.status(201).json({
@@ -217,18 +182,10 @@ const addStadium = async (req, res) => {
   } catch (error) {
     if (error.name === "ValidationError") {
       const errors = Object.values(error.errors).map((err) => err.message);
-      return res.status(400).json({
-        success: false,
-        message: "Validation error",
-        errors,
-      });
+      return res.status(400).json({ success: false, message: "Validation error", errors });
     }
 
-    res.status(500).json({
-      success: false,
-      message: "Error creating stadium",
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: "Error creating stadium", error: error.message });
   }
 };
 
@@ -239,30 +196,21 @@ const updateStadium = async (req, res) => {
     const updateData = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid stadium ID",
-      });
+      return res.status(400).json({ success: false, message: "Invalid stadium ID" });
     }
 
-    // Add updatedAt timestamp
-    updateData.updatedAt = new Date();
+    updateData.updatedAt = new Date(); // Always update timestamp
 
     const updatedStadium = await Stadium.findByIdAndUpdate(id, updateData, {
-      new: true, // Return updated document
-      runValidators: true, // Run schema validations
+      new: true,
+      runValidators: true,
     }).populate("ownerId", "username email");
 
     if (!updatedStadium) {
-      return res.status(404).json({
-        success: false,
-        message: "Stadium not found",
-      });
+      return res.status(404).json({ success: false, message: "Stadium not found" });
     }
 
-    // If workingHours updated, clear and refill calendar slots for next 7 days
-    if (updateData.workingHours && updateData.workingHours.start && updateData.workingHours.end) {
-      // Clear calendar entries for next 7 days (or you can clear all, your choice)
+    if (updateData.workingHours?.start && updateData.workingHours?.end) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
@@ -271,9 +219,10 @@ const updateStadium = async (req, res) => {
       );
 
       await updatedStadium.save();
+      const endDate = new Date();
+      endDate.setDate(today.getDate() + 14);
 
-      // Fill calendar again with new slots
-      await fillCalendarWithSlots(updatedStadium, 7);
+      await fillCalendarWithSlots(updatedStadium, today, endDate);
     }
 
     res.status(200).json({
@@ -284,18 +233,10 @@ const updateStadium = async (req, res) => {
   } catch (error) {
     if (error.name === "ValidationError") {
       const errors = Object.values(error.errors).map((err) => err.message);
-      return res.status(400).json({
-        success: false,
-        message: "Validation error",
-        errors,
-      });
+      return res.status(400).json({ success: false, message: "Validation error", errors });
     }
 
-    res.status(500).json({
-      success: false,
-      message: "Error updating stadium",
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: "Error updating stadium", error: error.message });
   }
 };
 
@@ -362,123 +303,11 @@ const getStadiumsByOwner = async (req, res) => {
   }
 };
 
-// Add calendar entry to stadium
-const addCalendarEntry = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { date, slots } = req.body;
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid stadium ID",
-      });
-    }
-
-    if (!date || !slots) {
-      return res.status(400).json({
-        success: false,
-        message: "Date and slots are required",
-      });
-    }
-
-    const stadium = await Stadium.findById(id);
-    if (!stadium) {
-      return res.status(404).json({
-        success: false,
-        message: "Stadium not found",
-      });
-    }
-
-    // Check if calendar entry for this date already exists
-    const existingEntry = stadium.calendar.find((entry) => entry.date.toDateString() === new Date(date).toDateString());
-
-    if (existingEntry) {
-      return res.status(400).json({
-        success: false,
-        message: "Calendar entry for this date already exists",
-      });
-    }
-
-    // Add new calendar entry
-    stadium.calendar.push({ date: new Date(date), slots });
-    stadium.updatedAt = new Date();
-
-    const updatedStadium = await stadium.save();
-
-    res.status(200).json({
-      success: true,
-      message: "Calendar entry added successfully",
-      data: updatedStadium,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error adding calendar entry",
-      error: error.message,
-    });
-  }
-};
-
-// Update calendar entry
-const updateCalendarEntry = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { date, slots } = req.body;
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid stadium ID",
-      });
-    }
-
-    const stadium = await Stadium.findById(id);
-    if (!stadium) {
-      return res.status(404).json({
-        success: false,
-        message: "Stadium not found",
-      });
-    }
-
-    // Find and update calendar entry
-    const entryIndex = stadium.calendar.findIndex(
-      (entry) => entry.date.toDateString() === new Date(date).toDateString()
-    );
-
-    if (entryIndex === -1) {
-      return res.status(404).json({
-        success: false,
-        message: "Calendar entry not found for this date",
-      });
-    }
-
-    stadium.calendar[entryIndex].slots = slots;
-    stadium.updatedAt = new Date();
-
-    const updatedStadium = await stadium.save();
-
-    res.status(200).json({
-      success: true,
-      message: "Calendar entry updated successfully",
-      data: updatedStadium,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error updating calendar entry",
-      error: error.message,
-    });
-  }
-};
-
 module.exports = {
   getAllStadiums,
   getStadiumById,
   addStadium,
   updateStadium,
   deleteStadium,
-  getStadiumsByOwner,
-  addCalendarEntry,
-  updateCalendarEntry,
+  getStadiumsByOwner
 };

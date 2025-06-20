@@ -40,26 +40,38 @@ export default function UserDropdown() {
   return (
     <div className="relative">
       <button
-        onClick={toggleDropdown} 
+        onClick={toggleDropdown}
         className="flex items-center text-gray-700 dark:text-gray-400 dropdown-toggle"
       >
-        <span className="mr-3 overflow-hidden rounded-full h-11 w-11">
-          <Image
-            width={44}
-            height={44}
-            src={user?.profileImage || "/images/user/owner.jpg"}
-            alt={user?.username || "User"}
-          />
+        <span className="mr-3 overflow-hidden rounded-full h-11 w-11 bg-transparent border border-gray-300 dark:border-stone-700 flex items-center justify-center">
+          {user && user.profileImage && user.profileImage !== "null" ? (
+            <Image
+              width={40}
+              height={40}
+              className="object-cover w-full h-full"
+              loading="lazy"
+              src={
+                user.profileImage.startsWith('http')
+                  ? user.profileImage
+                  : `http://localhost:8080${user.profileImage}`
+              }
+              alt={user.username}
+            />
+          ) : (
+            <span className="text-stone-900 dark:text-white font-medium text-sm">
+              {user ? user.username.substring(0, 2).toUpperCase() : 'NA'}
+            </span>
+          )}
         </span>
+
 
         <span className="block mr-1 font-medium text-theme-sm">
           {user?.username || "User"}
         </span>
 
         <svg
-          className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 ${
-            isOpen ? "rotate-180" : ""
-          }`}
+          className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""
+            }`}
           width="18"
           height="20"
           viewBox="0 0 18 20"
@@ -167,7 +179,7 @@ export default function UserDropdown() {
             </DropdownItem>
           </li>
         </ul>
-        <Button 
+        <Button
           size="medium"
           hoverEffect="default"
           variant="sea"

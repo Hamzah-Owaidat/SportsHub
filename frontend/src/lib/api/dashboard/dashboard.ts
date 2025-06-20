@@ -56,7 +56,7 @@ export const addUser = async (userData) => {
       }
     });
     
-    return response.data.user; // Changed from response.data.data.user
+    return response.data.data.user;
   } catch (error) {
     if (error.response) {
       throw new Error(error.response.data.message || 'Failed to add user');
@@ -73,7 +73,7 @@ export const updateUser = async (id, updatedData) => {
 
 // Delete a user
 export const deleteUser = async (id) => {
-  await axiosInstance.delete(`/${id}`);
+  await axiosInstance.delete(`users/${id}`);
 };
 
 export const getAllRoles = async () => {
@@ -81,3 +81,27 @@ export const getAllRoles = async () => {
   // Return the roles array nested inside data.roles
   return res.data?.data || [];
 }
+
+// Add a role
+export const addRole = async (roleData) => {
+  try {
+    const response = await axiosInstance.post('roles', roleData);
+    return response.data.data;
+  } catch (error) {
+    if (error.response) {
+      throw new Error(error.response.data.message || 'Failed to add role');
+    }
+    throw new Error(error.message || 'An error occurred');
+  }
+}
+
+// Update a role
+export const updateRole = async (id, updatedData) => {
+  const response = await axiosInstance.put(`roles/${id}`, updatedData);
+  return response.data.data;
+}
+
+// Delete a role
+export const deleteRole = async (id) => {
+  await axiosInstance.delete(`roles/${id}`);
+};

@@ -12,6 +12,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     { text: "Stadiums", path: "/stadiums" },
     { text: "Tournaments", path: "/tournaments" },
     { text: "Academies", path: "/academies" },
+    { text: "My Bookings", path: "/my-bookings" },
   ];
 
   const roleBasedLinks = user?.role !== "user"

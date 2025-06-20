@@ -66,6 +66,12 @@ const stadiumSchema = new mongoose.Schema({
     min: [0, "Price per hour must be a positive number"],
   },
 
+  maxPlayers: {
+    type: Number,
+    required: true,
+    min: [1, "There must be at least 1 player allowed"],
+  },
+
   penaltyPolicy: {
     hoursBefore: {
       type: Number,

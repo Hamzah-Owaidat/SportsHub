@@ -8,6 +8,8 @@ dotenv.config();
 
 const DB = process.env.DATABASE.replace("<DATABASE_PASSWORD>", process.env.DATABASE_PASSWORD);
 
+require('./utils/bookingCleanupJob');
+
 mongoose
   .connect(DB)
   .then(() => console.log("DB connection successful!"))

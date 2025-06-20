@@ -107,7 +107,10 @@ exports.cancelBooking = async (req, res) => {
     }
 
     if (booking.status !== "pending" && booking.status !== "approved") {
-      return res.status(400).json({ success: false, message: "Only pending or approved bookings can be cancelled" });
+      return res.status(400).json({
+        success: false,
+        message: "Only approved bookings can be cancelled",
+      });
     }
 
     const now = new Date();
@@ -116,13 +119,15 @@ exports.cancelBooking = async (req, res) => {
     matchDateTime.setHours(hour, minute, 0, 0);
 
     if (now > matchDateTime) {
-      return res.status(400).json({ success: false, message: "Cannot cancel past bookings" });
+      return res.status(400).json({
+        success: false,
+        message: "Cannot cancel past bookings",
+      });
     }
 
     // Check penalty
     const stadium = await Stadium.findById(booking.stadiumId);
     const penaltyWindow = stadium.penaltyPolicy.hoursBefore;
-
     const hoursBeforeMatch = (matchDateTime - now) / (1000 * 60 * 60);
     const applyPenalty = hoursBeforeMatch < penaltyWindow;
 
@@ -135,17 +140,19 @@ exports.cancelBooking = async (req, res) => {
     const dateOnly = new Date(booking.matchDate);
     dateOnly.setHours(0, 0, 0, 0);
 
-    const calendarEntry = stadium.calendar.find((entry) => new Date(entry.date).getTime() === dateOnly.getTime());
+    const calendarEntry = stadium.calendar.find(
+      (entry) => new Date(entry.date).getTime() === dateOnly.getTime()
+    );
 
     if (calendarEntry) {
       const slot = calendarEntry.slots.find(
-        (s) => s.startTime === booking.timeSlot && s.bookingId?.toString() === booking._id.toString()
+        (s) => s.bookingId && s.bookingId.toString() === booking._id.toString()
       );
       if (slot) {
         slot.isBooked = false;
         slot.bookingId = null;
+        await stadium.save();
       }
-      await stadium.save();
     }
 
     res.status(200).json({
@@ -154,9 +161,14 @@ exports.cancelBooking = async (req, res) => {
       data: booking,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to cancel booking", error: error.message });
+    res.status(500).json({
+      success: false,
+      message: "Failed to cancel booking",
+      error: error.message,
+    });
   }
 };
+
 
 exports.getMyBookings = async (req, res) => {
   try {

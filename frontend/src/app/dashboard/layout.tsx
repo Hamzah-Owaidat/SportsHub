@@ -8,7 +8,7 @@ import Backdrop from "@/layout/Backdrop";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import React from "react";
-import { ToastContainer } from "react-toastify";
+
 
 export default function AdminLayout({
   children,
@@ -41,7 +41,6 @@ export default function AdminLayout({
 
   return (
     <div className="relative min-h-screen xl:flex">
-
       <AppSidebar />
       <Backdrop />
 
@@ -50,20 +49,6 @@ export default function AdminLayout({
       >
         <AppHeader />
         <div className="p-4 mx-auto max-w-screen-2xl md:p-6">
-          {/* Global Toast Container - must be top-level and positioned fixed */}
-          <ToastContainer
-            position="top-right"
-            autoClose={3000}
-            hideProgressBar={false}
-            newestOnTop
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            theme="colored"
-            className="z-[9999]"
-          />
           {children}
         </div>
       </div>
