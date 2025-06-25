@@ -11,7 +11,7 @@ type DecodedToken = {
   username: string;
   email: string;
   phoneNumber: string;
-  profileImage: string | null;
+  profilePhoto: string | null;
   isActive: boolean;
   termsAccepted: boolean;
   createdBy: string | null;
@@ -50,7 +50,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           handleLogout(); // token expired
         } else {
           setUser(decoded);
-          
+
           // Set up Authorization header for future requests
           setupAuthHeader(token);
         }
@@ -72,20 +72,20 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const setupAuthHeader = (token: string) => {
     // This will intercept all fetch requests and add the Authorization header
     const originalFetch = window.fetch;
-    window.fetch = function(input, init) {
+    window.fetch = function (input, init) {
       init = init || {};
       init.headers = init.headers || {};
-      
+
       // Add Authorization header to all non-external requests
       const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
       const isRelativeUrl = url.startsWith('/') || url.startsWith(window.location.origin);
-      
+
       if (isRelativeUrl) {
         Object.assign(init.headers, {
           'Authorization': `Bearer ${token}`
         });
       }
-      
+
       return originalFetch.call(this, input, init);
     };
   };
@@ -108,26 +108,26 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error("API logout failed", error);
     }
-    
+
     // Clear local storage
     localStorage.removeItem("token");
-    
+
     // Remove Authorization header
     removeAuthHeader();
-    
+
     // Clear user state
     setUser(null);
-    
+
     // Redirect to login
     router.push("/auth/signin");
   };
 
   // Role-based helper functions
   const isAdmin = user?.role === "admin";
-  
+
   const hasRole = (roles: string | string[]) => {
     if (!user) return false;
-    
+
     const roleArray = Array.isArray(roles) ? roles : [roles];
     return roleArray.includes(user.role);
   };
@@ -138,28 +138,28 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     if (!window.fetch.__original) {
       window.fetch.__original = window.fetch;
     }
-    
+
     fetchUserFromToken();
-    
+
     // Set up storage event listener to handle token changes
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === "token") {
         refreshUser();
       }
     };
-    
+
     // Listen for custom auth events
     const handleAuthChange = () => {
       refreshUser();
     };
-    
+
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('authStateChange', handleAuthChange);
-    
+
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('authStateChange', handleAuthChange);
-      
+
       // Restore original fetch on unmount
       if (window.fetch.__original) {
         window.fetch = window.fetch.__original;
@@ -168,11 +168,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <UserContext.Provider value={{ 
-      user, 
-      setUser, 
-      logout: handleLogout, 
-      loading, 
+    <UserContext.Provider value={{
+      user,
+      setUser,
+      logout: handleLogout,
+      loading,
       refreshUser,
       isAdmin,
       hasRole

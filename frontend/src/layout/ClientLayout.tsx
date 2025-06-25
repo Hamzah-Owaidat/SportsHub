@@ -3,6 +3,7 @@
 import Navbar from "@/components/common/Navbar";
 import ThemeTogglerTwo from "@/components/common/ThemeTogglerTwo";
 import { useUser } from "@/context/UserContext";
+import { ToastContainer } from "react-toastify";
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const { user } = useUser();
@@ -27,7 +28,22 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       <div className="fixed bottom-6 right-6 z-50">
         <ThemeTogglerTwo />
       </div>
-      <main className="pt-16">{children}</main>
+      <main className="pt-16">
+        <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="colored"
+                className="z-auto"
+              />
+        {children}
+      </main>
     </>
   );
 }

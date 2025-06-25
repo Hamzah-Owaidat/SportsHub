@@ -12,7 +12,7 @@ const getToken = (): string | null => {
 
 // Create Axios instance with token
 const axiosInstance = axios.create({
-  baseURL: `${API_URL}/dashboard/users`,
+  baseURL: `${API_URL}/users`,
 });
 
 // Add token to headers
@@ -24,17 +24,9 @@ axiosInstance.interceptors.request.use((config) => {
   return config;
 });
 
-export const getUserProfile = async () => {
-  const res = await axiosInstance.get('/profile');
-  return res.data;
-};
 
 export const updateUser = async (userId: string, data: any) => {
-  const res = await axiosInstance.put(`/${userId}`, data);
+  const res = await axiosInstance.post(`/update-profile`, data);
   return res.data;
 };
 
-export const deleteUser = async (userId: string) => {
-  const res = await axiosInstance.delete(`/${userId}`);
-  return res.data;
-};

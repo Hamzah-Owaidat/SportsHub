@@ -44,16 +44,16 @@ export default function UserDropdown() {
         className="flex items-center text-gray-700 dark:text-gray-400 dropdown-toggle"
       >
         <span className="mr-3 overflow-hidden rounded-full h-11 w-11 bg-transparent border border-gray-300 dark:border-stone-700 flex items-center justify-center">
-          {user && user.profileImage && user.profileImage !== "null" ? (
+          {user && user.profilePhoto && user.profilePhoto !== "null" ? (
             <Image
               width={40}
               height={40}
               className="object-cover w-full h-full"
               loading="lazy"
               src={
-                user.profileImage.startsWith('http')
-                  ? user.profileImage
-                  : `http://localhost:8080${user.profileImage}`
+                user.profilePhoto.startsWith('http')
+                  ? user.profilePhoto
+                  : `http://localhost:8080${user.profilePhoto}`
               }
               alt={user.username}
             />
