@@ -9,6 +9,7 @@ const bookingsController = require("../controllers/dashboard/bookingsController"
 
 const { authMiddleware } = require("../middlewares/authMiddleware");
 const upload = require("../middlewares/upload");
+const uploadStadium = require("../middlewares/uploadStadium");
 // const { cookiesMiddleware } = require("../middlewares/cookieMiddleware");
 
 // Dashboard home page
@@ -30,10 +31,11 @@ router.delete("/roles/:id", authMiddleware.admin, rolesController.deleteRole);
 // Dashboard stadium management
 router.get("/stadiums", authMiddleware.role(["admin"]), stadiumController.getAllStadiums);
 router.get("/stadiums/:id", authMiddleware.role(["admin", "stadiumOwner"]), stadiumController.getStadiumById);
-router.post("/stadiums", authMiddleware.stadiumOwner, stadiumController.addStadium);
+router.post("/stadiums", authMiddleware.role(["stadiumOwner"]), uploadStadium.array("photos", 5), stadiumController.addStadium);
 router.put("/stadiums/:id", authMiddleware.owns("stadiumModel", "id", "ownerId"), stadiumController.updateStadium);
 router.delete("/stadiums/:id", authMiddleware.owns("stadiumModel", "id", "ownerId"), stadiumController.deleteStadium);
-router.get("/stadiums/owner/:ownerId", authMiddleware.role(["admin"]), stadiumController.getStadiumsByOwner);
+router.get("/stadiums/owner/:ownerId", authMiddleware.role(["admin", "stadiumOwner"]), stadiumController.getStadiumsByOwner);
+
 router.get(
   "/stadiums/:id/bookings",
   authMiddleware.owns("stadiumModel", "id", "ownerId"),
@@ -54,6 +56,7 @@ router.delete("/academies/:id", authMiddleware.owns("academyModel", "id", "owner
 
 // Dashboard tournaments management
 router.get("/tournaments", authMiddleware.role(["admin"]), tournamentsController.getAllTournaments);
+router.get("/my-tournaments", authMiddleware.stadiumOwner, tournamentsController.getMyTournaments);
 router.post("/tournaments", authMiddleware.stadiumOwner, tournamentsController.addTournament);
 // router.get("/tournaments/:id", authMiddleware.role(["admin", "stadiumOwner"]), tournamentsController.getTournamentById);
 router.put(

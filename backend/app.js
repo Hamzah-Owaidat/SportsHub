@@ -14,6 +14,8 @@ const academyRoute = require("./routes/academyRoute");
 const tournamentRoute = require("./routes/tournamentRoute");
 const bookingRoute = require("./routes/bookingRoute");
 const userRoute = require("./routes/userRoute");
+const teamRoute = require("./routes/teamRoute");
+const notificationRoute = require("./routes/notificationRoute");
 
 const app = express();
 
@@ -41,6 +43,8 @@ app.use("/api/academies", academyRoute);
 app.use("/api/tournaments", tournamentRoute);
 app.use("/api/bookings", bookingRoute);
 app.use("/api/users", userRoute);
+app.use("/api/teams", teamRoute);
+app.use("/api/notifications", notificationRoute);
 
 
 module.exports = app;

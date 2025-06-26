@@ -64,10 +64,10 @@ const AddRoleModal: React.FC<AddRoleModalProps> = ({ isOpen, onClose, setTableDa
             
             setTableData(prev => [...prev, newRole]);
 
-            toast.success("User added successfully");
+            toast.success("Role added successfully");
             handleClose();
         } catch (err: any) {
-            const errorMessage = err.message || "Failed to add user. Please try again.";
+            const errorMessage = err.message || "Failed to add role. Please try again.";
             setErrors({ general: errorMessage });
             toast.error(errorMessage);
         } finally {
@@ -78,7 +78,7 @@ const AddRoleModal: React.FC<AddRoleModalProps> = ({ isOpen, onClose, setTableDa
     return (
         <Modal isOpen={isOpen} onClose={handleClose}>
             <div className="p-6 max-w-xl w-full">
-                <h2 className="text-xl font-semibold pb-10 dark:text-white">Add New User</h2>
+                <h2 className="text-xl font-semibold pb-10 dark:text-white">Add New Role</h2>
 
                 <form onSubmit={handleSubmit} encType="multipart/form-data">
                     <div className="space-y-5">
@@ -107,11 +107,11 @@ const AddRoleModal: React.FC<AddRoleModalProps> = ({ isOpen, onClose, setTableDa
                                     Name {errors.name && <span className="text-error-500">*</span>}
                                 </Label>
                                 <Input
-                                    id="username"
-                                    name="username"
+                                    id="name"
+                                    name="name"
                                     type="text"
                                     value={ name }
-                                    placeholder="Enter your username"
+                                    placeholder="Enter your name"
                                     onChange={handleChange}
                                     className={
                                         !errors.name

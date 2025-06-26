@@ -101,6 +101,18 @@ const userSchema = new mongoose.Schema({
     default: "local",
   },
 
+  notifications: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Notification",
+    },
+  ],
+
+  team: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Team",
+  },
+
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",

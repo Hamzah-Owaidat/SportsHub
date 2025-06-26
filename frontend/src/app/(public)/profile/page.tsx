@@ -1,4 +1,4 @@
-import UserInfoCard from "@/components/user-profile/UserInfoCard";
+import TeamInfoCard from "@/components/user-profile/TeamInfoCard";
 import UserMetaCard from "@/components/user-profile/UserMetaCard";
 
 
@@ -8,7 +8,11 @@ export default function ProfilePage() {
             <UserMetaCard />
             <br />
             <br />
-            <UserInfoCard />
+            <TeamInfoCard />
+            <br />
+            <br />
+            <br />
+
         </div>
     )
 }

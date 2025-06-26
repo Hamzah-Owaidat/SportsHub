@@ -16,7 +16,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     { text: "My Bookings", path: "/my-bookings" },
   ];
 
-  const roleBasedLinks = user?.role !== "user"
+  const roleBasedLinks = !["user", "teamLeader"].includes(user?.role)
     ? [{ text: "Dashboard", path: "/dashboard" }]
     : [];
 
@@ -30,18 +30,18 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       </div>
       <main className="pt-16">
         <ToastContainer
-                position="top-right"
-                autoClose={3000}
-                hideProgressBar={false}
-                newestOnTop
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-                theme="colored"
-                className="z-auto"
-              />
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="colored"
+          className="z-auto"
+        />
         {children}
       </main>
     </>

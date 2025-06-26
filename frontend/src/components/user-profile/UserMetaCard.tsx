@@ -108,10 +108,10 @@ export default function UserMetaCard() {
 
   return (
     <>
-      <div className="p-5 border border-gray-300 rounded-2xl dark:border-white/[0.05] lg:p-6">
+      <div className="p-5 border border-gray-300 rounded-2xl bg-white dark:bg-stone-800 dark:border-stone-700 lg:p-6">
         <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex flex-col items-center w-full gap-6 xl:flex-row">
-            <div className="flex items-center justify-center w-20 h-20 overflow-hidden border border-gray-300 rounded-full dark:border-white/[0.05]">
+            <div className="flex items-center justify-center w-20 h-20 overflow-hidden border border-gray-300 rounded-full dark:border-stone-700">
               {user && user.profilePhoto && user.profilePhoto !== "null" ? (
                 <Image
                   width={40}

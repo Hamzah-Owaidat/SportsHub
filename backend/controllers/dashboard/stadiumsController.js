@@ -1,4 +1,5 @@
-const Stadium = require("../../models/stadiumModel"); // Adjust path as needed
+const Stadium = require("../../models/stadiumModel");
+const User = require("../../models/userModel");
 const mongoose = require("mongoose");
 
 const generateSlots = require("../../utils/generateSlots"); // Adjust path if needed
@@ -94,8 +95,16 @@ const getStadiumById = async (req, res) => {
 // Add new stadium
 const addStadium = async (req, res) => {
   try {
-    const { ownerId, name, location, photos, pricePerMatch, penaltyPolicy, workingHours, maxPlayers } = req.body;
+    const { ownerId, name, location, pricePerMatch, maxPlayers } = req.body;
 
+    let penaltyPolicy, workingHours;
+
+    try {
+      penaltyPolicy = JSON.parse(req.body.penaltyPolicy);
+      workingHours = JSON.parse(req.body.workingHours);
+    } catch (parseError) {
+      return res.status(400).json({ success: false, message: "Invalid JSON structure in penaltyPolicy or workingHours" });
+    }
     const loggedInUser = req.user;
     const userRole = loggedInUser.role;
     const userId = loggedInUser.userId || loggedInUser.id;
@@ -108,7 +117,6 @@ const addStadium = async (req, res) => {
           return res.status(400).json({ success: false, message: "Invalid owner ID" });
         }
 
-        const User = require("../../models/userModel");
         const targetOwner = await User.findById(ownerId);
         if (!targetOwner || (targetOwner.role !== "stadiumOwner" && targetOwner.role !== "admin")) {
           return res.status(400).json({ success: false, message: "Invalid stadium owner" });
@@ -152,6 +160,8 @@ const addStadium = async (req, res) => {
       return res.status(400).json({ success: false, message: "Stadium already exists" });
     }
 
+    const photos = req.files?.map(file => `/images/stadiumsImages/${file.filename}`) || [];
+
     const newStadium = new Stadium({
       ownerId: finalOwnerId,
       name,
@@ -167,11 +177,12 @@ const addStadium = async (req, res) => {
     });
 
     const savedStadium = await newStadium.save();
+
     const today = new Date();
     const endDate = new Date();
     endDate.setDate(today.getDate() + 14);
 
-    await fillCalendarWithSlots(stadium, today, endDate);
+    await fillCalendarWithSlots(savedStadium, today, endDate);
     await savedStadium.populate("ownerId", "username email");
 
     res.status(201).json({
@@ -309,5 +320,5 @@ module.exports = {
   addStadium,
   updateStadium,
   deleteStadium,
-  getStadiumsByOwner
+  getStadiumsByOwner,
 };
