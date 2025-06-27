@@ -99,41 +99,41 @@ export default function RolesTable({
                             <TableRow>
                                 <TableCell
                                     isHeader
-                                    className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                                    className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400"
                                 >
                                     Role
                                 </TableCell>
 
                                 <TableCell
                                     isHeader
-                                    className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                                    className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400"
                                 >
                                     Created By
                                 </TableCell>
                                 <TableCell
                                     isHeader
-                                    className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                                    className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400"
                                 >
                                     Updated By
                                 </TableCell>
 
                                 <TableCell
                                     isHeader
-                                    className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                                    className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400"
                                 >
                                     Created At
                                 </TableCell>
 
                                 <TableCell
                                     isHeader
-                                    className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                                    className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400"
                                 >
                                     Updated At
                                 </TableCell>
 
                                 <TableCell
                                     isHeader
-                                    className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                                    className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400"
                                 >
                                     Action
                                 </TableCell>
@@ -157,27 +157,27 @@ export default function RolesTable({
                                 currentRoles.map((role, index) => (
                                     <TableRow key={role._id}>
 
-                                        <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                        <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">
                                             {role.name}
                                         </TableCell>
 
-                                        <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                        <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">
                                             {role.createdBy?.username || 'N/A'}
                                         </TableCell>
 
-                                        <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                        <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">
                                             {role.updatedBy?.username || 'N/A'}
                                         </TableCell>
 
-                                        <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
+                                        <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">
                                             {new Date(role.createdAt).toLocaleDateString()}
                                         </TableCell>
 
-                                        <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
+                                        <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">
                                             {new Date(role.updatedAt).toLocaleDateString()}
                                         </TableCell>
 
-                                        <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
+                                        <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">
                                             <Actions
                                                 onEdit={() => console.log('View clicked', role._id)}
                                                 onDelete={() => handleDelete(role._id)}

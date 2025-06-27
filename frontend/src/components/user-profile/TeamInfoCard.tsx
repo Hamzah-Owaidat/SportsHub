@@ -59,10 +59,11 @@ export default function TeamInfoCard() {
     if (!newTeamName.trim()) return alert("Please enter a team name");
     try {
       setLoading(true);
-      await teamService.createTeam(newTeamName);
+      const response = await teamService.createTeam(newTeamName);
       toast.success("Team created!");
       setShowCreateModal(false);
       setNewTeamName("");
+      localStorage.setItem("token", response.token);
       fetchTeam();
       refreshUser();
     } catch (error) {
@@ -81,7 +82,6 @@ export default function TeamInfoCard() {
     toast.error("Search failed");
   }
 }
-
 
   async function inviteUser(userId: string) {
   try {
@@ -107,8 +107,9 @@ export default function TeamInfoCard() {
   async function deleteTeam() {
   if (!confirm("Are you sure you want to dissolve the team?")) return;
   try {
-    await teamService.deleteTeam(team?._id);
+    const response = await teamService.deleteTeam(team?._id);
     toast.success("Team dissolved");
+    localStorage.setItem('token', response.token);
     setTeam(null);
     refreshUser();
   } catch (error) {
@@ -119,8 +120,9 @@ export default function TeamInfoCard() {
   async function exitTeam() {
   if (!confirm("Are you sure you want to leave the team?")) return;
   try {
-    await teamService.exitTeam(team?._id);
+    const response = await teamService.exitTeam(team?._id);
     toast.success("You left the team");
+    localStorage.setItem("token", response.token);
     setTeam(null);
     refreshUser();
   } catch (error) {

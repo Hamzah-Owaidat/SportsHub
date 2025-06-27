@@ -192,6 +192,7 @@ userSchema.methods.getSignedJwtToken = function () {
       profilePhoto: this.profilePhoto,
       isActive: this.isActive,
       termsAccepted: this.termsAccepted,
+      team: this.team,
       createdBy: this.createdBy,
       updatedBy: this.updatedBy,
       createdAt: this.createdAt,

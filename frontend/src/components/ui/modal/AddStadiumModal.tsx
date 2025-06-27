@@ -5,14 +5,14 @@ import { Modal } from "./index";
 import Label from "@/components/form/Label";
 import Input from "@/components/form/input/InputField";
 import FieldError from "@/components/helper/FieldError";
-import ProfilePhotoPreview from "@/components/ui/previewphoto";
 import { toast } from "react-toastify";
-import axios from "axios";
+import { Stadium } from "@/types/Stadium";
+import { addStadium } from "@/lib/api/dashboard/stadiums";
 
 interface AddStadiumModalProps {
     isOpen: boolean;
     onClose: () => void;
-    refreshData: () => void; // callback to refresh stadium list after add
+    setTableData: React.Dispatch<React.SetStateAction<Stadium[]>>
 }
 
 interface PenaltyPolicy {
@@ -25,7 +25,7 @@ interface WorkingHours {
     end: string;
 }
 
-const AddStadiumModal: React.FC<AddStadiumModalProps> = ({ isOpen, onClose, refreshData }) => {
+const AddStadiumModal: React.FC<AddStadiumModalProps> = ({ isOpen, onClose, setTableData }) => {
     const [formData, setFormData] = useState({
         name: "",
         location: "",
@@ -131,27 +131,21 @@ const AddStadiumModal: React.FC<AddStadiumModalProps> = ({ isOpen, onClose, refr
             data.append("penaltyPolicy", JSON.stringify(formData.penaltyPolicy));
             data.append("workingHours", JSON.stringify(formData.workingHours));
 
-            formData.photos.forEach((file, idx) => {
+            formData.photos.forEach((file) => {
                 data.append("photos", file, file.name);
             });
 
-            // Make your API call here, e.g., using fetch or axios:
-            const result = await axios.post("http://localhost:8080/api/dashboard/stadiums", data, {
-                headers: {
-                    "Authorization": `Bearer ${localStorage.getItem("token")}`,
-                    // DON'T manually set content-type for FormData — let Axios handle it
-                },
-            });
-            if (!result.ok) {
-                toast.error(result.message || "Failed to add stadium");
-                setLoading(false);
+            const newStadiumResponse = await addStadium(data);
+
+            if (!newStadiumResponse.success) {
+                toast.error(newStadiumResponse.message || "Failed to add stadium");
                 return;
             }
 
             toast.success("Stadium added successfully");
             resetForm();
             onClose();
-            refreshData();
+            setTableData(prev => [...prev, newStadiumResponse.data]); // Assuming `data` holds the stadium
 
         } catch (error) {
             console.error(error);
@@ -159,6 +153,7 @@ const AddStadiumModal: React.FC<AddStadiumModalProps> = ({ isOpen, onClose, refr
         } finally {
             setLoading(false);
         }
+
     };
 
     return (

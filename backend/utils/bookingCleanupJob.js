@@ -1,14 +1,11 @@
-const cron = require("node-cron");
 const Booking = require("../models/bookingModel");
 const Stadium = require("../models/stadiumModel");
 
-cron.schedule("0 * * * *", async () => {
+setInterval(async () => {
   try {
     const now = new Date();
 
-    // Find all approved bookings
     const bookings = await Booking.find({ status: "approved" });
-
     let updatedCount = 0;
 
     for (const booking of bookings) {
@@ -25,7 +22,7 @@ cron.schedule("0 * * * *", async () => {
       );
       if (!slot || !slot.endTime) continue;
 
-      // Combine matchDate and slot.endTime
+      // Combine booking date with slot.endTime
       const [hour, minute] = slot.endTime.split(":").map(Number);
       const endDateTime = new Date(booking.matchDate);
       endDateTime.setHours(hour, minute, 0, 0);
@@ -41,4 +38,5 @@ cron.schedule("0 * * * *", async () => {
   } catch (err) {
     console.error("Error updating completed bookings:", err.message);
   }
-});
+}, 90 * 60 * 1000); // runs every 1.5 hours
+

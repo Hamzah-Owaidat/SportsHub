@@ -12,7 +12,7 @@ const getToken = (): string | null => {
 
 // Create Axios instance with token
 const axiosInstance = axios.create({
-  baseURL: `${API_URL}/dashboard/`,
+  baseURL: `${API_URL}/tournaments`,
 });
 
 // Add token to headers
@@ -24,17 +24,12 @@ axiosInstance.interceptors.request.use((config) => {
   return config;
 });
 
-export async function getAllStadiums() {
-  const res = await axiosInstance.get("stadiums");
-  return res.data.data;
-}
-
-export const getStadiumsByOwner = async (ownerId: string) => {
-  const res = await axiosInstance.get(`stadiums/owner/${ownerId}`);
-  return res.data.data;
+export const getAllTournaments = async () => {
+  const res = await axiosInstance.get("/");
+  return res.data;
 };
 
-export const addStadium = async (stadiumData: any) => {
-  const res = await axiosInstance.post("stadiums", stadiumData);
+export const joinTournament = async (payload: { tournamentId: string, teamId: string }) => {
+  const res = await axiosInstance.post('/join', payload);
   return res.data;
-}
+};

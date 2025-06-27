@@ -1,7 +1,8 @@
 const asyncHandler = require("express-async-handler");
 const Tournament = require("../models/tournamentModel");
 const Team = require("../models/teamModel");
-
+const Notification = require("../models/notificationModel");
+const User = require("../models/userModel");
 
 // Get all tournaments
 exports.getAllTournaments = asyncHandler(async (req, res) => {
@@ -20,6 +21,10 @@ exports.getAllTournaments = asyncHandler(async (req, res) => {
 exports.joinTournament = asyncHandler(async (req, res) => {
   const { tournamentId, teamId } = req.body;
 
+  if (!teamId) {
+    throw new Error("teamId is required");
+  }
+
   const tournament = await Tournament.findById(tournamentId);
   if (!tournament) {
     res.status(404);
@@ -36,17 +41,44 @@ exports.joinTournament = asyncHandler(async (req, res) => {
     throw new Error("Tournament is already full");
   }
 
+  // Add team to tournament
   tournament.teams.push(teamId);
   tournament.updatedBy = req.user.id;
   tournament.updatedAt = Date.now();
-
   await tournament.save();
+
+  // Notify all members of the team
+  const team = await Team.findById(teamId).populate("members", "_id username");
+  if (team && team.members.length > 0) {
+    const message = `Your team "${team.name}" has joined the tournament "${tournament.name}".`;
+
+    const notifications = await Promise.all(
+      team.members.map(member => 
+        Notification.create({
+          user: member._id,
+          message,
+          type: "info",
+          metadata: {
+            teamId: team._id,
+            tournamentId: tournament._id,
+          },
+        })
+      )
+    );
+
+    // Push notification IDs to each user
+    await Promise.all(
+      team.members.map((member, i) =>
+        User.findByIdAndUpdate(member._id, {
+          $push: { notifications: notifications[i]._id },
+        })
+      )
+    );
+  }
 
   res.status(200).json({
     status: "success",
-    message: "Team added to tournament",
+    message: "Team added to tournament and members notified",
     data: tournament,
   });
 });
-
-

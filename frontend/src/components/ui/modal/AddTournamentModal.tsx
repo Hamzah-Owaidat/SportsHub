@@ -9,17 +9,18 @@ import { toast } from "react-toastify";
 import { addTournament } from "@/lib/api/dashboard/tournaments";
 import { getStadiumsByOwner } from "@/lib/api/dashboard/stadiums";
 import { useUser } from "@/context/UserContext";
+import { Tournament } from "@/types/Tournament";
 
 interface AddTournamentModalProps {
     isOpen: boolean;
     onClose: () => void;
-    refreshTournaments: () => void;
+    setTableData: React.Dispatch<React.SetStateAction<Tournament[]>>
 }
 
 const AddTournamentModal: React.FC<AddTournamentModalProps> = ({
     isOpen,
     onClose,
-    refreshTournaments,
+    setTableData,
 }) => {
     const { user } = useUser();
     const [formData, setFormData] = useState({
@@ -79,10 +80,10 @@ const AddTournamentModal: React.FC<AddTournamentModalProps> = ({
         setErrors({});
         try {
             setLoading(true);
-            await addTournament(formData);
+            const newTournament = await addTournament(formData);
             toast.success("Tournament created!");
             onClose();
-            refreshTournaments();
+            setTableData(prev => [...prev, newTournament.data]);
         } catch (err: any) {
             setErrors(err.response?.data?.errors || { general: "Failed to add tournament" });
         } finally {
@@ -141,7 +142,7 @@ const AddTournamentModal: React.FC<AddTournamentModalProps> = ({
                             name="stadiumId"
                             value={formData.stadiumId}
                             onChange={handleChange}
-                            className="w-full rounded border px-3 py-2"
+                            className="w-full rounded border px-3 py-2 text-white"
                         >
                             <option value="">Select a stadium</option>
                             {stadiums.map((stadium: any) => (
@@ -152,7 +153,7 @@ const AddTournamentModal: React.FC<AddTournamentModalProps> = ({
                         </select>
                         {errors.stadiumId && <FieldError message={errors.stadiumId} />}
                     </div>
-                    <Button type="submit" loading={loading} className="w-full">
+                    <Button type="submit" variant="sea" loading={loading} className="w-full">
                         Add Tournament
                     </Button>
                 </form>

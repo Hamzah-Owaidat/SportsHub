@@ -14,6 +14,7 @@ type DecodedToken = {
   profilePhoto: string | null;
   isActive: boolean;
   termsAccepted: boolean;
+  team: string;
   createdBy: string | null;
   updatedBy: string | null;
   createdAt: string;

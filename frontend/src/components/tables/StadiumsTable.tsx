@@ -111,17 +111,17 @@ export default function StadiumsTable({
                     </div>
                   </TableCell>
 
-                  <TableCell className="px-5 py-4 text-start">{stadium.name}</TableCell>
-                  <TableCell className="px-5 py-4 text-start">{stadium.location}</TableCell>
-                  <TableCell className="px-5 py-4 text-start">{stadium.pricePerMatch.toLocaleString()} LBP</TableCell>
-                  <TableCell className="px-5 py-4 text-start">{stadium.maxPlayers}</TableCell>
-                  <TableCell className="px-5 py-4 text-start">
+                  <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">{stadium.name}</TableCell>
+                  <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">{stadium.location}</TableCell>
+                  <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">{stadium.pricePerMatch.toLocaleString()} LBP</TableCell>
+                  <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">{stadium.maxPlayers}</TableCell>
+                  <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">
                     {stadium.workingHours?.start} - {stadium.workingHours?.end}
                   </TableCell>
-                  <TableCell className="px-5 py-4 text-start">
+                  <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">
                     {new Date(stadium.createdAt).toLocaleDateString()}
                   </TableCell>
-                  <TableCell className="px-5 py-4 text-start">
+                  <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">
                     <Actions
                       onEdit={() => console.log("Edit stadium", stadium._id)}
                       onView={() => console.log("View stadium", stadium._id)}

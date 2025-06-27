@@ -34,6 +34,7 @@ const StadiumCard = ({
           alt={name}
           width={400}
           height={250}
+          loading="lazy"
           className="object-cover hover:scale-105 transition-transform duration-300"
         />
         <div className="absolute top-3 right-3 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold">

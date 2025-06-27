@@ -55,6 +55,7 @@ exports.updateUserProfile = asyncHandler(async (req, res) => {
         role: updatedUser.role.name,
         isActive: updatedUser.isActive,
         termsAccepted: updatedUser.termsAccepted,
+        team: updatedUser.team,
         createdBy: updatedUser.createdBy,
         updatedBy: updatedUser.updatedBy,
         createdAt: updatedUser.createdAt,

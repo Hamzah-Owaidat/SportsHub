@@ -33,8 +33,9 @@ exports.createTeam = asyncHandler(async (req, res) => {
     },
     team: team._id,
   });
-
-  res.status(201).json({ message: "Team created", team });
+  const updatedUser = await User.findById(leaderId); // or leaderId
+  const newToken = updatedUser.getSignedJwtToken();
+  res.status(201).json({ message: "Team created", team, token: newToken });
 });
 
 // Search user
@@ -124,7 +125,10 @@ exports.acceptInvite = asyncHandler(async (req, res) => {
     });
   }
 
-  res.json({ message: "Joined team successfully" });
+  const updatedUser = await User.findById(userId);
+  const newToken = updatedUser.getSignedJwtToken();
+
+  res.json({ message: "Joined team successfully", token: newToken });
 });
 
 // Reject invitation
@@ -207,7 +211,9 @@ exports.removeMember = asyncHandler(async (req, res) => {
     });
   }
 
-  res.json({ message: "User removed from team" });
+  const updatedUser = await User.findById(userIdToRemove); // or leaderId
+  const newToken = updatedUser.getSignedJwtToken();
+  res.json({ message: "User removed from team", token: newToken });
 });
 
 // Get current user's team info
@@ -280,7 +286,9 @@ exports.deleteTeam = asyncHandler(async (req, res) => {
   // Delete the team
   await Team.findByIdAndDelete(team._id);
 
-  res.json({ message: "Team deleted successfully" });
+  const updatedUser = await User.findById(leaderId); // or leaderId
+  const newToken = updatedUser.getSignedJwtToken();
+  res.json({ message: "Team deleted successfully", token: newToken });
 });
 
 // Exit team (members only)
@@ -322,5 +330,7 @@ exports.exitTeam = asyncHandler(async (req, res) => {
     $push: { notifications: notification._id },
   });
 
-  res.json({ message: "You have left the team" });
+  const updatedUser = await User.findById(userId); // or leaderId
+  const newToken = updatedUser.getSignedJwtToken();
+  res.json({ message: "You have left the team", token: newToken });
 });
