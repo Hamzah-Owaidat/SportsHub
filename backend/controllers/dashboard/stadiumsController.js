@@ -96,63 +96,77 @@ const getStadiumById = async (req, res) => {
 // Add new stadium
 const addStadium = async (req, res) => {
   try {
+    const loggedInUser = req.user;
+    console.log(loggedInUser);
+    const userRole = loggedInUser.role;
+    console.log(userRole);
+    const userId = loggedInUser.userId || loggedInUser.id;
+    console.log(userId);
+
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized: User not found." });
+    }
+
     const { ownerId, name, location, pricePerMatch, maxPlayers } = req.body;
+    console.log({ ownerId, name, location, pricePerMatch, maxPlayers });
 
+    // Parse nested fields safely
     let penaltyPolicy, workingHours;
-
     try {
       penaltyPolicy = JSON.parse(req.body.penaltyPolicy);
       workingHours = JSON.parse(req.body.workingHours);
-    } catch (parseError) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid JSON structure in penaltyPolicy or workingHours" });
+    } catch (err) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid JSON format for penaltyPolicy or workingHours",
+      });
     }
-    const loggedInUser = req.user;
-    const userRole = loggedInUser.role;
-    const userId = loggedInUser.userId || loggedInUser.id;
 
+    // Validate required fields
+    const errors = {};
+    if (!name || name.trim() === "") errors.name = "Name is required";
+    if (!location || location.trim() === "") errors.location = "Location is required";
+    if (!pricePerMatch) errors.pricePerMatch = "Price per match is required";
+    if (!maxPlayers) errors.maxPlayers = "Max players is required";
+    if (!penaltyPolicy.hoursBefore && penaltyPolicy.hoursBefore !== 0)
+      errors.penaltyPolicy_hoursBefore = "Hours before penalty is required";
+    if (!penaltyPolicy.penaltyAmount && penaltyPolicy.penaltyAmount !== 0)
+      errors.penaltyPolicy_penaltyAmount = "Penalty amount is required";
+    if (!workingHours.start) errors.workingHours_start = "Start time is required";
+    if (!workingHours.end) errors.workingHours_end = "End time is required";
+
+    if (Object.keys(errors).length > 0) {
+      return res.status(400).json({ success: false, errors });
+    }
+
+    // Determine the final owner ID
     let finalOwnerId;
 
     if (userRole === "admin") {
       if (ownerId) {
-        if (!mongoose.Types.ObjectId.isValid(ownerId)) {
-          return res.status(400).json({ success: false, message: "Invalid owner ID" });
-        }
-
-        const targetOwner = await User.findById(ownerId);
-        if (!targetOwner || (targetOwner.role !== "stadiumOwner" && targetOwner.role !== "admin")) {
+        const targetUser = await User.findById(ownerId);
+        console.log(targetUser);
+        if (!targetUser || (targetUser.role.name !== "stadiumOwner" && targetUser.role.name !== "admin")) {
           return res.status(400).json({ success: false, message: "Invalid stadium owner" });
         }
-
         finalOwnerId = ownerId;
+        console.log(finalOwnerId);
       } else {
         finalOwnerId = userId;
+        console.log(finalOwnerId);
       }
     } else if (userRole === "stadiumOwner") {
       if (ownerId && ownerId !== userId.toString()) {
-        return res.status(403).json({ success: false, message: "Cannot assign to another user" });
+        return res.status(403).json({ success: false, message: "You cannot assign stadium to another user" });
       }
       finalOwnerId = userId;
+      console.log("stadium owner account");
+      console.log(finalOwnerId);
     } else {
-      return res.status(403).json({ success: false, message: "Unauthorized" });
+      return res.status(403).json({ success: false, message: "Unauthorized role" });
     }
 
-    if (!name || !location || !pricePerMatch || !penaltyPolicy || !workingHours || !maxPlayers) {
-      return res.status(400).json({
-        success: false,
-        message: "Missing required fields: name, location, pricePerMatch, penaltyPolicy, workingHours, maxPlayers",
-      });
-    }
-
-    if (!penaltyPolicy.hoursBefore || !penaltyPolicy.penaltyAmount) {
-      return res.status(400).json({ success: false, message: "Invalid penalty policy" });
-    }
-
-    if (!workingHours.start || !workingHours.end) {
-      return res.status(400).json({ success: false, message: "Invalid working hours" });
-    }
-
+    // Check for duplicates
     const existingStadium = await Stadium.findOne({
       ownerId: finalOwnerId,
       name: name.trim(),
@@ -160,16 +174,17 @@ const addStadium = async (req, res) => {
     });
 
     if (existingStadium) {
-      return res.status(400).json({ success: false, message: "Stadium already exists" });
+      return res.status(400).json({ success: false, message: "Stadium already exists with this name and location" });
     }
 
     const photos = req.files?.map((file) => `/images/stadiumsImages/${file.filename}`) || [];
 
+    // Create new stadium
     const newStadium = new Stadium({
       ownerId: finalOwnerId,
       name,
       location,
-      photos: photos || [],
+      photos,
       pricePerMatch,
       penaltyPolicy,
       workingHours,
@@ -181,11 +196,7 @@ const addStadium = async (req, res) => {
 
     const savedStadium = await newStadium.save();
 
-    const today = new Date();
-    const endDate = new Date();
-    endDate.setDate(today.getDate() + 14);
-
-    // Notify all users
+    // Create notifications
     const users = await User.find({}, "_id");
     const notifications = await Promise.all(
       users.map((user) =>
@@ -193,9 +204,7 @@ const addStadium = async (req, res) => {
           user: user._id,
           message: `A new stadium "${savedStadium.name}" was added.`,
           type: "stadium-added",
-          metadata: {
-            stadiumId: savedStadium._id,
-          },
+          metadata: { stadiumId: savedStadium._id },
         })
       )
     );
@@ -208,6 +217,10 @@ const addStadium = async (req, res) => {
       )
     );
 
+    // Fill the calendar
+    const today = new Date();
+    const endDate = new Date();
+    endDate.setDate(today.getDate() + 14);
     await fillCalendarWithSlots(savedStadium, today, endDate);
     await savedStadium.populate("ownerId", "username email");
 
@@ -217,12 +230,12 @@ const addStadium = async (req, res) => {
       data: savedStadium,
     });
   } catch (error) {
+    console.error("Error in addStadium:", error);
     if (error.name === "ValidationError") {
-      const errors = Object.values(error.errors).map((err) => err.message);
-      return res.status(400).json({ success: false, message: "Validation error", errors });
+      const messages = Object.values(error.errors).map((val) => val.message);
+      return res.status(400).json({ success: false, message: "Validation error", errors: messages });
     }
-
-    res.status(500).json({ success: false, message: "Error creating stadium", error: error.message });
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
 

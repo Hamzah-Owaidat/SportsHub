@@ -30,8 +30,35 @@ const getAcademyById = async (req, res) => {
 // POST new academy
 const addAcademy = async (req, res) => {
   try {
+    // Ensure user is authenticated
+    if (!req.user || (!req.user.userId && !req.user.id)) {
+      return res.status(401).json({ success: false, message: "Unauthorized: User not found." });
+    }
+
+    const { name, description, location, phoneNumber, email } = req.body;
+
+    // Manual validation
+    const errors = {};
+    if (!name || name.trim() === "") errors.name = "Academy name is required";
+    if (!location || location.trim() === "") errors.location = "Location is required";
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = "Valid email is required";
+    if (!phoneNumber || !/^\+?[1-9]\d{1,14}$/.test(phoneNumber))
+      errors.phoneNumber = "Valid international phone number is required";
+
+    const photos = req.files?.map((file) => `/images/academiesImages/${file.filename}`) || [];
+
+    if (Object.keys(errors).length > 0) {
+      return res.status(400).json({ success: false, errors });
+    }
+
+    // Create and save the academy
     const newAcademy = new Academy({
-      ...req.body,
+      name,
+      description,
+      location,
+      phoneNumber,
+      email,
+      photos,
       ownerId: req.user.userId || req.user.id,
     });
 
@@ -39,19 +66,17 @@ const addAcademy = async (req, res) => {
 
     // Notify all users
     const users = await User.find({}, "_id");
-    const notifications = await Promise.all(
-      users.map((user) =>
-        Notification.create({
-          user: user._id,
-          message: `A new academy "${savedAcademy.name}" has been added.`,
-          type: "academy-added",
-          metadata: {
-            academyId: savedAcademy._id,
-          },
-        })
-      )
+
+    const notifications = await Notification.insertMany(
+      users.map((user) => ({
+        user: user._id,
+        message: `A new academy "${savedAcademy.name}" has been added.`,
+        type: "academy-added",
+        metadata: { academyId: savedAcademy._id },
+      }))
     );
 
+    // Bulk update users to attach notifications
     await Promise.all(
       notifications.map((notification) =>
         User.findByIdAndUpdate(notification.user, {
@@ -63,7 +88,14 @@ const addAcademy = async (req, res) => {
     res.status(201).json({ success: true, data: savedAcademy });
   } catch (error) {
     console.error("Error adding academy:", error);
-    res.status(400).json({ success: false, message: error.message });
+
+    // Mongoose validation fallback
+    if (error.name === "ValidationError") {
+      const messages = Object.values(error.errors).map((val) => val.message);
+      return res.status(400).json({ success: false, message: messages.join(", ") });
+    }
+
+    res.status(500).json({ success: false, message: "Server error while creating academy" });
   }
 };
 
@@ -125,10 +157,20 @@ const deleteAcademy = async (req, res) => {
   }
 };
 
+const getAcademiesByOwner = async (req, res) => {
+  try {
+    const academies = await Academy.find({ ownerId: req.params.ownerId });
+    res.json({ success: true, data: academies });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
 module.exports = {
   getAllAcademies,
   getAcademyById,
   addAcademy,
   updateAcademy,
   deleteAcademy,
+  getAcademiesByOwner,
 };

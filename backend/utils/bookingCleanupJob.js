@@ -1,3 +1,4 @@
+console.log("✅ bookingCleanupJob.js loaded");
 const Booking = require("../models/bookingModel");
 const Stadium = require("../models/stadiumModel");
 
@@ -35,8 +36,9 @@ setInterval(async () => {
     }
 
     console.log(`${updatedCount} bookings marked as completed.`);
+    console.log(bookings);
   } catch (err) {
     console.error("Error updating completed bookings:", err.message);
   }
-}, 90 * 60 * 1000); // runs every 1.5 hours
+}, 90 * 60 * 1000);
 

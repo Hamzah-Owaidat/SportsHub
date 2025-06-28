@@ -8,6 +8,7 @@ import FieldError from "@/components/helper/FieldError";
 import { toast } from "react-toastify";
 import { Stadium } from "@/types/Stadium";
 import { addStadium } from "@/lib/api/dashboard/stadiums";
+import { useUser } from "@/context/UserContext";
 
 interface AddStadiumModalProps {
     isOpen: boolean;
@@ -40,10 +41,34 @@ const AddStadiumModal: React.FC<AddStadiumModalProps> = ({ isOpen, onClose, setT
             start: "",
             end: "",
         } as WorkingHours,
+        ownerId: "",
     });
+
+    const { user } = useUser();
 
     const [errors, setErrors] = useState<any>({});
     const [loading, setLoading] = useState(false);
+
+    const [owners, setOwners] = useState<{ _id: string, username: string }[]>([]);
+    const [ownersLoaded, setOwnersLoaded] = useState(false);
+
+    const fetchOwners = async () => {
+        if (ownersLoaded || user?.role !== "admin") return;
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard/users/stadium-owners`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+            const data = await res.json();
+            if (data.success) {
+                setOwners(data.data);
+                setOwnersLoaded(true);
+            }
+        } catch (err) {
+            console.error("Failed to load academy owners", err);
+        }
+    };
 
     // Handle input change for simple fields
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -98,6 +123,8 @@ const AddStadiumModal: React.FC<AddStadiumModalProps> = ({ isOpen, onClose, setT
         if (!formData.workingHours.start) newErrors.workingHours_start = "Start time is required";
         if (!formData.workingHours.end) newErrors.workingHours_end = "End time is required";
 
+        if (user?.role === "admin" && !formData.ownerId)
+            newErrors.ownerId = "Owner is required";
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -111,6 +138,7 @@ const AddStadiumModal: React.FC<AddStadiumModalProps> = ({ isOpen, onClose, setT
             maxPlayers: "",
             penaltyPolicy: { hoursBefore: "", penaltyAmount: "" },
             workingHours: { start: "", end: "" },
+            ownerId: "",
         });
         setErrors({});
     };
@@ -134,6 +162,10 @@ const AddStadiumModal: React.FC<AddStadiumModalProps> = ({ isOpen, onClose, setT
             formData.photos.forEach((file) => {
                 data.append("photos", file, file.name);
             });
+
+            if (formData.ownerId) {
+                data.append("ownerId", formData.ownerId);
+            }
 
             const newStadiumResponse = await addStadium(data);
 
@@ -300,6 +332,27 @@ const AddStadiumModal: React.FC<AddStadiumModalProps> = ({ isOpen, onClose, setT
                             {errors.workingHours_end && <FieldError message={errors.workingHours_end} />}
                         </div>
                     </div>
+
+                    {user?.role === "admin" && (
+                        <div>
+                            <Label>Stadium Owner</Label>
+                            <select
+                                name="ownerId"
+                                value={formData.ownerId}
+                                onChange={(e) => setFormData((prev) => ({ ...prev, ownerId: e.target.value }))}
+                                onClick={fetchOwners}
+                                className="w-full border p-2 rounded-md"
+                            >
+                                <option value="">Select an owner</option>
+                                {owners.map((owner) => (
+                                    <option key={owner._id} value={owner._id}>
+                                        {owner.username}
+                                    </option>
+                                ))}
+                            </select>
+                            {errors.ownerId && <FieldError message={errors.ownerId} />}
+                        </div>
+                    )}
 
                     {/* Photos Upload */}
                     <div>

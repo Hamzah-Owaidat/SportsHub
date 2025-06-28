@@ -70,7 +70,7 @@ export default function TeamInfoCard() {
       const message = error.response?.data?.message;
 
       if (error.response?.status === 403) {
-        toast.error("Unauthorized. Please log in again with a user account.");
+        toast.error("Access denied: You must be an user to perform this action.");
         // Optionally, redirect to login page:
         // router.push("/login");
       } else {

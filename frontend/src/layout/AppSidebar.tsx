@@ -13,8 +13,9 @@ import {
 import { useUser } from "@/context/UserContext"; // adjust path if needed
 
 const roleAccessMap: Record<string, string[]> = {
-  admin: ["Dashboard", "Users", "Roles", "Stadiums", "Tournaments"],
+  admin: ["Dashboard", "Users", "Roles", "Stadiums", "Tournaments", "Academies"],
   stadiumOwner: ["Dashboard", "Stadiums", "Tournaments"],
+  academyOwner: ["Dashboard", "Academies"],
 };
 
 
@@ -45,6 +46,11 @@ const navItems: NavItem[] = [
     name: "Tournaments",
     icon: <UserCircleIcon />,
     path: "/dashboard/tournaments",
+  },
+  {
+    name: "Academies",
+    icon: <UserCircleIcon />,
+    path: "/dashboard/academies",
   },
 ];
 

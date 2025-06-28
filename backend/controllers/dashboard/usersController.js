@@ -292,3 +292,24 @@ exports.deleteUser = asyncHandler(async (req, res) => {
     message: "User deleted successfully",
   });
 });
+
+exports.getAcademyOwners = async (req, res) => {
+  try {
+    const owners = await User.find({ "role.name": "academyOwner" }, "id username email");
+    res.json({ success: true, data: owners });
+  } catch (error) {
+    console.error("Error fetching academy owners:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+exports.getStadiumOwners = async (req, res) => {
+  try {
+    const owners = await User.find({ "role.name": "stadiumOwner" }, "id username email");
+    console.log(owners);  
+    res.json({ success: true, data: owners });
+  } catch (error) {
+    console.error("Error fetching stadium owners:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};

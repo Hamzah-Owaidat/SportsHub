@@ -24,23 +24,27 @@ axiosInstance.interceptors.request.use((config) => {
   return config;
 });
 
-export async function getAllStadiums() {
-  const res = await axiosInstance.get("stadiums");
-  return res.data.data;
-}
-
-export const getStadiumsByOwner = async (ownerId: string) => {
-  const res = await axiosInstance.get(`stadiums/owner/${ownerId}`);
-  return res.data.data;
-};
-
-export const addStadium = async (stadiumData: FormData) => {
-  const res = await axiosInstance.post("stadiums", stadiumData,
-    {
+export const addAcademy = async (formData: FormData) => {
+    const response = await axiosInstance.post("academies", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
-    }
-  );
+    });
+
+    return response.data;
+} 
+
+export async function deleteAcademy(id: string) {
+  const res = await axiosInstance.delete(`academies/${id}`);
   return res.data;
 }
+
+export async function getAllAcademies() {
+  const res = await axiosInstance.get("academies");
+  return res.data.data;
+}
+
+export const getAcademyByOwner = async (ownerId: string) => {
+  const res = await axiosInstance.get(`academies/owner/${ownerId}`);
+  return res.data.data;
+};
