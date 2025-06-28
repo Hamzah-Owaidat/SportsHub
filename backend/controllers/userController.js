@@ -70,7 +70,6 @@ exports.updateUserProfile = asyncHandler(async (req, res) => {
       token,
     });
   } catch (err) {
-    console.error("Update profile error:", err);
     return res.status(500).json({ error: "Internal server error" });
   }
 });

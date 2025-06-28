@@ -1,4 +1,6 @@
 const Academy = require("../../models/academyModel");
+const Notification = require("../../models/notificationModel");
+const User = require("../../models/userModel");
 
 // GET all academies
 const getAllAcademies = async (req, res) => {
@@ -30,10 +32,34 @@ const addAcademy = async (req, res) => {
   try {
     const newAcademy = new Academy({
       ...req.body,
-      ownerId: req.user.userId || req.user.id, // Extracted from JWT
+      ownerId: req.user.userId || req.user.id,
     });
 
     const savedAcademy = await newAcademy.save();
+
+    // Notify all users
+    const users = await User.find({}, "_id");
+    const notifications = await Promise.all(
+      users.map((user) =>
+        Notification.create({
+          user: user._id,
+          message: `A new academy "${savedAcademy.name}" has been added.`,
+          type: "info",
+          metadata: {
+            academyId: savedAcademy._id,
+          },
+        })
+      )
+    );
+
+    await Promise.all(
+      notifications.map((notification) =>
+        User.findByIdAndUpdate(notification.user, {
+          $push: { notifications: notification._id },
+        })
+      )
+    );
+
     res.status(201).json({ success: true, data: savedAcademy });
   } catch (error) {
     console.error("Error adding academy:", error);
@@ -68,6 +94,30 @@ const deleteAcademy = async (req, res) => {
     if (!deleted) {
       return res.status(404).json({ success: false, message: "Academy not found" });
     }
+
+    // Notify all users
+    const users = await User.find({}, "_id");
+    const notifications = await Promise.all(
+      users.map((user) =>
+        Notification.create({
+          user: user._id,
+          message: `The academy "${deleted.name}" has been deleted.`,
+          type: "info",
+          metadata: {
+            academyId: deleted._id,
+          },
+        })
+      )
+    );
+
+    await Promise.all(
+      notifications.map((notification) =>
+        User.findByIdAndUpdate(notification.user, {
+          $push: { notifications: notification._id },
+        })
+      )
+    );
+
     res.json({ success: true, message: "Academy deleted successfully" });
   } catch (error) {
     console.error("Error deleting academy:", error);

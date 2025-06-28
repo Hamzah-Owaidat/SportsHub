@@ -2,7 +2,6 @@ const User = require("../models/userModel");
 const Role = require("../models/roleModel");
 const asyncHandler = require("express-async-handler");
 const validator = require("validator");
-const googleAuthService = require("../services/googleAuthService");
 
 // @desc      Register user
 // @route     POST /api/auth/register
@@ -20,8 +19,9 @@ exports.register = asyncHandler(async (req, res) => {
     });
   }
 
-  // Create user
-  const     user = await User.create({
+  try {
+    // Create user
+    const user = await User.create({
       username,
       email,
       password,
@@ -29,10 +29,10 @@ exports.register = asyncHandler(async (req, res) => {
       passwordConfirm,
       isActive: true,
       profilePhoto: null,
-      termsAccepted: true,
+      termsAccepted,
       role: {
-        id: userRole._id, // Save roleId as 'id'
-        name: userRole.name, // Save roleName as 'name'
+        id: userRole._id,
+        name: userRole.name,
       },
       createdBy: req.user ? req.user._id : null,
       updatedBy: req.user ? req.user._id : null,
@@ -40,7 +40,39 @@ exports.register = asyncHandler(async (req, res) => {
       updatedAt: Date.now(),
     });
 
-  sendTokenResponse(user, 201, res);
+    sendTokenResponse(user, 201, res);
+  } catch (err) {
+    // Handle duplicate fields (e.g. email or username)
+    if (err.code === 11000) {
+      const duplicatedField = Object.keys(err.keyValue)[0];
+      return res.status(400).json({
+        success: false,
+        message: `The ${duplicatedField} "${err.keyValue[duplicatedField]}" is already in use.`,
+        field: duplicatedField,
+      });
+    }
+
+    // Handle Mongoose validation errors
+    if (err.name === "ValidationError") {
+      const errors = {};
+      Object.values(err.errors).forEach((el) => {
+        errors[el.path] = el.message;
+      });
+
+      return res.status(400).json({
+        success: false,
+        message: "Invalid input data",
+        errors,
+      });
+    }
+
+    // Fallback for unexpected errors
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: "An unexpected error occurred. Please try again.",
+    });
+  }
 });
 
 // @desc      Login user
@@ -92,12 +124,6 @@ exports.login = asyncHandler(async (req, res) => {
 // @route     GET /api/auth/logout
 // @access    Private
 exports.logout = asyncHandler(async (req, res) => {
-  // Clear the token cookie
-  res.cookie("token", "none", {
-    expires: new Date(Date.now() + 10 * 1000), // Cookie expires in 10 seconds
-    httpOnly: true,
-  });
-
   res.status(200).json({
     success: true,
     message: "Logged out successfully",
@@ -144,9 +170,9 @@ const sendTokenResponse = (user, statusCode, res) => {
   }
 
   // Set token cookie and send response
-  res.status(statusCode).cookie("token", token, options).json({
+  res.status(statusCode).json({
     success: true,
     token,
-    user
+    user,
   });
 };

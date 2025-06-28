@@ -1,7 +1,8 @@
 const asyncHandler = require("express-async-handler");
 const Tournament = require("../../models/tournamentModel");
 const Team = require("../../models/teamModel");
-
+const User = require("../../models/userModel");
+const Notification = require("../../models/notificationModel");
 
 // Get all tournaments
 exports.getAllTournaments = asyncHandler(async (req, res) => {
@@ -31,7 +32,6 @@ exports.getMyTournaments = asyncHandler(async (req, res) => {
   });
 });
 
-
 // Create new tournament
 exports.addTournament = asyncHandler(async (req, res) => {
   const { name, description, entryPricePerTeam, rewardPrize, maxTeams, startDate, endDate, stadiumId } = req.body;
@@ -48,6 +48,30 @@ exports.addTournament = asyncHandler(async (req, res) => {
     createdBy: req.user.id,
     updatedBy: req.user.id,
   });
+
+  // Notify all users about new tournament
+  const users = await User.find({}, "_id");
+  const notifications = await Promise.all(
+    users.map((user) =>
+      Notification.create({
+        user: user._id,
+        message: `A new tournament "${newTournament.name}" has been added.`,
+        type: "info",
+        metadata: {
+          tournamentId: newTournament._id,
+        },
+      })
+    )
+  );
+
+  // Push notifications to users
+  await Promise.all(
+    notifications.map((notification) =>
+      User.findByIdAndUpdate(notification.user, {
+        $push: { notifications: notification._id },
+      })
+    )
+  );
 
   res.status(201).json({
     status: "success",
@@ -95,10 +119,32 @@ exports.deleteTournament = asyncHandler(async (req, res) => {
 
   await tournament.deleteOne();
 
+  // Notify all users about deleted tournament
+  const users = await User.find({}, "_id");
+  const notifications = await Promise.all(
+    users.map((user) =>
+      Notification.create({
+        user: user._id,
+        message: `The tournament "${tournament.name}" has been deleted.`,
+        type: "info",
+        metadata: {
+          tournamentId: tournament._id,
+        },
+      })
+    )
+  );
+
+  // Push notifications to users
+  await Promise.all(
+    notifications.map((notification) =>
+      User.findByIdAndUpdate(notification.user, {
+        $push: { notifications: notification._id },
+      })
+    )
+  );
+
   res.status(200).json({
     status: "success",
     message: "Tournament deleted",
   });
 });
-
-

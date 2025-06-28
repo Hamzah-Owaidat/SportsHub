@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { ToastContainer } from "react-toastify";
 
 export default function AuthLayout({
   children,
@@ -23,14 +24,14 @@ export default function AuthLayout({
               <div className="flex flex-col items-center max-w-xs gap-20">
                 {/* Replace Image with ThemeResponsiveLogo */}
                 <div className="w-[250px] h-[50px]">
-                <Link href="/" className="block mb-4">
-                  <Image
-                    width={231}
-                    height={48}
-                    src="./images/logo/auth-logo.svg"
-                    alt="Logo"
-                  />
-                </Link>
+                  <Link href="/" className="block mb-4">
+                    <Image
+                      width={231}
+                      height={48}
+                      src="./images/logo/auth-logo.svg"
+                      alt="Logo"
+                    />
+                  </Link>
                 </div>
                 <p className="text-center text-gray-400 dark:text-white/60">
                   Welcom, to our platform! <br />
@@ -43,6 +44,19 @@ export default function AuthLayout({
           </div>
         </div>
       </ThemeProvider>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+        className="z-auto"
+      />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 const Stadium = require("../../models/stadiumModel");
 const User = require("../../models/userModel");
 const mongoose = require("mongoose");
+const Notification = require("../../models/notificationModel");
 
 const generateSlots = require("../../utils/generateSlots"); // Adjust path if needed
 
@@ -103,7 +104,9 @@ const addStadium = async (req, res) => {
       penaltyPolicy = JSON.parse(req.body.penaltyPolicy);
       workingHours = JSON.parse(req.body.workingHours);
     } catch (parseError) {
-      return res.status(400).json({ success: false, message: "Invalid JSON structure in penaltyPolicy or workingHours" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid JSON structure in penaltyPolicy or workingHours" });
     }
     const loggedInUser = req.user;
     const userRole = loggedInUser.role;
@@ -160,7 +163,7 @@ const addStadium = async (req, res) => {
       return res.status(400).json({ success: false, message: "Stadium already exists" });
     }
 
-    const photos = req.files?.map(file => `/images/stadiumsImages/${file.filename}`) || [];
+    const photos = req.files?.map((file) => `/images/stadiumsImages/${file.filename}`) || [];
 
     const newStadium = new Stadium({
       ownerId: finalOwnerId,
@@ -181,6 +184,29 @@ const addStadium = async (req, res) => {
     const today = new Date();
     const endDate = new Date();
     endDate.setDate(today.getDate() + 14);
+
+    // Notify all users
+    const users = await User.find({}, "_id");
+    const notifications = await Promise.all(
+      users.map((user) =>
+        Notification.create({
+          user: user._id,
+          message: `A new stadium "${savedStadium.name}" was added.`,
+          type: "info",
+          metadata: {
+            stadiumId: savedStadium._id,
+          },
+        })
+      )
+    );
+
+    await Promise.all(
+      notifications.map((notification) =>
+        User.findByIdAndUpdate(notification.user, {
+          $push: { notifications: notification._id },
+        })
+      )
+    );
 
     await fillCalendarWithSlots(savedStadium, today, endDate);
     await savedStadium.populate("ownerId", "username email");
@@ -271,6 +297,29 @@ const deleteStadium = async (req, res) => {
         message: "Stadium not found",
       });
     }
+
+    // Notify all users
+    const users = await User.find({}, "_id");
+    const notifications = await Promise.all(
+      users.map((user) =>
+        Notification.create({
+          user: user._id,
+          message: `The stadium "${deletedStadium.name}" was deleted.`,
+          type: "info",
+          metadata: {
+            stadiumId: deletedStadium._id,
+          },
+        })
+      )
+    );
+
+    await Promise.all(
+      notifications.map((notification) =>
+        User.findByIdAndUpdate(notification.user, {
+          $push: { notifications: notification._id },
+        })
+      )
+    );
 
     res.status(200).json({
       success: true,
