@@ -36,7 +36,6 @@ setInterval(async () => {
     }
 
     console.log(`${updatedCount} bookings marked as completed.`);
-    console.log(bookings);
   } catch (err) {
     console.error("Error updating completed bookings:", err.message);
   }
