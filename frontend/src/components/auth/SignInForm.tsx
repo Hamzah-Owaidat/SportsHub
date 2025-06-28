@@ -9,6 +9,7 @@ import React, { useState } from "react";
 import { login } from "@/lib/api/auth";
 import { useRouter } from "next/navigation";
 import GoogleSignInButton from "./GoogleSignInButton";
+import { toast } from "react-toastify";
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -46,16 +47,16 @@ export default function SignInForm() {
     try {
       const data = await login(formData);
 
+      console.log(data.success);
       if (!data.success) {
-        // Handle the structured API error
-        setErrors({ general: data.message || "Login failed. Try again." });
+        toast.error(data.message);
       } else {
         localStorage.setItem("token", data.token);
         router.push("/home");
       }
-    } catch (err: any) {
-      const apiErrors = err?.response?.data?.message;
-      setErrors({ general: apiErrors || "Login failed. Try again." });
+    } catch (err) {
+      // Only network or unexpected errors reach here
+      toast.error("Something went wrong. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -75,35 +76,14 @@ export default function SignInForm() {
             </p>
           </div>
           <div>
-            <div className="relative py-3 sm:py-5">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200 dark:border-stone-800"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="p-2 text-gray-400 bg-gray-100 dark:bg-stone-900 sm:px-5 sm:py-2">
-                  Or
-                </span>
-              </div>
-            </div>
             <form onSubmit={handleSubmit}>
               <div className="space-y-6">
                 <div>
-                  {errors.general && (
-                    <div className="flex items-center justify-center gap-2 text-error-500 text-sm py-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"
-                        aria-hidden="true">
-                        <path fillRule="evenodd"
-                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-11a1 1 0 112 0v3a1 1 0 11-2 0V7zm0 4a1 1 0 112 0v3a1 1 0 11-2 0v-3z"
-                          clipRule="evenodd" />
-                      </svg>
-                      <p>{errors.general}</p>
-                    </div>
-                  )}
                   {/* Email Field */}
                   <Label>
                     Email {errors.email && (<span className="text-error-500">*</span>)}
                   </Label>
-                  <Input id="uname" name="email" type="text" value={formData.email}
+                  <Input id="uname" name="email" type="text" defaultValue={formData.email}
                     placeholder="Enter your email" onChange={handleChange} className={!errors.email ? `border-l-3
                     border-l-green-700 dark:border-l-green-500` : `border-l-3 border-l-red-500 dark:border-l-red-500`
                     } />

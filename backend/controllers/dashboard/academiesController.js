@@ -44,7 +44,7 @@ const addAcademy = async (req, res) => {
         Notification.create({
           user: user._id,
           message: `A new academy "${savedAcademy.name}" has been added.`,
-          type: "info",
+          type: "academy-added",
           metadata: {
             academyId: savedAcademy._id,
           },

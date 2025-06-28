@@ -145,7 +145,7 @@ export default function SignUpForm() {
                       id="uname"
                       name="username"
                       type="text"
-                      value={formData.username}
+                      defaultValue={formData.username}
                       placeholder="Enter your username"
                       onChange={handleChange}
                       className={!errors.username ? `border-l-3 border-l-green-700 dark:border-l-green-500` : `border-l-3 border-l-red-500 dark:border-l-red-500`}
@@ -179,7 +179,7 @@ export default function SignUpForm() {
                       type="text"
                       id="phoneNumber"
                       name="phoneNumber"
-                      value={formData.phoneNumber}
+                      defaultValue={formData.phoneNumber}
                       onChange={handleChange}
                       placeholder="Enter your display name"
                       className={!errors.phoneNumber ? `border-l-3 border-l-green-700 dark:border-l-green-500` : `border-l-3 border-l-red-500 dark:border-l-red-500`}
@@ -214,7 +214,7 @@ export default function SignUpForm() {
                     type="text"
                     id="email"
                     name="email"
-                    value={formData.email}
+                    defaultValue={formData.email}
                     onChange={handleChange}
                     placeholder="Enter your email"
                     className={!errors.email ? `border-l-3 border-l-green-700 dark:border-l-green-500` : `border-l-3 border-l-red-500 dark:border-l-red-500`}
@@ -250,7 +250,7 @@ export default function SignUpForm() {
                       type={showPassword ? "text" : "password"}
                       id="password"
                       name="password"
-                      value={formData.password}
+                      defaultValue={formData.password}
                       onChange={handleChange}
                       className={!errors.password ? `border-l-3 border-l-green-700 dark:border-l-green-500` : `border-l-3 border-l-red-500 dark:border-l-red-500`}
                     />
@@ -296,7 +296,7 @@ export default function SignUpForm() {
                       type={showConfirmPassword ? "text" : "password"}
                       id="confirmPassword"
                       name="confirmPassword"
-                      value={formData.confirmPassword}
+                      defaultValue={formData.confirmPassword}
                       onChange={handleChange}
                       className={!errors.confirmPassword ? `border-l-3 border-l-green-700 dark:border-l-green-500` : `border-l-3 border-l-red-500 dark:border-l-red-500`}
                     />

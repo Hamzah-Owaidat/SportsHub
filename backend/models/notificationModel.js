@@ -15,7 +15,7 @@ const notificationSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ["invite", "info", "other"],
+    enum: ["invite", "info", "other", "stadium-added", "academy-added", "tournament-added"],
     default: "other",
   },
   metadata: {

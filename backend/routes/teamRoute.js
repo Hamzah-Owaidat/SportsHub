@@ -4,7 +4,7 @@ const { authMiddleware } = require("../middlewares/authMiddleware");
 const teamsController = require("../controllers/teamsController");
 
 router.get("/my-team", authMiddleware.auth, teamsController.getMyTeam);
-router.post("/create", authMiddleware.auth, teamsController.createTeam);
+router.post("/create", authMiddleware.role("user"), teamsController.createTeam);
 router.get("/search", authMiddleware.auth, teamsController.searchUser);
 router.post("/invite", authMiddleware.auth, teamsController.inviteUser);
 router.post("/accept", authMiddleware.auth, teamsController.acceptInvite);

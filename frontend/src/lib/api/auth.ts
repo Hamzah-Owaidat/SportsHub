@@ -2,8 +2,18 @@ import api from './client';
 import { LoginFormData, RegisterFormData } from '@/types/auth';
 
 export async function login(credentials: LoginFormData) {
+  try {
     const response = await api.post('/auth/login', credentials);
     return response.data;
+  } catch (error) {
+    if (error.response) {
+      // Backend responded with error (e.g., 400 or 401)
+      return error.response.data;
+    } else {
+      // Network or unexpected error
+      throw error;
+    }
+  }
 }
 
 export async function register(data: RegisterFormData) {

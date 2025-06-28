@@ -2,8 +2,8 @@
 import { MapPin, Users, Banknote, Trophy, Calendar } from "lucide-react";
 import { formatCurrency, formatDate, getTournamentStatus } from '@/lib/utils/utils'; // adjust path based on your structure
 
+const TournamentCard = ({ tournament, onJoin, userTeamId }) => {
 
-const TournamentCard = ({ tournament, onJoin }) => {
   // Add safety checks for tournament data
   if (!tournament || typeof tournament !== 'object') {
     return null;
@@ -31,9 +31,16 @@ const TournamentCard = ({ tournament, onJoin }) => {
     }
   };
 
+  const hasJoined = Array.isArray(tournament.teams)
+    ? tournament.teams.some(team => {
+      if (typeof team === 'string') return team === userTeamId;
+      return team?._id === userTeamId;
+    })
+    : false;
+
   return (
     <div className="bg-gray-200 dark:bg-stone-800 rounded-lg shadow-sm border dark:border-stone-700 hover:shadow-md transition-shadow duration-200">
-      <div className="p-6">
+      <div className="p-5">
         {/* Header */}
         <div className="flex justify-between items-start mb-4">
           <div className="flex-1">
@@ -91,17 +98,21 @@ const TournamentCard = ({ tournament, onJoin }) => {
           </div>
           <button
             onClick={handleClick}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${status === 'upcoming' && spotsLeft > 0
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${status === 'upcoming' && spotsLeft > 0 && !hasJoined
                 ? 'bg-blue-600 text-white hover:bg-blue-700'
-                : status === 'ongoing'
-                  ? 'bg-green-600 text-white hover:bg-green-700'
-                  : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                : 'bg-gray-300 text-gray-600 cursor-not-allowed'
               }`}
-            disabled={status === 'completed' || spotsLeft === 0}
+            disabled={status !== 'upcoming' || spotsLeft === 0 || hasJoined}
           >
-            {status === 'upcoming' && spotsLeft > 0 ? 'Join Tournament' :
-              status === 'ongoing' ? 'View Live' :
-                spotsLeft === 0 ? 'Full' : 'Ended'}
+            {hasJoined
+              ? 'Joined'
+              : status === 'upcoming' && spotsLeft > 0
+                ? 'Join'
+                : status === 'ongoing'
+                  ? 'View Live'
+                  : spotsLeft === 0
+                    ? 'Full'
+                    : 'Ended'}
           </button>
         </div>
       </div>

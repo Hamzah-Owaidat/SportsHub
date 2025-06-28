@@ -78,6 +78,25 @@ const AddTournamentModal: React.FC<AddTournamentModalProps> = ({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setErrors({});
+
+        const newErrors: any = {};
+
+        // Validate required fields
+        if (!formData.name.trim()) newErrors.name = "Name is required";
+        if (!formData.description.trim()) newErrors.description = "Description is required";
+        if (!formData.entryPricePerTeam) newErrors.entryPricePerTeam = "Entry price is required";
+        if (!formData.rewardPrize) newErrors.rewardPrize = "Reward prize is required";
+        if (!formData.maxTeams) newErrors.maxTeams = "Max teams is required";
+        if (!formData.startDate) newErrors.startDate = "Start date is required";
+        if (!formData.endDate) newErrors.endDate = "End date is required";
+        if (!formData.stadiumId) newErrors.stadiumId = "Stadium is required";
+
+        // If any error exists, abort
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            setLoading(false);
+            return;
+        }
         try {
             setLoading(true);
             const newTournament = await addTournament(formData);
@@ -85,7 +104,7 @@ const AddTournamentModal: React.FC<AddTournamentModalProps> = ({
             onClose();
             setTableData(prev => [...prev, newTournament.data]);
         } catch (err: any) {
-            setErrors(err.response?.data?.errors || { general: "Failed to add tournament" });
+            toast.error("Failed to add tournament");
         } finally {
             setLoading(false);
         }
@@ -95,7 +114,6 @@ const AddTournamentModal: React.FC<AddTournamentModalProps> = ({
         <Modal isOpen={isOpen} onClose={onClose}>
             <div className="p-6 max-w-xl w-full">
                 <h2 className="text-xl font-semibold pb-6 dark:text-white">Add New Tournament</h2>
-                {errors.general && <FieldError message={errors.general} />}
                 <form onSubmit={handleSubmit} className="space-y-5">
                     <div>
                         <Label>Name</Label>
@@ -142,7 +160,7 @@ const AddTournamentModal: React.FC<AddTournamentModalProps> = ({
                             name="stadiumId"
                             value={formData.stadiumId}
                             onChange={handleChange}
-                            className="w-full rounded border px-3 py-2 text-white"
+                            className="w-full rounded border px-3 py-2 placeholder:text-gray-400 dark:bg-stone-950 dark:text-white/90 dark:placeholder:text-white/30 dark:border-gray-700"
                         >
                             <option value="">Select a stadium</option>
                             {stadiums.map((stadium: any) => (

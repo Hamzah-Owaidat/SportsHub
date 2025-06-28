@@ -67,68 +67,76 @@ export default function TeamInfoCard() {
       fetchTeam();
       refreshUser();
     } catch (error) {
-      toast.error(error.response?.data?.error || "Failed to create team");
+      const message = error.response?.data?.message;
+
+      if (error.response?.status === 403) {
+        toast.error("Unauthorized. Please log in again with a user account.");
+        // Optionally, redirect to login page:
+        // router.push("/login");
+      } else {
+        toast.error("Failed to create team");
+      }
     } finally {
       setLoading(false);
     }
   }
 
   async function searchUsers() {
-  if (!searchQuery.trim()) return;
-  try {
-    const data = await teamService.searchUsers(searchType, searchQuery);
-    setSearchResults(data.users);
-  } catch (error) {
-    toast.error("Search failed");
+    if (!searchQuery.trim()) return;
+    try {
+      const data = await teamService.searchUsers(searchType, searchQuery);
+      setSearchResults(data.users);
+    } catch (error) {
+      toast.error("Search failed");
+    }
   }
-}
 
   async function inviteUser(userId: string) {
-  try {
-    await teamService.inviteUser(userId, team?._id);
-    toast.success("User invited!");
-    setSearchQuery("");
-    setSearchResults([]);
-  } catch (error) {
-    toast.error("Failed to invite user");
+    try {
+      await teamService.inviteUser(userId, team?._id);
+      toast.success("User invited!");
+      setSearchQuery("");
+      setSearchResults([]);
+    } catch (error) {
+      toast.error("Failed to invite user");
+    }
   }
-}
 
   async function removeUser(userId: string) {
-  try {
-    await teamService.removeUser(userId, team?._id);
-    toast.success("User removed!");
-    fetchTeam();
-  } catch (error) {
-    toast.error("Failed to remove user");
+    try {
+      await teamService.removeUser(userId, team?._id);
+      toast.success("User removed!");
+      fetchTeam();
+    } catch (error) {
+      toast.error("Failed to remove user");
+    }
   }
-}
 
   async function deleteTeam() {
-  if (!confirm("Are you sure you want to dissolve the team?")) return;
-  try {
-    const response = await teamService.deleteTeam(team?._id);
-    toast.success("Team dissolved");
-    localStorage.setItem('token', response.token);
-    setTeam(null);
-    refreshUser();
-  } catch (error) {
-    toast.error("Failed to delete team");
+    if (!confirm("Are you sure you want to dissolve the team?")) return;
+    try {
+      const response = await teamService.deleteTeam(team?._id);
+      toast.success("Team dissolved");
+      localStorage.setItem('token', response.token);
+      setTeam(null);
+      refreshUser();
+    } catch (error) {
+      toast.error("Failed to delete team");
+    }
   }
-}
 
   async function exitTeam() {
-  if (!confirm("Are you sure you want to leave the team?")) return;
-  try {
-    const response = await teamService.exitTeam(team?._id);
-    toast.success("You left the team");
-    localStorage.setItem("token", response.token);
-    setTeam(null);
-    refreshUser();
-  } catch (error) {
-    toast.error("Failed to exit team");
+    if (!confirm("Are you sure you want to leave the team?")) return;
+    try {
+      const response = await teamService.exitTeam(team?._id);
+      toast.success("You left the team");
+      localStorage.setItem("token", response.token);
+      setTeam(null);
+      refreshUser();
+    } catch (error) {
+      toast.error("Failed to exit team");
+    }
   }
-}
 
   const getPositionColor = (index) => {
     const colors = [
@@ -147,7 +155,7 @@ export default function TeamInfoCard() {
   return (
     <div className="relative overflow-hidden bg-white dark:bg-stone-800 rounded-3xl border border-gray-200 dark:border-stone-700">
       {/* Football field pattern background */}
-      
+
 
       <div className="relative p-8">
         {/* Header */}
@@ -163,27 +171,27 @@ export default function TeamInfoCard() {
               <p className="text-gray-600 dark:text-gray-400">Manage your football squad</p>
             </div>
           </div>
-          
+
           {!team ? (
-            <Button 
-              variant="sea" 
+            <Button
+              variant="sea"
               onClick={() => setShowCreateModal(true)}
               className="bg-gradient-to-r from-emerald-500 to-blue-500 hover:from-emerald-600 hover:to-blue-600 text-white px-6 py-3 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200"
             >
               Create Team
             </Button>
           ) : user.id === team.leader ? (
-            <Button 
-              variant="sea" 
+            <Button
+              variant="sea"
               onClick={deleteTeam}
               className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-6 py-3 rounded-xl shadow-lg"
             >
               <Trash2 className="w-5 h-5" />
             </Button>
           ) : (
-            <Button 
-              variant="sea" 
-              buttonType="outlined" 
+            <Button
+              variant="sea"
+              buttonType="outlined"
               onClick={exitTeam}
               className="border-2 border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 px-6 py-3 rounded-xl"
             >
@@ -218,7 +226,7 @@ export default function TeamInfoCard() {
                 <Users className="w-6 h-6 text-emerald-500" />
                 Squad Formation
               </h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 my-6">
                 {team.members.map((member, index) => (
                   <div
@@ -244,7 +252,7 @@ export default function TeamInfoCard() {
                           </button>
                         )}
                       </div>
-                      
+
                       <div>
                         <h4 className="font-bold text-gray-800 dark:text-white text-lg">
                           {member.username}
@@ -266,7 +274,7 @@ export default function TeamInfoCard() {
                   <UserPlus className="w-6 h-6 text-blue-500" />
                   Scout New Players
                 </h3>
-                
+
                 <div className="space-y-4 mt-6">
                   <div className="flex flex-col sm:flex-row gap-3">
                     <select
@@ -278,7 +286,7 @@ export default function TeamInfoCard() {
                       <option value="email">Email</option>
                       <option value="phoneNumber">Phone</option>
                     </select>
-                    
+
                     <div className="relative flex-1">
                       <Search className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
                       <Input
@@ -351,7 +359,7 @@ export default function TeamInfoCard() {
             <h3 className="text-2xl font-bold text-gray-800 dark:text-white">Create Your Team</h3>
             <p className="text-gray-600 dark:text-gray-400 mt-2">Give your squad a legendary name</p>
           </div>
-          
+
           <div className="space-y-4">
             <div>
               <Label className="text-gray-700 dark:text-gray-300 font-semibold">Team Name</Label>
@@ -362,17 +370,17 @@ export default function TeamInfoCard() {
                 className="mt-2 py-3 rounded-xl border-gray-300 dark:border-stone-600 focus:ring-2 focus:ring-emerald-500"
               />
             </div>
-            
+
             <div className="flex gap-3 pt-4">
-              <Button 
-                buttonType="outlined" 
+              <Button
+                buttonType="outlined"
                 onClick={() => setShowCreateModal(false)}
                 className="flex-1 py-3 rounded-xl border-2 border-gray-300 text-gray-700 hover:bg-gray-50"
               >
                 Cancel
               </Button>
-              <Button 
-                onClick={createTeam} 
+              <Button
+                onClick={createTeam}
                 disabled={loading}
                 className="flex-1 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-blue-500 hover:from-emerald-600 hover:to-blue-600 text-white shadow-lg"
               >

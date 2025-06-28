@@ -36,7 +36,7 @@ exports.getMyTournaments = asyncHandler(async (req, res) => {
 exports.addTournament = asyncHandler(async (req, res) => {
   const { name, description, entryPricePerTeam, rewardPrize, maxTeams, startDate, endDate, stadiumId } = req.body;
 
-  const newTournament = await Tournament.create({
+  let newTournament = await Tournament.create({
     name,
     description,
     entryPricePerTeam,
@@ -49,6 +49,8 @@ exports.addTournament = asyncHandler(async (req, res) => {
     updatedBy: req.user.id,
   });
 
+  newTournament = await newTournament.populate("stadiumId", "name");
+
   // Notify all users about new tournament
   const users = await User.find({}, "_id");
   const notifications = await Promise.all(
@@ -56,7 +58,7 @@ exports.addTournament = asyncHandler(async (req, res) => {
       Notification.create({
         user: user._id,
         message: `A new tournament "${newTournament.name}" has been added.`,
-        type: "info",
+        type: "tournament-added",
         metadata: {
           tournamentId: newTournament._id,
         },

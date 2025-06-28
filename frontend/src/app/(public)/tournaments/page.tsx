@@ -44,7 +44,8 @@ export default function TournamentsPage() {
     status: '',
     maxEntryPrice: '',
     maxTeams: '',
-    sortBy: 'newest'
+    sortBy: 'newest',
+    joinedOnly: false,
   });
 
   const fetchTournaments = async () => {
@@ -120,19 +121,24 @@ export default function TournamentsPage() {
 
   // Filter and sort tournaments
   const filteredTournaments = useMemo(() => {
-    // Ensure tournaments is an array before filtering
-    if (!Array.isArray(tournaments)) {
-      console.warn('Tournaments is not an array:', tournaments);
-      return [];
-    }
+    if (!Array.isArray(tournaments)) return [];
 
     let filtered = tournaments.filter(tournament => {
-      // Ensure tournament object has required properties
-      if (!tournament || typeof tournament !== 'object') {
-        return false;
+      if (!tournament || typeof tournament !== 'object') return false;
+
+      // If 'joined' is selected in sortBy, filter only joined tournaments
+      if (filters.sortBy === 'joined') {
+        const joined = Array.isArray(tournament.teams)
+          ? tournament.teams.some(team =>
+            typeof team === 'string'
+              ? team === user?.team
+              : team?._id === user?.team
+          )
+          : false;
+        return joined;
       }
 
-      // Search filter
+      // Regular filters
       if (filters.search) {
         const searchLower = filters.search.toLowerCase();
         const matchesSearch =
@@ -143,18 +149,15 @@ export default function TournamentsPage() {
         if (!matchesSearch) return false;
       }
 
-      // Status filter
       if (filters.status) {
         const status = getTournamentStatus(tournament.startDate, tournament.endDate);
         if (status !== filters.status) return false;
       }
 
-      // Entry price filter
       if (filters.maxEntryPrice) {
         if (!tournament.entryPricePerTeam || tournament.entryPricePerTeam > parseInt(filters.maxEntryPrice)) return false;
       }
 
-      // Max teams filter
       if (filters.maxTeams) {
         if (!tournament.maxTeams || tournament.maxTeams > parseInt(filters.maxTeams)) return false;
       }
@@ -162,25 +165,28 @@ export default function TournamentsPage() {
       return true;
     });
 
-    // Sort tournaments
-    filtered.sort((a, b) => {
-      switch (filters.sortBy) {
-        case 'oldest':
-          return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
-        case 'startDate':
-          return new Date(a.startDate || 0) - new Date(b.startDate || 0);
-        case 'entryPrice':
-          return (a.entryPricePerTeam || 0) - (b.entryPricePerTeam || 0);
-        case 'rewardPrize':
-          return (b.rewardPrize || 0) - (a.rewardPrize || 0);
-        case 'newest':
-        default:
-          return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
-      }
-    });
+    // Sort only if sortBy is not 'joined'
+    if (filters.sortBy !== 'joined') {
+      filtered.sort((a, b) => {
+        switch (filters.sortBy) {
+          case 'oldest':
+            return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
+          case 'startDate':
+            return new Date(a.startDate || 0) - new Date(b.startDate || 0);
+          case 'entryPrice':
+            return (a.entryPricePerTeam || 0) - (b.entryPricePerTeam || 0);
+          case 'rewardPrize':
+            return (b.rewardPrize || 0) - (a.rewardPrize || 0);
+          case 'newest':
+          default:
+            return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+        }
+      });
+    }
 
     return filtered;
-  }, [tournaments, filters]);
+  }, [tournaments, filters, user]);
+
 
   const handleSearch = (searchTerm) => {
     setFilters(prev => ({ ...prev, search: searchTerm }));
@@ -261,6 +267,7 @@ export default function TournamentsPage() {
                     key={tournament._id}
                     tournament={tournament}
                     onJoin={handleJoinTournament}
+                    userTeamId={user?.team}
                   />
                 ))}
 

@@ -86,6 +86,7 @@ const TournamentFilters = ({ filters, onFiltersChange, onSearch }) => {
               onChange={(e) => onFiltersChange({ ...filters, sortBy: e.target.value })}
               className="w-full p-2 border border-stone-400 dark:border-stone-700 rounded-md dark:text-white/50 dark:bg-stone-800"
             >
+              <option value="joined">Joined Only</option>
               <option value="newest">Newest First</option>
               <option value="oldest">Oldest First</option>
               <option value="startDate">Start Date</option>

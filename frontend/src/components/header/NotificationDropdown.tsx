@@ -1,16 +1,34 @@
 "use client";
-import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import axios from "axios";
 import { Check, X } from "lucide-react";
+import teamService from "@/lib/api/team";
+import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
+
+type Notification = {
+  _id: string;
+  type: string;
+  message: string;
+  createdAt: string;
+  metadata?: {
+    stadiumId?: string;
+    academyId?: string;
+    tournamentId?: string;
+    teamId?: string;
+    [key: string]: unknown;
+  };
+};
 
 export default function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const [notifying, setNotifying] = useState(true);
-  const [notifications, setNotifications] = useState([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  const router = useRouter();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -30,27 +48,19 @@ export default function NotificationDropdown() {
 
   const handleAccept = async (teamId: string, notificationId: string) => {
     try {
-      await axios.post(
-        "http://localhost:8080/api/teams/accept",
-        { teamId, notificationId },
-        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
-      );
+      await teamService.acceptInvite(teamId, notificationId);
       setNotifications((prev) => prev.filter((n) => n._id !== notificationId));
-    } catch (err) {
-      console.error("Accept failed", err);
+    } catch {
+      toast.error("Accept failed");
     }
   };
 
   const handleReject = async (notificationId: string) => {
     try {
-      await axios.post(
-        "http://localhost:8080/api/teams/reject",
-        { notificationId },
-        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
-      );
+      await teamService.rejectInvite(notificationId);
       setNotifications((prev) => prev.filter((n) => n._id !== notificationId));
-    } catch (err) {
-      console.error("Reject failed", err);
+    } catch {
+      toast.error("Reject failed");
     }
   };
 
@@ -124,7 +134,16 @@ export default function NotificationDropdown() {
           {notifications.map((notif) => (
             <li key={notif._id}>
               <DropdownItem
-                onItemClick={closeDropdown}
+                onItemClick={() => {
+                  closeDropdown();
+                  if (notif.type === "stadium-added" && notif.metadata?.stadiumId) {
+                    router.push(`/stadiums/${notif.metadata.stadiumId}`);
+                  } else if (notif.type === "academy-added" && notif.metadata?.academyId) {
+                    router.push(`/academies/${notif.metadata.academyId}`);
+                  } else if (notif.type === "tournament-added" && notif.metadata?.tournamentId) {
+                    router.push(`/tournaments`);
+                  }
+                }}
                 className="flex justify-between items-center gap-2 rounded-lg border-b border-gray-200 p-3 hover:bg-gray-100 dark:border-stone-700 dark:hover:bg-white/5"
               >
                 <div>
@@ -138,7 +157,11 @@ export default function NotificationDropdown() {
                     <span
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleAccept(notif.metadata.teamId, notif._id);
+                        if (notif?.metadata?.teamId) {
+                          handleAccept(notif.metadata.teamId, notif._id);
+                        } else {
+                          toast.error("Team ID is missing for this invite.");
+                        }
                       }}
                       title="Accept"
                       className="text-green-500 hover:text-green-700"

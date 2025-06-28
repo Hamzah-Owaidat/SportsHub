@@ -192,7 +192,7 @@ const addStadium = async (req, res) => {
         Notification.create({
           user: user._id,
           message: `A new stadium "${savedStadium.name}" was added.`,
-          type: "info",
+          type: "stadium-added",
           metadata: {
             stadiumId: savedStadium._id,
           },
