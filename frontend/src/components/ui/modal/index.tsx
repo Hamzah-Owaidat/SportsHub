@@ -55,7 +55,7 @@ export const Modal: React.FC<ModalProps> = ({
     : "relative w-fit rounded-3xl bg-white dark:bg-stone-900";
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center overflow-y-auto modal z-99999">
+    <div className="fixed inset-0 z-99999 flex items-center justify-center">
       {!isFullscreen && (
         <div
           className="fixed inset-0 bg-transparent backdrop-blur-[5px]"
@@ -64,7 +64,16 @@ export const Modal: React.FC<ModalProps> = ({
       )}
       <div
         ref={modalRef}
-        className={`${contentClasses}  ${className}`}
+        className={`
+          ${contentClasses}
+          max-h-[90vh]
+          overflow-y-auto
+          scrollbar-thin scrollbar-track-transparent scrollbar-thumb-transparent
+          [&::-webkit-scrollbar]:w-0
+          [&::-webkit-scrollbar-track]:bg-transparent
+          [&::-webkit-scrollbar-thumb]:bg-transparent
+          ${className || ''}
+        `}
         onClick={(e) => e.stopPropagation()}
       >
         {showCloseButton && (
@@ -77,7 +86,7 @@ export const Modal: React.FC<ModalProps> = ({
               height="24"
               viewBox="0 0 24 24"
               fill="none"
-              xmlns="http://www.w3.org/2000/svg" 
+              xmlns="http://www.w3.org/2000/svg"
             >
               <path
                 fillRule="evenodd"

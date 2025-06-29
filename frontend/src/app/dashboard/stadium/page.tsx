@@ -4,7 +4,8 @@ import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import StadiumsTable from "@/components/tables/StadiumsTable";
 import { Stadium } from "@/types/Stadium";
-import AddStadiumModal from "@/components/ui/modal/AddStadiumModal";
+import AddStadiumModal from "@/components/ui/modal/stadiums/AddStadiumModal";
+
 
 // Note: Remove this if you're using 'use client' directive
 // export const metadata: Metadata = {

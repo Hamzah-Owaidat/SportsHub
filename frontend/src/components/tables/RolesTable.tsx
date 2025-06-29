@@ -10,7 +10,7 @@ import {
 
 import Actions from "../ui/actions/Actions"
 import Pagination from "./Pagination";
-import { deleteRole, getAllRoles } from '@/lib/api/dashboard/dashboard';
+import { deleteRole, getAllRoles } from '@/lib/api/dashboard/roles';
 import { Role } from "@/types/Role";
 import { toast } from "react-toastify";
 

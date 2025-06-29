@@ -7,14 +7,14 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
-
-import Actions from "../ui/actions/Actions"
+import Actions from "../ui/actions/Actions";
 import Image from "next/image";
 import Pagination from "./Pagination";
 import { toast } from "react-toastify";
 import { useUser } from "@/context/UserContext";
-import { getStadiumsByOwner, getAllStadiums } from "@/lib/api/dashboard/stadiums";
+import { getStadiumsByOwner, getAllStadiums, deleteStadium } from "@/lib/api/dashboard/stadiums";
 import { Stadium } from "@/types/Stadium";
+import EditStadiumModal from "../ui/modal/stadiums/EditStadiumModal";
 
 interface StadiumsTableProps {
   tableData: Stadium[];
@@ -31,8 +31,10 @@ export default function StadiumsTable({
 }: StadiumsTableProps) {
   const { user } = useUser();
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedStadium, setSelectedStadium] = useState<Stadium | null>(null);
 
+  const itemsPerPage = 5;
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentStadiums = tableData.slice(indexOfFirstItem, indexOfLastItem);
@@ -66,6 +68,43 @@ export default function StadiumsTable({
     setCurrentPage(pageNumber);
   };
 
+  const handleEdit = (stadium: Stadium) => {
+    setSelectedStadium(stadium);
+    setEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setSelectedStadium(null);
+    setEditModalOpen(false);
+  };
+
+  const handleStadiumUpdate = (updatedStadium: Stadium) => {
+    setTableData(prev =>
+      prev.map(stadium => stadium._id === updatedStadium._id ? updatedStadium : stadium)
+    );
+    toast.success('Stadium updated successfully!');
+  };
+
+  const handleDeleteStadium = async (stadiumId: string) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this stadium?");
+    if (!confirmDelete) return;
+
+    try {
+      setLoading(true);
+
+      await deleteStadium(stadiumId);
+
+      setTableData(prev => prev.filter(stadium => stadium._id !== stadiumId));
+      toast.success("Stadium deleted successfully");
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Error deleting stadium");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
       <div className="w-full overflow-x-auto">
@@ -86,18 +125,18 @@ export default function StadiumsTable({
           <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
             {loading ? (
               <TableRow>
-                <TableCell className="px-5 py-4 text-center">Loading data...</TableCell>
+                <TableCell className="px-5 py-4 text-center" colSpan={8}>Loading data...</TableCell>
               </TableRow>
             ) : currentStadiums.length === 0 ? (
               <TableRow>
-                <TableCell className="px-5 py-4 text-center">No stadiums found</TableCell>
+                <TableCell className="px-5 py-4 text-center" colSpan={8}>No stadiums found</TableCell>
               </TableRow>
             ) : (
               currentStadiums.map((stadium, index) => (
                 <TableRow key={stadium._id}>
                   <TableCell className="px-5 py-4 sm:px-6">
                     <div className="w-10 h-10 overflow-hidden rounded-full bg-gray-200 flex items-center justify-center">
-                      {stadium.photos && stadium.photos.length > 0 ? (
+                      {stadium.photos?.[0] ? (
                         <Image
                           width={40}
                           height={40}
@@ -110,22 +149,21 @@ export default function StadiumsTable({
                       )}
                     </div>
                   </TableCell>
-
-                  <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">{stadium.name}</TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">{stadium.location}</TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">{stadium.pricePerMatch.toLocaleString()} LBP</TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">{stadium.maxPlayers}</TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">
+                  <TableCell className="px-4 py-3 text-center">{stadium.name}</TableCell>
+                  <TableCell className="px-4 py-3 text-center">{stadium.location}</TableCell>
+                  <TableCell className="px-4 py-3 text-center">{stadium.pricePerMatch.toLocaleString()} LBP</TableCell>
+                  <TableCell className="px-4 py-3 text-center">{stadium.maxPlayers}</TableCell>
+                  <TableCell className="px-4 py-3 text-center">
                     {stadium.workingHours?.start} - {stadium.workingHours?.end}
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">
+                  <TableCell className="px-4 py-3 text-center">
                     {new Date(stadium.createdAt).toLocaleDateString()}
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">
+                  <TableCell className="px-4 py-3 text-center">
                     <Actions
-                      onEdit={() => console.log("Edit stadium", stadium._id)}
+                      onEdit={() => handleEdit(stadium)}
                       onView={() => console.log("View stadium", stadium._id)}
-                      onDelete={() => console.log("Delete stadium", stadium._id)}
+                      onDelete={() => handleDeleteStadium(stadium._id)}
                       isLastRow={index === currentStadiums.length - 1}
                     />
                   </TableCell>
@@ -136,7 +174,6 @@ export default function StadiumsTable({
         </Table>
       </div>
 
-      {/* Pagination */}
       {!loading && tableData.length > 0 && (
         <div className="flex justify-center py-4">
           <Pagination
@@ -146,6 +183,13 @@ export default function StadiumsTable({
           />
         </div>
       )}
+
+      <EditStadiumModal
+        isOpen={editModalOpen}
+        onClose={handleCloseEditModal}
+        stadium={selectedStadium}
+        onUpdate={handleStadiumUpdate}
+      />
     </div>
   );
 }

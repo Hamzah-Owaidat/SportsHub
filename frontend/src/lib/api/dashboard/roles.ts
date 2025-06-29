@@ -24,58 +24,6 @@ axiosInstance.interceptors.request.use((config) => {
   return config;
 });
 
-export const getAllUsers = async () => {
-  const res = await axiosInstance.get('users');
-  // Return the users array nested inside data.users
-  return res.data?.data?.users || [];
-};
-
-// export const getUserProfile = async () => {
-//   const res = await axiosInstance.get('/profile');
-//   return res.data;
-// };
-
-// Add a user
-export const addUser = async (userData) => {
-  try {
-    // Use FormData for file uploads
-    const formData = new FormData();
-    
-    // Append all fields
-    Object.keys(userData).forEach(key => {
-      if (key === 'profilePhoto' && userData[key]) {
-        formData.append('profilePhoto', userData.profilePhoto);
-      } else if (key !== 'profilePhoto') {
-        formData.append(key, userData[key]);
-      }
-    });
-
-    const response = await axiosInstance.post('users', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
-    
-    return response.data.data.user;
-  } catch (error) {
-    if (error.response) {
-      throw new Error(error.response.data.message || 'Failed to add user');
-    }
-    throw new Error(error.message || 'An error occurred');
-  }
-};
-
-// Update a user
-export const updateUser = async (id, updatedData) => {
-  const response = await axiosInstance.put(`users/${id}`, updatedData);
-  return response.data.data.user;
-};
-
-// Delete a user
-export const deleteUser = async (id) => {
-  await axiosInstance.delete(`users/${id}`);
-};
-
 export const getAllRoles = async () => {
   const res = await axiosInstance.get('roles');
   // Return the roles array nested inside data.roles

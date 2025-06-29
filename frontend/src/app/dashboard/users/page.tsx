@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import UsersTable from "@/components/tables/UsersTable";
-import AddUserModal from "@/components/ui/modal/AddUserModal";
+import AddUserModal from "@/components/ui/modal/users/AddUserModal";
 import { User } from "@/types/User";
 
 // Note: Remove this if you're using 'use client' directive
@@ -16,7 +16,7 @@ export default function UsersPage() {
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [tableData, setTableData] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  
+
 
   const handleAddUser = () => {
     setIsAddUserModalOpen(true);

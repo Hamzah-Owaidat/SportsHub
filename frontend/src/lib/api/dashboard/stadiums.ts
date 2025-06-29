@@ -44,3 +44,21 @@ export const addStadium = async (stadiumData: FormData) => {
   );
   return res.data;
 }
+
+export const updateStadium = async (id, formData) => {
+  
+  const res = await axiosInstance.put(`stadiums/${id}`, formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
+
+  return res.data;
+}
+
+export const deleteStadium = async (id) => {
+  const res = await axiosInstance.delete(`stadiums/${id}`);
+  return res.data;
+}

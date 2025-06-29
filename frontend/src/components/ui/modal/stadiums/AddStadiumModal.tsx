@@ -1,12 +1,12 @@
 'use client'
 import React, { useState } from "react";
 import { Button } from "lebify-ui";
-import { Modal } from "./index";
+import { Modal } from "../index";
 import Label from "@/components/form/Label";
 import Input from "@/components/form/input/InputField";
 import FieldError from "@/components/helper/FieldError";
 import { toast } from "react-toastify";
-import { Stadium } from "@/types/Stadium";
+import { PenaltyPolicy, Stadium, WorkingHours } from "@/types/Stadium";
 import { addStadium } from "@/lib/api/dashboard/stadiums";
 import { useUser } from "@/context/UserContext";
 
@@ -14,16 +14,6 @@ interface AddStadiumModalProps {
     isOpen: boolean;
     onClose: () => void;
     setTableData: React.Dispatch<React.SetStateAction<Stadium[]>>
-}
-
-interface PenaltyPolicy {
-    hoursBefore: number | "";
-    penaltyAmount: number | "";
-}
-
-interface WorkingHours {
-    start: string;
-    end: string;
 }
 
 const AddStadiumModal: React.FC<AddStadiumModalProps> = ({ isOpen, onClose, setTableData }) => {
@@ -190,7 +180,7 @@ const AddStadiumModal: React.FC<AddStadiumModalProps> = ({ isOpen, onClose, setT
 
     return (
         <Modal isOpen={isOpen} onClose={() => { resetForm(); onClose(); }}>
-            <div className="p-6 max-w-xl w-full">
+            <div className="p-6">
                 <h2 className="text-xl font-semibold pb-6 dark:text-white">Add New Stadium</h2>
 
                 <form onSubmit={handleSubmit} encType="multipart/form-data" className="space-y-5">

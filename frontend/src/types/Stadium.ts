@@ -13,9 +13,20 @@ export interface Stadium {
   maxPlayers: number;
   penaltyPolicy: {
     hoursBefore: string;
+    penaltyAmount: string;
   };
   workingHours: {
     start: string;
     end: string;
   };
+}
+
+export interface PenaltyPolicy {
+    hoursBefore: number | "";
+    penaltyAmount: number | "";
+}
+
+export interface WorkingHours {
+    start: string;
+    end: string;
 }

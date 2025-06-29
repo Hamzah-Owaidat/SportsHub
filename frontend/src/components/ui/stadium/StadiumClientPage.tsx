@@ -173,6 +173,18 @@ export default function StadiumClientPage() {
         return `${displayHour}:${minutes} ${ampm}`;
     };
 
+    const handleRefreshAvailableSlots = async () => {
+        try {
+            const response = await getStadiumById(id);
+            setStadium(response);
+            toast.success("Available slots refreshed");
+        } catch (error) {
+            console.error("Failed to refresh available slots:", error);
+            toast.error("Failed to refresh slots");
+        }
+    };
+
+
     const monthNames = [
         'January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'September', 'October', 'November', 'December'
@@ -201,6 +213,7 @@ export default function StadiumClientPage() {
                         </button>
                         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{stadium.name}</h1>
                     </div>
+
                     <div className="flex items-center gap-6 text-gray-600 dark:text-gray-400">
                         <div className="flex items-center gap-2">
                             <MapPin className="w-4 h-4" />
@@ -377,14 +390,23 @@ export default function StadiumClientPage() {
                                 {/* Time Slots */}
                                 {selectedDate && (
                                     <div className="border-t pt-6">
-                                        <h3 className="font-semibold text-gray-900 mb-4">
-                                            Available slots for {selectedDate.toLocaleDateString('en-US', {
-                                                weekday: 'long',
-                                                year: 'numeric',
-                                                month: 'long',
-                                                day: 'numeric'
-                                            })}
-                                        </h3>
+                                        <div className='flex justify-between items-center mb-4 w-full'>
+                                            <h3 className="font-semibold text-gray-900">
+                                                Available slots for {selectedDate.toLocaleDateString('en-US', {
+                                                    weekday: 'long',
+                                                    year: 'numeric',
+                                                    month: 'long',
+                                                    day: 'numeric'
+                                                })}
+                                            </h3>
+                                            <button
+                                                onClick={handleRefreshAvailableSlots}
+                                                className="bg-blue-100 hover:bg-blue-200 text-blue-800 font-medium px-3 py-1.5 rounded-lg text-sm"
+                                            >
+                                                Refresh Slots
+                                            </button>
+                                        </div>
+
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
                                             {getAvailableSlots(selectedDate).map((slot, index) => {

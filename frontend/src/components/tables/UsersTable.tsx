@@ -11,12 +11,13 @@ import {
 import Actions from "../ui/actions/Actions"
 import Image from "next/image";
 import Pagination from "./Pagination";
-import { getAllUsers, deleteUser } from '@/lib/api/dashboard/dashboard';
+import { getAllUsers, deleteUser } from '@/lib/api/dashboard/users';
+import { getAllRoles } from '@/lib/api/dashboard/roles';
 import { Badge } from "lebify-ui"
 import { User } from "@/types/User";
 import { toast } from "react-toastify";
-
-
+import EditUserModal from "../ui/modal/users/EditUserModal";
+import { Role } from "@/types/Role";
 
 
 interface UsersTableProps {
@@ -26,7 +27,6 @@ interface UsersTableProps {
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-
 export default function UsersTable({
   tableData,
   setTableData,
@@ -35,25 +35,33 @@ export default function UsersTable({
 }: UsersTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
-  
 
-
+  // Add state for modal and roles
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [roles, setRoles] = useState<Role[]>([]);
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchData = async () => {
       try {
-        const users = await getAllUsers();
+        // Fetch both users and roles
+        const [users, rolesData] = await Promise.all([
+          getAllUsers(),
+          getAllRoles()
+        ]);
+
         setTableData(users);
+        setRoles(rolesData);
       } catch (error) {
-        console.error('Failed to fetch users:', error);
+        console.error('Failed to fetch data:', error);
+        toast.error('Failed to load data');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUsers();
-  }, []);
-
+    fetchData();
+  }, [setTableData, setLoading]);
 
   const handleDelete = async (id: string) => {
     const confirmed = window.confirm('Are you sure you want to delete this user?');
@@ -65,7 +73,30 @@ export default function UsersTable({
       setTableData(prev => prev.filter(user => user._id !== id));
     } catch (error) {
       console.error('Failed to delete user:', error);
+      toast.error('Failed to delete user');
     }
+  };
+
+  // Add edit handlers
+  const handleEdit = (user: User) => {
+    setSelectedUser(user);
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setSelectedUser(null);
+  };
+
+  const handleUserUpdate = (updatedUser: User) => {
+    // Update the user in the local state
+    setTableData(prevUsers =>
+      prevUsers.map(user =>
+        user._id === updatedUser._id ? updatedUser : user
+      )
+    );
+
+    toast.success('User updated successfully!');
   };
 
   // Calculate pagination using the fetched data
@@ -79,11 +110,8 @@ export default function UsersTable({
     setCurrentPage(pageNumber);
   };
 
-
-  // In your render method, update the table to match the new data structure
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
-      {/* Table headers remain the same */}
       <div className="w-full overflow-x-auto">
         <div>
           <Table>
@@ -145,13 +173,13 @@ export default function UsersTable({
             <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
               {loading ? (
                 <TableRow>
-                  <TableCell className="px-5 py-4 text-center">
+                  <TableCell className="px-5 py-4 sm:px-6 text-center">
                     Loading data...
                   </TableCell>
                 </TableRow>
               ) : currentUsers.length === 0 ? (
                 <TableRow>
-                  <TableCell className="px-5 py-4 text-center">
+                  <TableCell className="px-5 py-4 sm:px-6 text-center">
                     No users found
                   </TableCell>
                 </TableRow>
@@ -178,7 +206,6 @@ export default function UsersTable({
                             {user ? user.username.substring(0, 2).toUpperCase() : 'NA'}
                           </span>
                         )}
-
                       </div>
                     </TableCell>
 
@@ -223,7 +250,7 @@ export default function UsersTable({
 
                     <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
                       <Actions
-                        onEdit={() => console.log('Edit clicked', user._id)}
+                        onEdit={() => handleEdit(user)}
                         onView={() => console.log('View clicked', user._id)}
                         onDelete={() => handleDelete(user._id)}
                         isLastRow={index === currentUsers.length - 1}
@@ -247,6 +274,15 @@ export default function UsersTable({
           />
         </div>
       )}
+
+      {/* Fixed: EditUserModal with proper props */}
+      <EditUserModal
+        isOpen={isEditModalOpen}
+        onClose={handleCloseEditModal}
+        user={selectedUser}
+        roles={roles}
+        onUpdate={handleUserUpdate}
+      />
     </div>
   );
 }

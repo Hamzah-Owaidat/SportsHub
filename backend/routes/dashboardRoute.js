@@ -10,10 +10,6 @@ const { authMiddleware } = require("../middlewares/authMiddleware");
 const upload = require("../middlewares/upload");
 const uploadStadium = require("../middlewares/uploadStadium");
 const uploadAcademy = require("../middlewares/uploadAcademy");
-// const { cookiesMiddleware } = require("../middlewares/cookieMiddleware");
-
-// Dashboard home page
-// router.get("/", isAuthenticated, isAdmin, showDashboard);
 
 // Dashboard users management
 router.get("/users", authMiddleware.admin, usersController.getAllUsers);
@@ -21,7 +17,7 @@ router.get("/users/academy-owners", authMiddleware.role("admin"), usersControlle
 router.get("/users/stadium-owners", authMiddleware.role("admin"), usersController.getStadiumOwners);
 router.get("/users/:id", authMiddleware.admin, usersController.getUser);
 router.post("/users", authMiddleware.admin, upload.single("profilePhoto"), usersController.addUser);
-router.put("/users/:id", authMiddleware.admin, usersController.updateUser);
+router.put("/users/:id", authMiddleware.admin, upload.single("profilePhoto"), usersController.updateUser);
 router.delete("/users/:id", authMiddleware.admin, usersController.deleteUser);
 
 // Dashboard roles management
@@ -39,7 +35,7 @@ router.post(
   uploadStadium.array("photos", 5),
   stadiumController.addStadium
 );
-router.put("/stadiums/:id", authMiddleware.owns("stadiumModel", "id", "ownerId"), stadiumController.updateStadium);
+router.put("/stadiums/:id", authMiddleware.owns("stadiumModel", "id", "ownerId"), uploadStadium.array("photos", 5), stadiumController.updateStadium);
 router.delete("/stadiums/:id", authMiddleware.owns("stadiumModel", "id", "ownerId"), stadiumController.deleteStadium);
 router.get(
   "/stadiums/owner/:ownerId",

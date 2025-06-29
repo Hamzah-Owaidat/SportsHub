@@ -1,12 +1,12 @@
 'use client'
 import React, { useState, useEffect } from "react";
 import { Button } from "lebify-ui";
-import { Modal } from "./index";
+import { Modal } from "../index";
 import Label from "@/components/form/Label";
 import Input from "@/components/form/input/InputField";
 import FieldError from "@/components/helper/FieldError";
 import { EyeCloseIcon, EyeIcon } from "@/icons";
-import { addUser } from "@/lib/api/dashboard/dashboard";
+import { addUser } from "@/lib/api/dashboard/users";
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/navigation';
 import Checkbox from "@/components/form/input/Checkbox";
@@ -182,7 +182,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ isOpen, onClose, setTableDa
             //     console.warn("User data is incomplete:", newUser);
             //     return;
             // }
-            
+
             setTableData(prev => [...prev, newUser]);
 
             toast.success("User added successfully");
@@ -198,7 +198,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ isOpen, onClose, setTableDa
 
     return (
         <Modal isOpen={isOpen} onClose={handleClose}>
-            <div className="p-6 max-w-xl w-full">
+            <div className="p-6">
                 <h2 className="text-xl font-semibold pb-10 dark:text-white">Add New User</h2>
 
                 <form onSubmit={handleSubmit} encType="multipart/form-data">

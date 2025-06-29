@@ -187,7 +187,7 @@ exports.updateUser = asyncHandler(async (req, res) => {
     // Check for duplicate username (excluding current user)
     const duplicateUsername = await User.findOne({
       username,
-      id: { $ne: userId },
+      _id: { $ne: userId },
     });
     if (duplicateUsername) {
       return res.status(400).json({
@@ -202,7 +202,7 @@ exports.updateUser = asyncHandler(async (req, res) => {
     // Check for duplicate email (excluding current user)
     const duplicateEmail = await User.findOne({
       email,
-      id: { $ne: userId },
+      _id: { $ne: userId },
     });
     if (duplicateEmail) {
       return res.status(400).json({

@@ -169,7 +169,6 @@ exports.cancelBooking = async (req, res) => {
   }
 };
 
-
 exports.getMyBookings = async (req, res) => {
   try {
     const userId = req.user.id;

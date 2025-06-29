@@ -1,11 +1,11 @@
 'use client'
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "lebify-ui";
 import { Modal } from "./index";
 import Label from "@/components/form/Label";
 import Input from "@/components/form/input/InputField";
 import FieldError from "@/components/helper/FieldError";
-import { addRole } from "@/lib/api/dashboard/dashboard";
+import { addRole } from "@/lib/api/dashboard/roles";
 import { toast } from 'react-toastify';
 import { Role } from "@/types/Role";
 

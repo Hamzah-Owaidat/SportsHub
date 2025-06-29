@@ -2,13 +2,15 @@ const Stadium = require("../../models/stadiumModel");
 const User = require("../../models/userModel");
 const mongoose = require("mongoose");
 const Notification = require("../../models/notificationModel");
+const Booking = require("../../models/bookingModel");
+const Tournament = require('../../models/tournamentModel');
 
 const generateSlots = require("../../utils/generateSlots"); // Adjust path if needed
 
-const fillCalendarWithSlots = async (stadium, startDate = new Date(), endDate = null) => {
+const fillCalendarWithSlots = async (stadium, startDate = new Date(), endDate = null, oldBookedMap = new Map()) => {
   if (!endDate) {
     endDate = new Date();
-    endDate.setMonth(endDate.getMonth() + 6); // 6 months ahead by default
+    endDate.setMonth(endDate.getMonth() + 6);
   }
 
   const currentDate = new Date(startDate);
@@ -20,10 +22,20 @@ const fillCalendarWithSlots = async (stadium, startDate = new Date(), endDate = 
   const newCalendarEntries = [];
 
   while (currentDate <= finalDate) {
-    const dateExists = stadium.calendar.some((entry) => entry.date.toDateString() === currentDate.toDateString());
+    const dateStr = currentDate.toISOString().split("T")[0];
+    const dateExists = stadium.calendar.some((entry) => entry.date.toISOString().split("T")[0] === dateStr);
 
     if (!dateExists) {
-      const slots = generateSlots(stadium.workingHours.start, stadium.workingHours.end);
+      const slots = generateSlots(stadium.workingHours.start, stadium.workingHours.end).map((slot) => {
+        const key = `${dateStr}_${slot.startTime}`;
+        const old = oldBookedMap.get(key);
+        return {
+          ...slot,
+          isBooked: old?.isBooked || false,
+          bookingId: old?.bookingId || null,
+        };
+      });
+
       newCalendarEntries.push({
         date: new Date(currentDate),
         slots,
@@ -38,6 +50,7 @@ const fillCalendarWithSlots = async (stadium, startDate = new Date(), endDate = 
     await stadium.save();
   }
 };
+
 // Get all stadiums
 const getAllStadiums = async (req, res) => {
   try {
@@ -249,7 +262,12 @@ const updateStadium = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid stadium ID" });
     }
 
-    updateData.updatedAt = new Date(); // Always update timestamp
+    if (req.files && req.files.length > 0) {
+      const photos = req.files?.map((file) => `/images/stadiumsImages/${file.filename}`) || [];
+      updateData.photos = photos;
+    }
+
+    updateData.updatedAt = new Date();
 
     const updatedStadium = await Stadium.findByIdAndUpdate(id, updateData, {
       new: true,
@@ -264,6 +282,17 @@ const updateStadium = async (req, res) => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
+      // Save old booked slots
+      const oldBookedMap = new Map();
+      updatedStadium.calendar.forEach((entry) => {
+        entry.slots.forEach((slot) => {
+          if (slot.isBooked && slot.bookingId) {
+            const key = `${entry.date.toISOString().split("T")[0]}_${slot.startTime}`;
+            oldBookedMap.set(key, { isBooked: true, bookingId: slot.bookingId });
+          }
+        });
+      });
+
       updatedStadium.calendar = updatedStadium.calendar.filter(
         (entry) => entry.date < today || entry.date > new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)
       );
@@ -272,7 +301,7 @@ const updateStadium = async (req, res) => {
       const endDate = new Date();
       endDate.setDate(today.getDate() + 14);
 
-      await fillCalendarWithSlots(updatedStadium, today, endDate);
+      await fillCalendarWithSlots(updatedStadium, today, endDate, oldBookedMap);
     }
 
     res.status(200).json({
@@ -301,6 +330,17 @@ const deleteStadium = async (req, res) => {
         message: "Invalid stadium ID",
       });
     }
+
+    const stadium = await Stadium.findById(id);
+    if (!stadium) {
+      return res.status(404).json({
+        success: false,
+        message: "Stadium not found",
+      });
+    }
+
+    await Booking.deleteMany({ stadiumId: stadium._id });
+    await Tournament.deleteMany({ stadiumId: stadium._id, startDate: { $gt: new Date() } });
 
     const deletedStadium = await Stadium.findByIdAndDelete(id);
 
