@@ -1,5 +1,11 @@
 import React from 'react';
 import BookingsTable from '@/components/tables/BookingsTable';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'SportsHub | My Bookings',
+  description: 'All my bookings',
+};
 
 export default function MyBookingsPage() {
     return (

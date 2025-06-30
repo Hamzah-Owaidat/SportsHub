@@ -1,4 +1,10 @@
-import StadiumsClientPage from "@/components/ui/stadium/StadiumsClientPage";
+import StadiumsClientPage from "@/components/ui/pages/stadium/StadiumsClientPage";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Stadiums | SportsHub",
+  description: "Browse and book football stadiums available on SportsHub.",
+};
 
 export default function StadiumsPage() {
   return (

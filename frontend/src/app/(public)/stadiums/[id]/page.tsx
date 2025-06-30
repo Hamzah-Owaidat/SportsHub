@@ -1,5 +1,15 @@
-import StadiumClientPage from '@/components/ui/stadium/StadiumClientPage';
+import { Metadata } from "next";
+import StadiumClientPage from "@/components/ui/pages/stadium/StadiumClientPage";
+
+export const metadata: Metadata = {
+  title: "Stadium Details | SportsHub",
+  description: "View stadium details, availability, and booking options on SportsHub.",
+};
 
 export default function StadiumDetailPage() {
-  return <StadiumClientPage  />
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <StadiumClientPage />
+    </div>
+  );
 }
