@@ -8,6 +8,8 @@ import { Check, X } from "lucide-react";
 import teamService from "@/lib/api/team";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
+import { clearAllNotifications, getAllNotifications } from "@/lib/api/notifications";
+import { Button } from "lebify-ui";
 
 type Notification = {
   _id: string;
@@ -31,16 +33,10 @@ export default function NotificationDropdown() {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!isOpen || !token) return;
+    if (!isOpen) return;
 
-    axios
-      .get("http://localhost:8080/api/notifications", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => {
-        setNotifications(res.data.notifications);
-      })
+    getAllNotifications()
+      .then(setNotifications)
       .catch(() => {
         console.error("Failed to load notifications");
       });
@@ -61,6 +57,16 @@ export default function NotificationDropdown() {
       setNotifications((prev) => prev.filter((n) => n._id !== notificationId));
     } catch {
       toast.error("Reject failed");
+    }
+  };
+
+  const handleClearNotifications = async () => {
+    try {
+      await clearAllNotifications();
+      setNotifications([]);
+      toast.success("Notifications cleared");
+    } catch (err) {
+      toast.error("Failed to clear notifications");
     }
   };
 
@@ -185,12 +191,12 @@ export default function NotificationDropdown() {
           ))}
         </ul>
 
-        <Link
-          href="/"
-          className="block px-4 py-2 mt-3 text-sm font-medium text-center rounded-lg bg-transparent border border-gray-300 text-stone-900 hover:border-transparent hover:text-white dark:text-white dark:border-stone-700 dark:hover:border-transparent transition-colors hover:bg-[#1a7b9b]"
+        <Button
+          variant="sea"
+          onClick={() => handleClearNotifications()}
         >
-          View All Notifications
-        </Link>
+          Clear All Notifications
+        </Button>
       </Dropdown>
     </div>
   );
