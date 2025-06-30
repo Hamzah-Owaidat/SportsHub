@@ -13,6 +13,7 @@ import Pagination from "./Pagination";
 import { deleteRole, getAllRoles } from '@/lib/api/dashboard/roles';
 import { Role } from "@/types/Role";
 import { toast } from "react-toastify";
+import EditRoleModal from "../ui/modal/roles/EditRoleModal";
 
 
 interface RolesTableProps {
@@ -31,7 +32,16 @@ export default function RolesTable({
 }: RolesTableProps) {
 
     const [currentPage, setCurrentPage] = useState(1);
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+
+
     const itemsPerPage = 5;
+    // Calculate pagination using the fetched data
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentRoles = tableData.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(tableData.length / itemsPerPage);
 
     useEffect(() => {
         const fetchRoles = async () => {
@@ -62,33 +72,29 @@ export default function RolesTable({
         }
     };
 
-
-
-
-
-    // Calculate pagination using the fetched data
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentRoles = tableData.slice(indexOfFirstItem, indexOfLastItem);
-    const totalPages = Math.ceil(tableData.length / itemsPerPage);
-
     // Handle page change
     const handlePageChange = (pageNumber: number) => {
         setCurrentPage(pageNumber);
     };
 
-    // Handle status toggle - update to use active field instead of status
-    // const handleStatusToggle = (id: string, isActive: boolean) => {
-    //   setTableData(prevData => 
-    //     prevData.map(item => 
-    //       item._id === id 
-    //         ? { ...item, active: isActive } 
-    //         : item
-    //     )
-    //   );
-    // };
+    const handleOpenEditModal = (role: Role) => {
+        setSelectedRole(role);
+        setEditModalOpen(true);
+    };
 
-    // In your render method, update the table to match the new data structure
+    const handleCloseEditModal = () => {
+        setEditModalOpen(false);
+        setSelectedRole(null);
+    };
+
+    const handleRoleUpdate = (updated: Role) => {
+        setTableData(prev =>
+            prev.map((a) => (a._id === updated._id ? updated : a))
+        );
+
+        toast.success('Role updated successfully!');
+    };
+
     return (
         <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
             {/* Table headers remain the same */}
@@ -179,7 +185,7 @@ export default function RolesTable({
 
                                         <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">
                                             <Actions
-                                                onEdit={() => console.log('View clicked', role._id)}
+                                                onEdit={() => handleOpenEditModal(role)}
                                                 onDelete={() => handleDelete(role._id)}
                                                 isLastRow={index === currentRoles.length - 1}
                                             />
@@ -202,6 +208,13 @@ export default function RolesTable({
                     />
                 </div>
             )}
+
+            <EditRoleModal
+                isOpen={editModalOpen}
+                onClose={handleCloseEditModal}
+                role={selectedRole}
+                onUpdate={handleRoleUpdate}
+            />
 
         </div>
     );

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { headers } from 'next/headers';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -25,14 +26,24 @@ axiosInstance.interceptors.request.use((config) => {
 });
 
 export const addAcademy = async (formData: FormData) => {
-    const response = await axiosInstance.post("academies", formData, {
+    const res = await axiosInstance.post("academies", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
     });
 
-    return response.data;
+    return res.data;
 } 
+
+export const updateAcademy = async (id, formData) => {
+  const res = await axiosInstance.put(`academies/${id}`, formData, {
+    headers: {
+      "Content-type": "multipart/form-data",
+    }
+  });
+
+  return res.data;
+}
 
 export async function deleteAcademy(id: string) {
   const res = await axiosInstance.delete(`academies/${id}`);

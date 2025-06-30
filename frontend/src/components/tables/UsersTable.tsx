@@ -251,7 +251,6 @@ export default function UsersTable({
                     <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
                       <Actions
                         onEdit={() => handleEdit(user)}
-                        onView={() => console.log('View clicked', user._id)}
                         onDelete={() => handleDelete(user._id)}
                         isLastRow={index === currentUsers.length - 1}
                       />

@@ -5,7 +5,7 @@ import { Modal } from '..';
 import Label from '@/components/form/Label';
 import FieldError from '@/components/helper/FieldError';
 import { Button } from 'lebify-ui';
-import { PenaltyPolicy, Stadium, WorkingHours } from '@/types/Stadium';
+import { Stadium, WorkingHours } from '@/types/Stadium';
 import { toast } from 'react-toastify';
 import { updateStadium } from '@/lib/api/dashboard/stadiums';
 import { useUser } from '@/context/UserContext';

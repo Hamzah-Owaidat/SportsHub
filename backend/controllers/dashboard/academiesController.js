@@ -27,15 +27,30 @@ const getAcademyById = async (req, res) => {
   }
 };
 
-// POST new academy
+// POST add academy
 const addAcademy = async (req, res) => {
   try {
-    // Ensure user is authenticated
     if (!req.user || (!req.user.userId && !req.user.id)) {
       return res.status(401).json({ success: false, message: "Unauthorized: User not found." });
     }
 
     const { name, description, location, phoneNumber, email } = req.body;
+    let ownerId;
+
+    // Determine the ownerId based on role
+    if (req.user.role === "admin") {
+      ownerId = req.body.ownerId;
+      if (!ownerId) {
+        return res.status(400).json({
+          success: false,
+          errors: { ownerId: "Owner is required when creating an academy as admin" },
+        });
+      }
+    } else if (req.user.role === "academyOwner") {
+      ownerId = req.user.userId || req.user.id;
+    } else {
+      return res.status(403).json({ success: false, message: "You are not allowed to create an academy" });
+    }
 
     // Manual validation
     const errors = {};
@@ -51,7 +66,6 @@ const addAcademy = async (req, res) => {
       return res.status(400).json({ success: false, errors });
     }
 
-    // Create and save the academy
     const newAcademy = new Academy({
       name,
       description,
@@ -59,12 +73,11 @@ const addAcademy = async (req, res) => {
       phoneNumber,
       email,
       photos,
-      ownerId: req.user.userId || req.user.id,
+      ownerId,
     });
 
     const savedAcademy = await newAcademy.save();
 
-    // Notify all users
     const users = await User.find({}, "_id");
 
     const notifications = await Notification.insertMany(
@@ -76,7 +89,6 @@ const addAcademy = async (req, res) => {
       }))
     );
 
-    // Bulk update users to attach notifications
     await Promise.all(
       notifications.map((notification) =>
         User.findByIdAndUpdate(notification.user, {
@@ -89,7 +101,6 @@ const addAcademy = async (req, res) => {
   } catch (error) {
     console.error("Error adding academy:", error);
 
-    // Mongoose validation fallback
     if (error.name === "ValidationError") {
       const messages = Object.values(error.errors).map((val) => val.message);
       return res.status(400).json({ success: false, message: messages.join(", ") });
@@ -102,20 +113,32 @@ const addAcademy = async (req, res) => {
 // PUT update academy
 const updateAcademy = async (req, res) => {
   try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ success: false, message: "Academy ID is required" });
+    }
+
     const updated = await Academy.findByIdAndUpdate(
-      req.params.id,
-      { ...req.body, updatedAt: Date.now() },
-      { new: true, runValidators: true }
+      id,
+      {
+        ...req.body,
+        updatedAt: new Date(), // ensure it's a Date object
+      },
+      {
+        new: true, // return the updated document
+        runValidators: true, // ensure schema validations run
+      }
     );
 
     if (!updated) {
       return res.status(404).json({ success: false, message: "Academy not found" });
     }
 
-    res.json({ success: true, data: updated });
+    return res.status(200).json({ success: true, data: updated });
   } catch (error) {
     console.error("Error updating academy:", error);
-    res.status(400).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
 

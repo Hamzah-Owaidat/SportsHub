@@ -1,14 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MoreVertical, Edit, Eye, Trash2 } from 'lucide-react';
+import { MoreVertical, Edit, Trash2 } from 'lucide-react';
 
 interface ActionsProps {
   onEdit?: () => void;
-  onView?: () => void;
   onDelete?: () => void;
   isLastRow?: boolean; // Add this prop to identify the last row
 }
 
-const Actions: React.FC<ActionsProps> = ({ onEdit, onView, onDelete, isLastRow = false }) => {
+const Actions: React.FC<ActionsProps> = ({ onEdit, onDelete, isLastRow = false }) => {
   const [isOpen, setIsOpen] = useState(false);
   const actionRef = useRef<HTMLDivElement>(null);
 
@@ -53,19 +52,6 @@ const Actions: React.FC<ActionsProps> = ({ onEdit, onView, onDelete, isLastRow =
               >
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
-              </button>
-            )}
-            
-            {onView && (
-              <button
-                onClick={() => {
-                  onView();
-                  setIsOpen(false);
-                }}
-                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-600 border-b-1 dark:border-stone-800"
-              >
-                <Eye className="h-4 w-4 mr-2" />
-                View
               </button>
             )}
             

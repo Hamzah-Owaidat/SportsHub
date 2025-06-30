@@ -23,6 +23,7 @@ const AddTournamentModal: React.FC<AddTournamentModalProps> = ({
     setTableData,
 }) => {
     const { user } = useUser();
+
     const [formData, setFormData] = useState({
         name: "",
         description: "",
@@ -68,7 +69,6 @@ const AddTournamentModal: React.FC<AddTournamentModalProps> = ({
             fetchStadiums();
         }
     }, [isOpen]);
-
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;

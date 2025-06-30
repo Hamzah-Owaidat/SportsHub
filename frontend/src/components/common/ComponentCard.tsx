@@ -57,7 +57,7 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
         <div className="flex items-center gap-3">
           {/* Custom header actions */}
           {headerActions}
-          
+
           {/* Add button */}
           {showAddButton && onAddClick && (
             <Button

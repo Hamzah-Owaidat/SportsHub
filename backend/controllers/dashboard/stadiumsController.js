@@ -110,18 +110,14 @@ const getStadiumById = async (req, res) => {
 const addStadium = async (req, res) => {
   try {
     const loggedInUser = req.user;
-    console.log(loggedInUser);
     const userRole = loggedInUser.role;
-    console.log(userRole);
     const userId = loggedInUser.userId || loggedInUser.id;
-    console.log(userId);
 
     if (!userId) {
       return res.status(401).json({ success: false, message: "Unauthorized: User not found." });
     }
 
     const { ownerId, name, location, pricePerMatch, maxPlayers } = req.body;
-    console.log({ ownerId, name, location, pricePerMatch, maxPlayers });
 
     // Parse nested fields safely
     let penaltyPolicy, workingHours;

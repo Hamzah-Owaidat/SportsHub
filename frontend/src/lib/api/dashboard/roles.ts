@@ -46,7 +46,7 @@ export const addRole = async (roleData) => {
 // Update a role
 export const updateRole = async (id, updatedData) => {
   const response = await axiosInstance.put(`roles/${id}`, updatedData);
-  return response.data.data;
+  return response.data;
 }
 
 // Delete a role

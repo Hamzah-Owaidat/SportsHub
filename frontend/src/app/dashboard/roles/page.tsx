@@ -2,7 +2,7 @@
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import RolesTable from "@/components/tables/RolesTable";
-import AddRoleModal from "@/components/ui/modal/AddRoleModal";
+import AddRoleModal from "@/components/ui/modal/roles/AddRoleModal";
 import { Role } from "@/types/Role";
 import { Metadata } from "next";
 import React, { useState } from "react";

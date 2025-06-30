@@ -149,20 +149,19 @@ export default function StadiumsTable({
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-center">{stadium.name}</TableCell>
-                  <TableCell className="px-4 py-3 text-center">{stadium.location}</TableCell>
-                  <TableCell className="px-4 py-3 text-center">{stadium.pricePerMatch.toLocaleString()} LBP</TableCell>
-                  <TableCell className="px-4 py-3 text-center">{stadium.maxPlayers}</TableCell>
-                  <TableCell className="px-4 py-3 text-center">
+                  <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">{stadium.name}</TableCell>
+                  <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">{stadium.location}</TableCell>
+                  <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">{stadium.pricePerMatch.toLocaleString()} LBP</TableCell>
+                  <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">{stadium.maxPlayers}</TableCell>
+                  <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">
                     {stadium.workingHours?.start} - {stadium.workingHours?.end}
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-center">
+                  <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">
                     {new Date(stadium.createdAt).toLocaleDateString()}
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-center">
+                  <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">
                     <Actions
                       onEdit={() => handleEdit(stadium)}
-                      onView={() => console.log("View stadium", stadium._id)}
                       onDelete={() => handleDeleteStadium(stadium._id)}
                       isLastRow={index === currentStadiums.length - 1}
                     />

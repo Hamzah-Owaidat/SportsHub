@@ -1,7 +1,7 @@
 'use client'
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Button } from "lebify-ui";
-import { Modal } from "./index";
+import { Modal } from "../index";
 import Label from "@/components/form/Label";
 import Input from "@/components/form/input/InputField";
 import FieldError from "@/components/helper/FieldError";
@@ -31,7 +31,7 @@ const AddAcademyModal: React.FC<AddAcademyModalProps> = ({ isOpen, onClose, setT
 
     const [errors, setErrors] = useState<any>({});
     const [loading, setLoading] = useState(false);
-    
+
     const [owners, setOwners] = useState<{ _id: string, username: string }[]>([]);
     const [ownersLoaded, setOwnersLoaded] = useState(false);
 
@@ -53,7 +53,7 @@ const AddAcademyModal: React.FC<AddAcademyModalProps> = ({ isOpen, onClose, setT
         }
     };
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
@@ -146,18 +146,6 @@ const AddAcademyModal: React.FC<AddAcademyModalProps> = ({ isOpen, onClose, setT
                         {errors.name && <FieldError message={errors.name} />}
                     </div>
 
-                    {/* Description */}
-                    <div>
-                        <Label>Description</Label>
-                        <Input
-                            name="description"
-                            type="text"
-                            placeholder="Enter description"
-                            defaultValue={formData.description}
-                            onChange={handleChange}
-                        />
-                    </div>
-
                     {/* Location */}
                     <div>
                         <Label>Location {errors.location && <span className="text-error-500">*</span>}</Label>
@@ -200,6 +188,18 @@ const AddAcademyModal: React.FC<AddAcademyModalProps> = ({ isOpen, onClose, setT
                         {errors.phoneNumber && <FieldError message={errors.phoneNumber} />}
                     </div>
 
+                    {/* Description */}
+                    <div>
+                        <Label>Description</Label>
+                        <textarea
+                            name="description"
+                            placeholder="Enter description"
+                            value={formData.description}
+                            className={`h-11 w-full rounded-lg border border-gray-300 outline-none appearance-none px-4 py-2.5 text-sm placeholder:text-gray-400 dark:bg-stone-950 dark:text-white/90 dark:placeholder:text-white/30 dark:border-gray-700 ${errors.description ? "border-l-3 border-l-red-500" : "border-l-3 border-l-green-700"}`}
+                            onChange={handleChange}>
+                        </textarea>
+                    </div>
+
                     {user?.role === "admin" && (
                         <div>
                             <Label>Academy Owner</Label>
@@ -220,8 +220,6 @@ const AddAcademyModal: React.FC<AddAcademyModalProps> = ({ isOpen, onClose, setT
                             {errors.ownerId && <FieldError message={errors.ownerId} />}
                         </div>
                     )}
-
-
 
                     {/* Photos Upload */}
                     <div>

@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import AddAcademyModal from "@/components/ui/modal/AddAcademyModal";
+import AddAcademyModal from "@/components/ui/modal/academies/AddAcademyModal";
 import { Academy } from "@/types/Academy";
 import AcademiesTable from "@/components/tables/AcademiesTable";
 

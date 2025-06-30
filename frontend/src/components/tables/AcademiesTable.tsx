@@ -15,6 +15,7 @@ import { toast } from "react-toastify";
 import { useUser } from "@/context/UserContext";
 import { Academy } from "@/types/Academy";
 import { getAllAcademies, getAcademyByOwner, deleteAcademy } from "@/lib/api/dashboard/academy";
+import EditAcademyModal from "../ui/modal/academies/EditAcademyModal";
 
 interface AcademiesTableProps {
   tableData: Academy[];
@@ -31,6 +32,9 @@ export default function AcademiesTable({
 }: AcademiesTableProps) {
   const { user } = useUser();
   const [currentPage, setCurrentPage] = useState(1);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedAcademy, setSelectedAcademy] = useState<Academy | null>(null);
+
   const itemsPerPage = 5;
 
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -64,6 +68,23 @@ export default function AcademiesTable({
 
   const handlePageChange = (pageNumber: number) => {
     setCurrentPage(pageNumber);
+  };
+
+  const handleOpenEditModal = (academy: Academy) => {
+    setSelectedAcademy(academy);
+    setEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setEditModalOpen(false);
+    setSelectedAcademy(null);
+  };
+
+  const handleAcademyUpdate = (updated: Academy) => {
+    setTableData(prev =>
+      prev.map((a) => (a._id === updated._id ? updated : a))
+    );
+    toast.success('Academy updated successfully!');
   };
 
   const handleDelete = async (academyId: string) => {
@@ -137,8 +158,7 @@ export default function AcademiesTable({
                   </TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">
                     <Actions
-                      onEdit={() => console.log("Edit academy", academy._id)}
-                      onView={() => console.log("View academy", academy._id)}
+                      onEdit={() => handleOpenEditModal(academy)}
                       onDelete={() => handleDelete(academy._id)}
                       isLastRow={index === currentAcademies.length - 1}
                     />
@@ -160,6 +180,13 @@ export default function AcademiesTable({
           />
         </div>
       )}
+
+      <EditAcademyModal
+        isOpen={editModalOpen}
+        onClose={handleCloseEditModal}
+        academy={selectedAcademy}
+        onUpdate={handleAcademyUpdate}
+      />
     </div>
   );
 }

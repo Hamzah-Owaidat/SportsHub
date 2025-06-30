@@ -39,3 +39,13 @@ export const addTournament = async (payload: TournamentPayload) => {
   const res = await axiosInstance.post("tournaments", payload);
   return res.data;
 };
+
+export const updateTournament = async (id, formData) => {
+  const res = await axiosInstance.put(`tournaments/${id}`, formData);
+  return res.data;
+};
+
+export const deleteTournament = async (id) => {
+  const res = await axiosInstance.delete(`tournaments/${id}`);
+  return res.data;
+}

@@ -63,7 +63,7 @@ router.post(
   academyController.addAcademy
 );
 router.get("/academies/:id", authMiddleware.role(["admin", "academyOwner"]), academyController.getAcademyById);
-router.put("/academies/:id", authMiddleware.owns("academyModel", "id", "ownerId"), academyController.updateAcademy);
+router.put("/academies/:id", authMiddleware.owns("academyModel", "id", "ownerId"), uploadAcademy.array("photos", 5), academyController.updateAcademy);
 router.delete("/academies/:id", authMiddleware.owns("academyModel", "id", "ownerId"), academyController.deleteAcademy);
 router.get("/academies/owner/:ownerId", authMiddleware.role(["academyOwner"]), academyController.getAcademiesByOwner);
 

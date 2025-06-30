@@ -11,10 +11,11 @@ import {
 import Actions from "../ui/actions/Actions";
 import Pagination from "./Pagination";
 import { toast } from "react-toastify";
-import { getMyTournaments, getAllTournaments } from "@/lib/api/dashboard/tournaments";
+import { getMyTournaments, getAllTournaments, deleteTournament } from "@/lib/api/dashboard/tournaments";
 import { Tournament } from "@/types/Tournament";
 import { useUser } from "@/context/UserContext";
 import { getStadiumById } from "@/lib/api/stadium";
+import EditTournamentModal from "../ui/modal/tournaments/EditTournamenModal";
 
 
 interface TournamentsTableProps {
@@ -34,6 +35,8 @@ export default function TournamentsTable({
 
     const { user } = useUser();
     const [currentPage, setCurrentPage] = useState(1);
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
     const itemsPerPage = 5;
 
     // Calculate pagination using the fetched data
@@ -74,8 +77,65 @@ export default function TournamentsTable({
         setCurrentPage(pageNumber);
     };
 
+    const handleEdit = (tournament: Tournament) => {
+        setSelectedTournament(tournament);
+        setEditModalOpen(true);
+    };
 
-    // In your render method, update the table to match the new data structure
+    const handleCloseEditModal = () => {
+        setSelectedTournament(null);
+        setEditModalOpen(false);
+    };
+
+    const handleTournamentUpdate = async (updatedTournament: Tournament) => {
+        let fullStadium = updatedTournament.stadiumId;
+
+        // If stadiumId is a string, fetch full stadium info
+        if (typeof updatedTournament.stadiumId === "string") {
+            try {
+                const data = await getStadiumById(updatedTournament.stadiumId);
+                fullStadium = data;
+            } catch (err) {
+                console.warn("Failed to fetch stadium after update.");
+            }
+        }
+
+        const tournamentWithPopulatedStadium = {
+            ...updatedTournament,
+            stadiumId: fullStadium,
+        };
+
+        setTableData(prev =>
+            prev.map(tournament =>
+                tournament._id === tournamentWithPopulatedStadium._id
+                    ? tournamentWithPopulatedStadium
+                    : tournament
+            )
+        );
+
+        toast.success("Tournament updated successfully!");
+    };
+
+
+    const handleDeleteTournament = async (tournamentId: string) => {
+        const confirmDelete = window.confirm("Are you sure you want to delete this tournament?");
+        if (!confirmDelete) return;
+
+        try {
+            setLoading(true);
+
+            await deleteTournament(tournamentId);
+
+            setTableData(prev => prev.filter(tournament => tournament._id !== tournamentId));
+            toast.success("Torunament deleted successfully");
+        } catch (error: any) {
+            console.error(error);
+            toast.error(error.response?.data?.message || "Error deleting tournament");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
             {/* Table headers remain the same */}
@@ -140,12 +200,14 @@ export default function TournamentsTable({
                                 >
                                     Created At
                                 </TableCell>
-                                <TableCell
-                                    isHeader
-                                    className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400"
-                                >
-                                    Action
-                                </TableCell>
+                                {user?.role === "stadiumOwner" &&
+                                    <TableCell
+                                        isHeader
+                                        className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400"
+                                    >
+                                        Action
+                                    </TableCell>
+                                }
                             </TableRow>
                         </TableHeader>
 
@@ -192,17 +254,17 @@ export default function TournamentsTable({
                                         <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">
                                             {new Date(tournament.createdAt).toLocaleDateString()}
                                         </TableCell>
-                                        <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">
-                                            <Actions
-                                                onEdit={() => console.log("Edit", tournament._id)}
-                                                onView={() => console.log("View", tournament._id)}
-                                                onDelete={() => console.log("Delete", tournament._id)}
-                                                isLastRow={index === currentUsers.length - 1}
-                                            />
-                                        </TableCell>
+                                        {user?.role === "stadiumOwner" &&
+                                            <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">
+                                                <Actions
+                                                    onEdit={() => handleEdit(tournament)}
+                                                    onDelete={() => handleDeleteTournament(tournament._id)}
+                                                    isLastRow={index === currentUsers.length - 1}
+                                                />
+                                            </TableCell>
+                                        }
                                     </TableRow>
                                 ))
-
                             )}
                         </TableBody>
                     </Table>
@@ -219,6 +281,14 @@ export default function TournamentsTable({
                     />
                 </div>
             )}
+
+            <EditTournamentModal
+                isOpen={editModalOpen}
+                onClose={handleCloseEditModal}
+                tournament={selectedTournament}
+                onUpdate={handleTournamentUpdate}
+            />
+
         </div>
     );
 }
