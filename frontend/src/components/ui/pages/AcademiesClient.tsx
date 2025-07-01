@@ -180,8 +180,8 @@ export default function AcademiesClient() {
                   Football Academies
                 </span>
               </h1>
-              <p className="text-xl text-gray-600 dark:text-stone-300 font-medium max-w-3xl mx-auto leading-relaxed">
-                Discover top-rated football academies. Find the perfect training environment to develop your skills and pursue your dreams!
+              <p className="text-xl text-gray-600 dark:text-stone-300 font-medium mx-auto leading-relaxed">
+                Discover top-rated football academies. Find the perfect training environment to develop <br/> your skills and pursue your dreams!
               </p>
             </div>
             
