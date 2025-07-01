@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ['lh3.googleusercontent.com', 'localhost'],  // add this line
+    domains: ['lh3.googleusercontent.com', 'localhost', 'images.unsplash.com'],  // add this line
   },
   webpack(config) {
     config.module.rules.push({

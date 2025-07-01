@@ -28,7 +28,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       <div className="fixed bottom-6 right-6 z-50">
         <ThemeTogglerTwo />
       </div>
-      <main className="pt-16">
+      <main>
         <ToastContainer
           position="top-right"
           autoClose={3000}

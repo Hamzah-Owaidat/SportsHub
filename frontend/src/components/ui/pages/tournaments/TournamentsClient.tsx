@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useMemo, useEffect } from 'react';
-import { Trophy, Loader2, AlertCircle } from 'lucide-react';
+import { Trophy, AlertCircle } from 'lucide-react';
 import { getAllTournaments, joinTournament } from '@/lib/api/tournaments';
 import TournamentStats from '@/components/ui/pages/tournaments/TournamentStats';
 import TournamentFilters from '@/components/ui/pages/tournaments/TournamentFilters';
@@ -9,35 +9,71 @@ import { getTournamentStatus } from '@/lib/utils/utils';
 import { useUser } from '@/context/UserContext';
 import { toast } from 'react-toastify';
 
+interface Tournament {
+  _id: string;
+  name: string;
+  description?: string;
+  startDate: string;
+  endDate: string;
+  teams: (string | { _id: string })[];
+  maxTeams: number;
+  entryPricePerTeam: number;
+  rewardPrize: number;
+  createdAt: string;
+  createdBy?: {
+    username: string;
+  };
+  stadiumId?: {
+    name: string;
+  };
+}
 
-// Loading Component
+// Enhanced Loading Component
 const LoadingSpinner = () => (
-  <div className="flex items-center justify-center py-12">
-    <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+  <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-stone-900 dark:via-stone-800 dark:to-stone-900 flex items-center justify-center">
+    <div className="text-center space-y-6">
+      <div className="relative w-20 h-20 mx-auto">
+        <div className="w-20 h-20 border-4 border-blue-200 dark:border-stone-600 rounded-full animate-spin border-t-blue-600 dark:border-t-blue-400"></div>
+        <div className="absolute inset-4 border-2 border-purple-200 dark:border-stone-700 rounded-full animate-spin border-t-purple-600 dark:border-t-purple-400 animate-reverse"></div>
+      </div>
+      <div className="space-y-2">
+        <p className="text-2xl font-black text-gray-900 dark:text-white">Loading Tournaments</p>
+        <p className="text-gray-600 dark:text-stone-400 font-medium">Discovering epic competitions for you...</p>
+      </div>
+    </div>
   </div>
 );
 
-// Error Component
-const ErrorMessage = ({ message, onRetry }) => (
-  <div className="flex flex-col items-center justify-center py-12">
-    <AlertCircle className="w-16 h-16 text-red-400 mb-4" />
-    <h3 className="text-lg font-medium text-gray-900 mb-2">Failed to load tournaments</h3>
-    <p className="text-gray-600 mb-4">{message}</p>
-    <button
-      onClick={onRetry}
-      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-    >
-      Try Again
-    </button>
+// Enhanced Error Component
+const ErrorMessage = ({ message, onRetry }: { message: string; onRetry: () => void }) => (
+  <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-stone-900 dark:via-stone-800 dark:to-stone-900 flex items-center justify-center">
+    <div className="text-center space-y-8 max-w-md mx-auto px-6">
+      <div className="relative">
+        <div className="w-24 h-24 mx-auto bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+          <AlertCircle className="w-12 h-12 text-red-600 dark:text-red-400" />
+        </div>
+        <div className="absolute inset-0 w-24 h-24 mx-auto bg-red-500/20 rounded-full animate-ping"></div>
+      </div>
+      <div className="space-y-3">
+        <h3 className="text-2xl font-black text-gray-900 dark:text-white">Oops! Something went wrong</h3>
+        <p className="text-gray-600 dark:text-stone-400 font-medium leading-relaxed">{message}</p>
+      </div>
+      <button
+        onClick={onRetry}
+        className="group px-8 py-4 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white rounded-2xl font-bold text-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl flex items-center justify-center gap-3"
+      >
+        <span className="group-hover:scale-110 transition-transform">🔄</span>
+        Try Again
+      </button>
+    </div>
   </div>
 );
-
 
 // Main Tournaments Page Component
 export default function TournamentsClient() {
-  const [tournaments, setTournaments] = useState<unknown[]>([]);
+  const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const { user } = useUser();
   const [filters, setFilters] = useState({
     search: '',
@@ -92,7 +128,8 @@ export default function TournamentsClient() {
         const data = await fetchTournaments();
         setTournaments(data);
       } catch (err) {
-        setError(err.message || 'Failed to fetch tournaments');
+        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch tournaments';
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -110,7 +147,8 @@ export default function TournamentsClient() {
         const data = await fetchTournaments();
         setTournaments(data);
       } catch (err) {
-        setError(err.message || 'Failed to fetch tournaments');
+        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch tournaments';
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -123,7 +161,7 @@ export default function TournamentsClient() {
   const filteredTournaments = useMemo(() => {
     if (!Array.isArray(tournaments)) return [];
 
-    let filtered = tournaments.filter(tournament => {
+    const filtered = tournaments.filter(tournament => {
       if (!tournament || typeof tournament !== 'object') return false;
 
       // If 'joined' is selected in sortBy, filter only joined tournaments
@@ -170,16 +208,16 @@ export default function TournamentsClient() {
       filtered.sort((a, b) => {
         switch (filters.sortBy) {
           case 'oldest':
-            return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
+            return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
           case 'startDate':
-            return new Date(a.startDate || 0) - new Date(b.startDate || 0);
+            return new Date(a.startDate || 0).getTime() - new Date(b.startDate || 0).getTime();
           case 'entryPrice':
             return (a.entryPricePerTeam || 0) - (b.entryPricePerTeam || 0);
           case 'rewardPrize':
             return (b.rewardPrize || 0) - (a.rewardPrize || 0);
           case 'newest':
           default:
-            return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+            return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
         }
       });
     }
@@ -188,14 +226,19 @@ export default function TournamentsClient() {
   }, [tournaments, filters, user]);
 
 
-  const handleSearch = (searchTerm) => {
+  const handleSearch = (searchTerm: string) => {
     setFilters(prev => ({ ...prev, search: searchTerm }));
   };
 
-  const handleJoinTournament = async (tournamentId) => {
+  const handleJoinTournament = async (tournamentId: string) => {
     try {
       // Assume currentUserTeamId is available
       const teamId = user?.team;
+
+      if (!teamId) {
+        toast.error('User team not found');
+        return;
+      }
 
       const response = await joinTournament({ tournamentId, teamId });
 
@@ -214,19 +257,14 @@ export default function TournamentsClient() {
 
       toast.success(response.message);
     } catch (error) {
-      toast.error('Failed to join tournament:', error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to join tournament';
+      toast.error(errorMessage);
     }
   };
 
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">Tournaments</h1>
-        <p className="text-gray-600 dark:text-gray-400">Discover and join exciting tournaments in your area</p>
-      </div>
-
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-stone-900 dark:via-stone-800 dark:to-stone-900">
       {/* Loading State */}
       {loading && <LoadingSpinner />}
 
@@ -236,43 +274,106 @@ export default function TournamentsClient() {
       {/* Content - Only show when not loading and no error */}
       {!loading && !error && (
         <>
-          {/* Tournament Stats */}
-          <TournamentStats tournaments={tournaments} />
-
-          {/* Filters */}
-          <TournamentFilters
-            filters={filters}
-            onFiltersChange={setFilters}
-            onSearch={handleSearch}
-          />
-
-          {/* Tournament Grid */}
-          <div className="mb-6">
-            <div className="flex justify-center items-center mb-4">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Tournament{filteredTournaments.length !== 1 ? 's' : ''} Found : {filteredTournaments.length}
-              </h2>
+          {/* Enhanced Page Header */}
+          <div className="relative overflow-hidden bg-white/80 dark:bg-stone-800/80 backdrop-blur-md border-b border-gray-200/50 dark:border-stone-700/50">
+            {/* Animated background elements */}
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-cyan-500/5"></div>
+            <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl -translate-y-48 translate-x-48"></div>
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-cyan-400/10 to-blue-400/10 rounded-full blur-2xl translate-y-32 -translate-x-32"></div>
+            
+            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+              <div className="text-center space-y-6">
+                <div className="flex justify-center">
+                  <div className="relative p-4 bg-gradient-to-br from-amber-400 to-orange-500 rounded-3xl shadow-xl">
+                    <Trophy className="w-12 h-12 text-white" />
+                    <div className="absolute inset-0 bg-white/20 rounded-3xl blur-sm"></div>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-gray-900 dark:text-white" style={{ marginBottom: '1rem'}}>
+                    <span className="bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 bg-clip-text text-transparent">
+                      Epic Tournaments
+                    </span>
+                  </h1>
+                  <p className="text-xl text-gray-600 dark:text-stone-300 font-medium mx-auto leading-relaxed">
+                    Discover and join thrilling competitions. Battle for glory, earn amazing prizes, and become a champion in your favorite sports!
+                  </p>
+                </div>
+                
+                {/* Quick Stats Preview */}
+                <div className="flex flex-wrap justify-center gap-6 pt-4">
+                  <div className="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-2xl border border-white/50 dark:border-stone-700/50">
+                    <Trophy className="w-5 h-5 text-amber-500" />
+                    <span className="font-bold text-gray-900 dark:text-white">{tournaments.length} Active</span>
+                  </div>
+                  <div className="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-2xl border border-white/50 dark:border-stone-700/50">
+                    <span className="text-xl">🏆</span>
+                    <span className="font-bold text-gray-900 dark:text-white">Epic Prizes</span>
+                  </div>
+                  <div className="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-2xl border border-white/50 dark:border-stone-700/50">
+                    <span className="text-xl">⚡</span>
+                    <span className="font-bold text-gray-900 dark:text-white">Join Now</span>
+                  </div>
+                </div>
+              </div>
             </div>
+          </div>
 
-            {filteredTournaments.length === 0 ? (
-              <div className="text-center py-12">
-                <Trophy className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-center text-gray-900 dark:text-white mb-2">No tournaments found</h3>
-                <p className="text-gray-600">Try adjusting your filters or search terms</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredTournaments.map(tournament => (
-                  <TournamentCard
-                    key={tournament._id}
-                    tournament={tournament}
-                    onJoin={handleJoinTournament}
-                    userTeamId={user?.team}
-                  />
-                ))}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+            {/* Tournament Stats */}
+            <TournamentStats tournaments={tournaments} />
 
+            {/* Filters */}
+            <TournamentFilters
+              filters={filters}
+              onFiltersChange={setFilters}
+              onSearch={handleSearch}
+            />
+
+            {/* Tournament Grid */}
+            <div className="space-y-6">
+              <div className="text-center">
+                <div className="inline-flex items-center gap-3 px-6 py-3 bg-white/80 dark:bg-stone-800/80 backdrop-blur-md rounded-2xl border border-gray-200/50 dark:border-stone-700/50 shadow-lg">
+                  <Trophy className="w-5 h-5 text-amber-500" />
+                  <h2 className="text-xl font-black text-gray-900 dark:text-white">
+                    {filteredTournaments.length} Tournament{filteredTournaments.length !== 1 ? 's' : ''} Found
+                  </h2>
+                </div>
               </div>
-            )}
+
+              {filteredTournaments.length === 0 ? (
+                <div className="text-center py-16 space-y-6">
+                  <div className="relative">
+                    <div className="w-24 h-24 mx-auto bg-gray-100 dark:bg-stone-700 rounded-full flex items-center justify-center">
+                      <Trophy className="w-12 h-12 text-gray-400 dark:text-stone-500" />
+                    </div>
+                    <div className="absolute inset-0 w-24 h-24 mx-auto bg-gray-500/20 rounded-full animate-ping"></div>
+                  </div>
+                  <div className="space-y-3">
+                    <h3 className="text-2xl font-black text-gray-900 dark:text-white">No Tournaments Found</h3>
+                    <p className="text-gray-600 dark:text-stone-400 font-medium max-w-md mx-auto">
+                      No competitions match your current filters. Try adjusting your search criteria or check back later for new tournaments!
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+                  {filteredTournaments.map((tournament, index) => (
+                    <div 
+                      key={tournament._id}
+                      className="animate-fadeInUp"
+                      style={{ animationDelay: `${index * 100}ms` }}
+                    >
+                      <TournamentCard
+                        tournament={tournament}
+                        onJoin={handleJoinTournament}
+                        userTeamId={user?.team}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </>
       )}
