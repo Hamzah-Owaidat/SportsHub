@@ -31,89 +31,15 @@ export async function getCurrentUser(){
     return response.data;
 }
 
-// Legacy function (keeping for backward compatibility)
-export function loginWithGoogle() {
-  // Redirect the user to the backend Google auth route
-  window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`;
+export async function forgotPassword(email: string) {
+  const response = await api.post('/auth/forgotPassword', { email });
+  return response.data;
 }
 
-// New Google authentication using ID token (recommended)
-export async function loginWithGoogleToken(idToken: string) {
-    try {
-        const response = await api.post('/auth/google/token', {
-            idToken: idToken
-        });
-        return response.data;
-    } catch (error: any) {
-        throw new Error(error.response?.data?.message || 'Google authentication failed');
-    }
-}
-
-// Get Google OAuth URL for web authentication
-export async function getGoogleAuthUrl() {
-    try {
-        const response = await api.get('/auth/google/url');
-        return response.data;
-    } catch (error: any) {
-        throw new Error(error.response?.data?.message || 'Failed to get Google auth URL');
-    }
-}
-
-// Initialize Google Identity Services
-export function initializeGoogleSignIn(callback: (response: any) => void) {
-    return new Promise((resolve, reject) => {
-        // Check if Google script is already loaded
-        if (typeof window !== 'undefined' && (window as any).google) {
-            initializeGsi();
-            resolve(true);
-            return;
-        }
-
-        // Load Google Identity Services script
-        const script = document.createElement('script');
-        script.src = 'https://accounts.google.com/gsi/client';
-        script.async = true;
-        script.defer = true;
-        
-        script.onload = () => {
-            initializeGsi();
-            resolve(true);
-        };
-        
-        script.onerror = () => {
-            reject(new Error('Failed to load Google Identity Services'));
-        };
-        
-        document.head.appendChild(script);
-
-        function initializeGsi() {
-            if ((window as any).google) {
-                (window as any).google.accounts.id.initialize({
-                    client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
-                    callback: callback,
-                    auto_select: false,
-                    cancel_on_tap_outside: true,
-                });
-            }
-        }
-    });
-}
-
-// Render Google Sign-In button
-export function renderGoogleSignInButton(elementId: string, options?: any) {
-    if (typeof window !== 'undefined' && (window as any).google) {
-        const defaultOptions = {
-            theme: 'outline',
-            size: 'large',
-            width: '100%',
-            text: 'signin_with',
-            shape: 'rectangular',
-            logo_alignment: 'left',
-        };
-
-        (window as any).google.accounts.id.renderButton(
-            document.getElementById(elementId),
-            { ...defaultOptions, ...options }
-        );
-    }
+export async function resetPassword(token: string, password: string, passwordConfirm: string) {
+  const response = await api.patch(`/auth/resetPassword/${token}`, {
+    password,
+    passwordConfirm,
+  });
+  return response.data;
 }

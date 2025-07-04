@@ -2,6 +2,8 @@ const User = require("../models/userModel");
 const Role = require("../models/roleModel");
 const asyncHandler = require("express-async-handler");
 const validator = require("validator");
+const crypto = require("crypto");
+const sendEmail = require("../utils/sendEmail");
 
 // @desc      Register user
 // @route     POST /api/auth/register
@@ -146,6 +148,73 @@ exports.getMe = asyncHandler(async (req, res) => {
     success: true,
     data: user,
   });
+});
+
+exports.forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.status(200).json({ message: "If that email is in our system, you will receive a reset link." });
+  }
+
+  const resetToken = user.createPasswordResetToken();
+  await user.save({ validateBeforeSave: false });
+
+  const resetURL = `${process.env.FRONTEND_URL}/auth/reset-password/${resetToken}`;
+
+  const message = `
+    <p>Hello ${user.username},</p>
+    <p>You requested to reset your password. Click the link below to reset it:</p>
+    <a href="${resetURL}" target="_blank">Reset your password</a>
+    <p>This link will expire in 10 minutes.</p>
+  `;
+
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: "Password Reset Request",
+      message,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Reset link sent to your email",
+    });
+  } catch (err) {
+    user.passwordResetToken = undefined;
+    user.passwordResetExpiresAt = undefined;
+    await user.save({ validateBeforeSave: false });
+
+    console.error("Email failed:", err);
+    return res.status(500).json({ success: false, message: "Failed to send reset email" });
+  }
+});
+
+exports.resetPassword = asyncHandler(async (req, res) => {
+  const hashedToken = crypto.createHash("sha256").update(req.params.token).digest("hex");
+
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpiresAt: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    return res.status(400).json({ message: "Invalid or expired token" });
+  }
+
+  const { password, passwordConfirm } = req.body;
+  if (!password || !passwordConfirm || password !== passwordConfirm) {
+    return res.status(400).json({ message: "Passwords do not match" });
+  }
+
+  user.password = password;
+  user.passwordConfirm = passwordConfirm;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpiresAt = undefined;
+  await user.save();
+
+  sendTokenResponse(user, 200, res);
 });
 
 // Get token from model, create cookie and send response
