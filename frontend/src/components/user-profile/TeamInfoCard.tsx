@@ -342,8 +342,8 @@ export default function TeamInfoCard() {
             <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-3">
               Ready to Build Your Team?
             </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-              You&apos;re not part of any team yet. Create your own squad and start recruiting the best players!
+            <p className="text-gray-600 dark:text-gray-400 mb-6 mx-auto">
+              You&apos;re not part of any team yet. Create your own squad and <br/> start recruiting the best players!
             </p>
           </div>
         )}

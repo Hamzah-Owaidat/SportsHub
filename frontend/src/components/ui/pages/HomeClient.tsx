@@ -58,9 +58,9 @@ export default function HomeClient() {
             
             {/* Enhanced Description */}
             <p className="mx-auto text-2xl leading-relaxed text-gray-600 dark:text-stone-300 font-medium" style={{marginBottom: '3rem'}}>
-              Your all-in-one platform to book football matches, join exciting tournaments,
-              and connect with top academies and referees. Whether you&apos;re a casual player,
-              a team organizer, or a football academy, SportsHub has everything you need.
+              Your all-in-one platform to book football matches, join exciting tournaments,<br/>
+              and connect with top academies and referees.<br/> Whether you&apos;re a casual player,
+              a team organizer,<br/> or a football academy, SportsHub has everything you need.
             </p>
 
             {/* Enhanced CTA Button */}
@@ -111,7 +111,7 @@ export default function HomeClient() {
               Everything You Need in One Place
             </h2>
             <p className="text-xl text-gray-600 dark:text-stone-300 mx-auto font-medium">
-              Discover, book, and play with our comprehensive sports platform designed for modern athletes.
+              Discover, book, and play with our comprehensive sports platform<br/> designed for modern athletes.
             </p>
           </div>
 
@@ -125,14 +125,14 @@ export default function HomeClient() {
                 <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-500 to-cyan-500 text-white mb-8 group-hover:scale-125 group-hover:rotate-6 transition-all duration-500 shadow-2xl">
                   <MapPin className="h-10 w-10" />
                 </div>
-                <h3 className="text-3xl font-black text-gray-900 dark:text-white mb-6">Book a Stadium</h3>
+                <h3 className="text-3xl font-black text-gray-900 dark:text-white">Book a Stadium</h3>
                 <p className="text-gray-600 dark:text-stone-300 leading-relaxed text-lg mb-8">
-                  Reserve your favorite stadium, pick a time slot, and invite your friends to play.
+                  Reserve your favorite stadium, pick a time slot, and invite your friends.
                   Simple, fast, and reliable booking system with real-time availability.
                 </p>
                 
                 {/* Feature badges */}
-                <div className="flex flex-wrap gap-3 mb-8">
+                <div className="flex flex-wrap gap-3 my-6">
                   <div className="flex items-center px-4 py-2 bg-green-100 dark:bg-green-900/30 rounded-full text-sm font-semibold text-green-700 dark:text-green-400">
                     <CheckCircle className="h-4 w-4 mr-2" />
                     Real-time availability
@@ -161,14 +161,14 @@ export default function HomeClient() {
                 <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-purple-500 to-pink-500 text-white mb-8 group-hover:scale-125 group-hover:rotate-6 transition-all duration-500 shadow-2xl">
                   <Trophy className="h-10 w-10" />
                 </div>
-                <h3 className="text-3xl font-black text-gray-900 dark:text-white mb-6">Join Tournaments</h3>
+                <h3 className="text-3xl font-black text-gray-900 dark:text-white">Join Tournaments</h3>
                 <p className="text-gray-600 dark:text-stone-300 leading-relaxed text-lg mb-8">
                   Compete with teams, win prizes, and boost your rankings. Join upcoming
                   tournaments or organize your own competitive events.
                 </p>
                 
                 {/* Feature badges */}
-                <div className="flex flex-wrap gap-3 mb-8">
+                <div className="flex flex-wrap gap-3 my-6">
                   <div className="flex items-center px-4 py-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-full text-sm font-semibold text-yellow-700 dark:text-yellow-400">
                     <Star className="h-4 w-4 mr-2" />
                     Prize competitions
@@ -197,14 +197,14 @@ export default function HomeClient() {
                 <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white mb-8 group-hover:scale-125 group-hover:rotate-6 transition-all duration-500 shadow-2xl">
                   <GraduationCap className="h-10 w-10" />
                 </div>
-                <h3 className="text-3xl font-black text-gray-900 dark:text-white mb-6">Discover Academies</h3>
+                <h3 className="text-3xl font-black text-gray-900 dark:text-white">Discover Academies</h3>
                 <p className="text-gray-600 dark:text-stone-300 leading-relaxed text-lg mb-8">
                   Browse professional football academies near you. Learn, train, and grow
                   your skills with the best coaches and world-class facilities.
                 </p>
                 
                 {/* Feature badges */}
-                <div className="flex flex-wrap gap-3 mb-8">
+                <div className="flex flex-wrap gap-3 my-6">
                   <div className="flex items-center px-4 py-2 bg-green-100 dark:bg-green-900/30 rounded-full text-sm font-semibold text-green-700 dark:text-green-400">
                     <CheckCircle className="h-4 w-4 mr-2" />
                     Professional coaching
@@ -280,11 +280,11 @@ export default function HomeClient() {
               <div className="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-white/20 backdrop-blur-sm text-white mb-8 shadow-2xl">
                 <Award className="h-12 w-12" />
               </div>
-              <h3 className="text-4xl font-black text-white mb-6">
+              <h3 className="text-4xl font-black text-white" style={{marginBottom: "1rem"}}>
                 Ready to Level Up Your Game?
               </h3>
-              <p className="text-2xl text-blue-100 mb-12 mx-auto max-w-3xl font-medium leading-relaxed">
-                Join thousands of players who have already transformed their sports experience with SportsHub
+              <p className="text-2xl text-blue-100 mx-auto font-medium leading-relaxed" style={{marginBottom: "1rem"}}>
+                Join thousands of players who have already transformed<br/> their sports experience with SportsHub
               </p>
               <div className="flex flex-col sm:flex-row gap-8 justify-center items-center">
                 <Link href="/auth/signup" className="group">

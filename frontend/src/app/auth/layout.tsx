@@ -2,7 +2,6 @@ import GridShape from "@/components/common/GridShape";
 import ThemeTogglerTwo from "@/components/common/ThemeTogglerTwo";
 import { ThemeProvider } from "@/context/ThemeContext";
 import React from "react";
-import Link from "next/link";
 import Image from "next/image";
 import { ToastContainer } from "react-toastify";
 
@@ -20,21 +19,23 @@ export default function AuthLayout({
             <div className="relative flex items-center justify-center z-1 w-full">
               {/* <!-- ===== Common Grid Shape Start ===== --> */}
               <GridShape />
-              <div className="flex flex-col items-center max-w-xs gap-20">
-                {/* Replace Image with ThemeResponsiveLogo */}
-                <div className="w-[250px] h-[50px]">
-                  <Link href="/" className="block mb-4">
-                    <Image
-                      width={231}
-                      height={48}
-                      src="./images/logo/auth-logo.svg"
-                      alt="Logo"
-                    />
-                  </Link>
+              <div className="flex flex-col justify-between items-center max-w-xs">
+                {/* Logo Section */}
+                <div className="w-[250px]">
+                  <Image
+                    width={231}
+                    height={48}
+                    src="/images/logo/logo_no_bg.png"
+                    alt="Logo"
+                  />
                 </div>
-                <p className="text-center text-gray-400 dark:text-white/60">
-                  Welcom, to our platform! <br />
-                </p>
+                
+                {/* Text Section with proper spacing */}
+                <div className="text-center">
+                  <p className="text-gray-400 dark:text-white/60 text-lg">
+                    Welcome to SportsHub!
+                  </p>
+                </div>
               </div>
             </div>
           </div>
