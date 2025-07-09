@@ -13,7 +13,7 @@ import { updateUser } from "@/lib/api/users";
 
 
 export default function UserMetaCard() {
-  const { user, refreshUser, setUser } = useUser();
+  const { user, refreshUser } = useUser();
   const { isOpen, openModal, closeModal } = useModal();
   const [imageFile, setImageFile] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);

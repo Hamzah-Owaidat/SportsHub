@@ -1,6 +1,7 @@
 'use client';
 import { MapPin, Users, Banknote, Trophy, Calendar, Zap, Crown } from "lucide-react";
 import { formatCurrency, formatDate, getTournamentStatus } from '@/lib/utils/utils'; // adjust path based on your structure
+import { useState } from "react";
 
 interface Tournament {
   _id: string;
@@ -28,6 +29,12 @@ interface TournamentCardProps {
 
 const TournamentCard = ({ tournament, onJoin, userTeamId }: TournamentCardProps) => {
 
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [cardNumber, setCardNumber] = useState('');
+  const [expiry, setExpiry] = useState('');
+  const [cvc, setCvc] = useState('');
+  const [paymentError, setPaymentError] = useState('');
+
   // Add safety checks for tournament data
   if (!tournament || typeof tournament !== 'object') {
     return null;
@@ -49,7 +56,7 @@ const TournamentCard = ({ tournament, onJoin, userTeamId }: TournamentCardProps)
     completed: '✅ Completed'
   };
 
-  const handleClick = () => {
+  const handlejoin = () => {
     if (status === 'upcoming' && spotsLeft > 0) {
       onJoin?.(tournament._id);
     }
@@ -62,12 +69,16 @@ const TournamentCard = ({ tournament, onJoin, userTeamId }: TournamentCardProps)
     })
     : false;
 
+    const handleOpenPaymentModal = () => {
+        setShowPaymentModal(true);
+    };
+
   return (
     <div className="group relative bg-white/80 dark:bg-stone-800/80 backdrop-blur-md rounded-3xl shadow-lg hover:shadow-2xl border border-gray-200/50 dark:border-stone-700/50 transition-all duration-500 transform hover:-translate-y-2 overflow-hidden">
       {/* Animated background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-      
-      
+
+
 
       <div className="relative p-6 space-y-5">
         {/* Enhanced Header */}
@@ -92,7 +103,7 @@ const TournamentCard = ({ tournament, onJoin, userTeamId }: TournamentCardProps)
               </div>
             )}
           </div>
-          
+
         </div>
 
         {/* Enhanced Tournament Details Grid */}
@@ -108,7 +119,7 @@ const TournamentCard = ({ tournament, onJoin, userTeamId }: TournamentCardProps)
               </p>
             </div>
           </div>
-          
+
           <div className="group/item flex items-center gap-3 p-3 bg-purple-50/50 dark:bg-purple-900/20 rounded-2xl border border-purple-100 dark:border-purple-800/50 hover:shadow-md transition-all duration-300">
             <div className="p-2 bg-purple-100 dark:bg-purple-900/40 rounded-xl group-hover/item:scale-110 transition-transform">
               <Users className="w-4 h-4 text-purple-600 dark:text-purple-400" />
@@ -120,7 +131,7 @@ const TournamentCard = ({ tournament, onJoin, userTeamId }: TournamentCardProps)
               </p>
             </div>
           </div>
-          
+
           <div className="group/item flex items-center gap-3 p-3 bg-green-50/50 dark:bg-green-900/20 rounded-2xl border border-green-100 dark:border-green-800/50 hover:shadow-md transition-all duration-300">
             <div className="p-2 bg-green-100 dark:bg-green-900/40 rounded-xl group-hover/item:scale-110 transition-transform">
               <Banknote className="w-4 h-4 text-green-600 dark:text-green-400" />
@@ -132,7 +143,7 @@ const TournamentCard = ({ tournament, onJoin, userTeamId }: TournamentCardProps)
               </p>
             </div>
           </div>
-          
+
           <div className="group/item flex items-center gap-3 p-3 bg-amber-50/50 dark:bg-amber-900/20 rounded-2xl border border-amber-100 dark:border-amber-800/50 hover:shadow-md transition-all duration-300">
             <div className="p-2 bg-amber-100 dark:bg-amber-900/40 rounded-xl group-hover/item:scale-110 transition-transform">
               <Trophy className="w-4 h-4 text-amber-600 dark:text-amber-400" />
@@ -188,23 +199,22 @@ const TournamentCard = ({ tournament, onJoin, userTeamId }: TournamentCardProps)
               </div>
             )}
           </div>
-          
+
           <button
-            onClick={handleClick}
-            className={`group/btn relative overflow-hidden px-6 py-3 rounded-2xl font-bold text-sm transition-all duration-300 transform hover:-translate-y-0.5 hover:shadow-lg ${
-              status === 'upcoming' && spotsLeft > 0 && !hasJoined
+            onClick={handleOpenPaymentModal}
+            className={`group/btn relative overflow-hidden px-6 py-3 rounded-2xl font-bold text-sm transition-all duration-300 transform hover:-translate-y-0.5 hover:shadow-lg ${status === 'upcoming' && spotsLeft > 0 && !hasJoined
                 ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg'
                 : hasJoined
-                ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg cursor-default'
-                : 'bg-gray-200 dark:bg-stone-700 text-gray-500 dark:text-stone-400 cursor-not-allowed'
-            }`}
+                  ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg cursor-default'
+                  : 'bg-gray-200 dark:bg-stone-700 text-gray-500 dark:text-stone-400 cursor-not-allowed'
+              }`}
             disabled={status !== 'upcoming' || spotsLeft === 0 || hasJoined}
           >
             {/* Button shine effect */}
             {(status === 'upcoming' && spotsLeft > 0 && !hasJoined) && (
               <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-transparent to-white/20 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-1000"></div>
             )}
-            
+
             <span className="relative flex items-center gap-2">
               {hasJoined ? (
                 <>
@@ -230,6 +240,91 @@ const TournamentCard = ({ tournament, onJoin, userTeamId }: TournamentCardProps)
           </button>
         </div>
       </div>
+
+      {
+                showPaymentModal && (
+                    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+                        <div className="bg-white rounded-xl p-8 w-[95%] max-w-md shadow-xl relative">
+                            <h2 className="text-2xl font-bold mb-4 text-center">Enter Card Details</h2>
+
+                            <form onSubmit={(e) => {
+                                e.preventDefault();
+                                if (!cardNumber || !expiry || !cvc) {
+                                    setPaymentError('All fields are required');
+                                    return;
+                                }
+                                if (cardNumber.replaceAll(' ', '').length !== 16) {
+                                    setPaymentError('Card number must be 16 digits');
+                                    return;
+                                }
+
+                                setPaymentError('');
+                                setShowPaymentModal(false); // Close modal
+                                handlejoin();
+                            }}>
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium">Card Number</label>
+                                    <input
+                                        type="text"
+                                        value={cardNumber}
+                                        onChange={(e) => {
+                                            let val = e.target.value.replace(/\D/g, '').slice(0, 16);
+                                            val = val.replace(/(\d{4})(?=\d)/g, '$1 ');
+                                            setCardNumber(val);
+                                        }}
+                                        className="w-full border px-4 py-2 rounded mt-1"
+                                        placeholder="1234 5678 9012 3456"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="mb-4 flex gap-4">
+                                    <div className="w-1/2">
+                                        <label className="block text-sm font-medium">Expiry Date</label>
+                                        <input
+                                            type="text"
+                                            value={expiry}
+                                            onChange={(e) => setExpiry(e.target.value)}
+                                            className="w-full border px-4 py-2 rounded mt-1"
+                                            placeholder="MM/YY"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="w-1/2">
+                                        <label className="block text-sm font-medium">CVC</label>
+                                        <input
+                                            type="text"
+                                            value={cvc}
+                                            onChange={(e) => setCvc(e.target.value.replace(/\D/g, '').slice(0, 3))}
+                                            className="w-full border px-4 py-2 rounded mt-1"
+                                            placeholder="123"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                {paymentError && (
+                                    <p className="text-red-600 text-sm mb-2">{paymentError}</p>
+                                )}
+
+                                <button
+                                    type="submit"
+                                    className="w-full py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+                                >
+                                    Complete Payment
+                                </button>
+                            </form>
+
+                            <button
+                                onClick={() => setShowPaymentModal(false)}
+                                className="absolute top-2 right-3 text-gray-400 hover:text-black text-xl"
+                            >
+                                &times;
+                            </button>
+                        </div>
+                    </div>
+                )
+            }
     </div>
   );
 };

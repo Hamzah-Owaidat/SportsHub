@@ -1,10 +1,12 @@
 const Booking = require("../models/bookingModel");
 const Stadium = require("../models/stadiumModel");
+const User = require("../models/userModel");
+// const Notification = requrie("../models/notificationModel");
 const mongoose = require("mongoose");
 
 exports.bookMatch = async (req, res) => {
   try {
-    const { stadiumId, matchDate, timeSlot, refereeId } = req.body;
+    const { stadiumId, matchDate, timeSlot } = req.body;
     const userId = req.user.id;
 
     if (!stadiumId || !matchDate || !timeSlot) {
@@ -20,21 +22,15 @@ exports.bookMatch = async (req, res) => {
     }
 
     const now = new Date();
-
     const bookingDate = new Date(matchDate);
-    bookingDate.setHours(0, 0, 0, 0); // normalize
-
+    bookingDate.setHours(0, 0, 0, 0);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     if (bookingDate < today) {
-      return res.status(400).json({
-        success: false,
-        message: "You cannot book for a past date",
-      });
+      return res.status(400).json({ success: false, message: "You cannot book for a past date" });
     }
 
-    // Find calendar entry for the selected date
     const calendarEntry = stadium.calendar.find((entry) => new Date(entry.date).getTime() === bookingDate.getTime());
 
     if (!calendarEntry) {
@@ -42,7 +38,6 @@ exports.bookMatch = async (req, res) => {
     }
 
     const slot = calendarEntry.slots.find((s) => s.startTime === timeSlot);
-
     if (!slot) {
       return res.status(400).json({ success: false, message: "Time slot not found" });
     }
@@ -51,29 +46,46 @@ exports.bookMatch = async (req, res) => {
       return res.status(400).json({ success: false, message: "Slot is already booked" });
     }
 
-    // 🕒 Validate time — user cannot book if the current time is already past the slot's start time
     const [hour, minute] = slot.startTime.split(":").map(Number);
-
     const slotDateTime = new Date(matchDate);
     slotDateTime.setHours(hour, minute, 0, 0);
 
     if (slotDateTime <= now) {
+      return res
+        .status(400)
+        .json({ success: false, message: "You cannot book a slot that has already started or passed" });
+    }
+
+    const BOOKING_PRICE = stadium.pricePerMatch;
+
+    const user = await User.findById(userId);
+    if (!user || user.wallet < BOOKING_PRICE) {
       return res.status(400).json({
         success: false,
-        message: "You cannot book a slot that has already started or passed",
+        message: `Insufficient wallet balance. You need ${BOOKING_PRICE}, but you have ${user.wallet}`,
       });
     }
 
-    // ✅ Passed all checks — create booking
+    // 🧾 Deduct from user
+    user.wallet -= BOOKING_PRICE;
+    await user.save({ validateBeforeSave: false });
+
+    // 💰 Transfer to stadium owner
+    const owner = await User.findById(stadium.ownerId);
+    if (owner) {
+      owner.wallet += BOOKING_PRICE;
+      await owner.save({ validateBeforeSave: false });
+    }
+
+    // 🏟 Create booking
     const newBooking = await Booking.create({
       userId,
       stadiumId,
       matchDate: new Date(matchDate),
       timeSlot,
-      refereeId,
+      price: BOOKING_PRICE,
     });
 
-    // Update slot
     slot.isBooked = true;
     slot.bookingId = newBooking._id;
     await stadium.save();
@@ -126,10 +138,35 @@ exports.cancelBooking = async (req, res) => {
     }
 
     // Check penalty
-    const stadium = await Stadium.findById(booking.stadiumId);
+    const stadium = await Stadium.findById(booking.stadiumId).populate("ownerId");
     const penaltyWindow = stadium.penaltyPolicy.hoursBefore;
     const hoursBeforeMatch = (matchDateTime - now) / (1000 * 60 * 60);
     const applyPenalty = hoursBeforeMatch < penaltyWindow;
+
+    const user = await User.findById(userId);
+    const stadiumOwner = await User.findById(stadium.ownerId);
+
+    const penaltyAmount = stadium.penaltyPolicy.penaltyAmount;
+    const matchPrice = stadium.pricePerMatch;
+    const extraPenalty = Math.max(0, penaltyAmount - matchPrice);
+
+    if (applyPenalty) {
+      const refundToUser = penaltyAmount >= matchPrice ? 0 : matchPrice - penaltyAmount;
+
+      user.wallet = user.wallet + refundToUser - extraPenalty;
+      stadiumOwner.wallet = stadiumOwner.wallet - matchPrice + penaltyAmount;
+
+      // await Notification.create({
+      //   user: user._id,
+      //   message: `You were charged a penalty of ${penaltyAmount} for cancelling a booking at ${stadium.name}.`,
+      // });
+    } else {
+      user.wallet += matchPrice;
+      stadiumOwner.wallet -= matchPrice;
+    }
+
+    await user.save({ validateBeforeSave: false });
+    await stadiumOwner.save({ validateBeforeSave: false });
 
     // Cancel the booking
     booking.status = "cancelled";
@@ -140,14 +177,10 @@ exports.cancelBooking = async (req, res) => {
     const dateOnly = new Date(booking.matchDate);
     dateOnly.setHours(0, 0, 0, 0);
 
-    const calendarEntry = stadium.calendar.find(
-      (entry) => new Date(entry.date).getTime() === dateOnly.getTime()
-    );
+    const calendarEntry = stadium.calendar.find((entry) => new Date(entry.date).getTime() === dateOnly.getTime());
 
     if (calendarEntry) {
-      const slot = calendarEntry.slots.find(
-        (s) => s.bookingId && s.bookingId.toString() === booking._id.toString()
-      );
+      const slot = calendarEntry.slots.find((s) => s.bookingId && s.bookingId.toString() === booking._id.toString());
       if (slot) {
         slot.isBooked = false;
         slot.bookingId = null;

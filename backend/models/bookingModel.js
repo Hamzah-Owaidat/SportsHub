@@ -34,6 +34,11 @@ const bookingSchema = new mongoose.Schema({
     default: "approved",
   },
 
+  price: {
+    type: Number,
+    required: true,
+  },
+
   penaltyApplied: {
     type: Boolean,
     default: false,

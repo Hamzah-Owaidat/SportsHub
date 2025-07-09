@@ -30,6 +30,11 @@ export default function StadiumClientPage() {
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [selectedSlot, setSelectedSlot] = useState<CalendarData['slots'][0] | null>(null);
     const [bookingLoading, setBookingLoading] = useState(false);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [cardNumber, setCardNumber] = useState('');
+    const [expiry, setExpiry] = useState('');
+    const [cvc, setCvc] = useState('');
+    const [paymentError, setPaymentError] = useState('');
 
     useEffect(() => {
         const fetchStadium = async () => {
@@ -197,6 +202,10 @@ export default function StadiumClientPage() {
         }
     };
 
+    const handleOpenPaymentModal = () => {
+        setShowPaymentModal(true);
+    };
+
 
     const monthNames = [
         'January', 'February', 'March', 'April', 'May', 'June',
@@ -280,7 +289,7 @@ export default function StadiumClientPage() {
                                 <p className="font-semibold text-gray-900 dark:text-white truncate">{stadium.location}</p>
                             </div>
                         </div>
-                        
+
                         <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800">
                             <div className="p-2 bg-green-100 dark:bg-green-900/40 rounded-lg">
                                 <User className="w-4 h-4 text-green-600 dark:text-green-400" />
@@ -290,7 +299,7 @@ export default function StadiumClientPage() {
                                 <p className="font-semibold text-gray-900 dark:text-white truncate">{stadium.ownerId.username}</p>
                             </div>
                         </div>
-                        
+
                         <div className="flex items-center gap-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-xl border border-purple-200 dark:border-purple-800 sm:col-span-2 lg:col-span-1">
                             <div className="p-2 bg-purple-100 dark:bg-purple-900/40 rounded-lg">
                                 <Users className="w-4 h-4 text-purple-600 dark:text-purple-400" />
@@ -553,7 +562,7 @@ export default function StadiumClientPage() {
                                                 <div className="absolute inset-0 bg-gradient-to-r from-blue-400/5 via-purple-400/5 to-cyan-400/5 animate-pulse"></div>
                                                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl"></div>
                                                 <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-cyan-400/10 to-blue-400/10 rounded-full blur-2xl"></div>
-                                                
+
                                                 <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                                                     <div className="flex-1 space-y-6">
                                                         {/* Enhanced Header */}
@@ -563,7 +572,7 @@ export default function StadiumClientPage() {
                                                                 <div className="absolute inset-0 bg-white/20 rounded-2xl blur-sm"></div>
                                                             </div>
                                                             <div>
-                                                                <h4 className="text-2xl font-black text-gray-900 dark:text-white bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                                                <h4 className="text-2xl font-black dark:text-white bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                                                                     Booking Summary
                                                                 </h4>
                                                                 <p className="text-sm text-gray-600 dark:text-stone-400 font-medium">
@@ -571,7 +580,7 @@ export default function StadiumClientPage() {
                                                                 </p>
                                                             </div>
                                                         </div>
-                                                        
+
                                                         {/* Enhanced Info Cards */}
                                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                                             <div className="group relative bg-white/80 dark:bg-stone-800/80 backdrop-blur-md rounded-3xl p-5 border border-white/50 dark:border-stone-700/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
@@ -590,7 +599,7 @@ export default function StadiumClientPage() {
                                                                     </p>
                                                                 </div>
                                                             </div>
-                                                            
+
                                                             <div className="group relative bg-white/80 dark:bg-stone-800/80 backdrop-blur-md rounded-3xl p-5 border border-white/50 dark:border-stone-700/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                                                                 <div className="absolute inset-0 bg-gradient-to-r from-green-500/5 to-emerald-500/5 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                                                 <div className="relative">
@@ -609,17 +618,17 @@ export default function StadiumClientPage() {
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    
+
                                                     {/* Enhanced Booking Button */}
                                                     <div className="flex-shrink-0 mt-32">
                                                         <button
-                                                            onClick={handleBooking}
+                                                            onClick={handleOpenPaymentModal}
                                                             disabled={bookingLoading}
                                                             className="group relative w-full lg:w-auto px-10 py-5 bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 disabled:from-gray-400 disabled:via-gray-500 disabled:to-gray-600 text-white rounded-3xl font-black text-lg transition-all duration-500 transform hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/25 disabled:hover:translate-y-0 disabled:hover:shadow-none disabled:opacity-50 flex items-center justify-center gap-3 overflow-hidden"
                                                         >
                                                             {/* Button background animation */}
                                                             <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-transparent to-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
-                                                            
+
                                                             {bookingLoading ? (
                                                                 <>
                                                                     <div className="relative w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -643,6 +652,92 @@ export default function StadiumClientPage() {
                     </div>
                 </div>
             </div>
+            {
+                showPaymentModal && (
+                    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+                        <div className="bg-white rounded-xl p-8 w-[95%] max-w-md shadow-xl relative">
+                            <h2 className="text-2xl font-bold mb-4 text-center">Enter Card Details</h2>
+
+                            <form onSubmit={(e) => {
+                                e.preventDefault();
+                                if (!cardNumber || !expiry || !cvc) {
+                                    setPaymentError('All fields are required');
+                                    return;
+                                }
+                                if (cardNumber.replaceAll(' ', '').length !== 16) {
+                                    setPaymentError('Card number must be 16 digits');
+                                    return;
+                                }
+
+                                setPaymentError('');
+                                setShowPaymentModal(false); // Close modal
+                                handleBooking(); // Call booking
+                            }}>
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium">Card Number</label>
+                                    <input
+                                        type="text"
+                                        value={cardNumber}
+                                        onChange={(e) => {
+                                            let val = e.target.value.replace(/\D/g, '').slice(0, 16);
+                                            val = val.replace(/(\d{4})(?=\d)/g, '$1 ');
+                                            setCardNumber(val);
+                                        }}
+                                        className="w-full border px-4 py-2 rounded mt-1"
+                                        placeholder="1234 5678 9012 3456"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="mb-4 flex gap-4">
+                                    <div className="w-1/2">
+                                        <label className="block text-sm font-medium">Expiry Date</label>
+                                        <input
+                                            type="text"
+                                            value={expiry}
+                                            onChange={(e) => setExpiry(e.target.value)}
+                                            className="w-full border px-4 py-2 rounded mt-1"
+                                            placeholder="MM/YY"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="w-1/2">
+                                        <label className="block text-sm font-medium">CVC</label>
+                                        <input
+                                            type="text"
+                                            value={cvc}
+                                            onChange={(e) => setCvc(e.target.value.replace(/\D/g, '').slice(0, 3))}
+                                            className="w-full border px-4 py-2 rounded mt-1"
+                                            placeholder="123"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                {paymentError && (
+                                    <p className="text-red-600 text-sm mb-2">{paymentError}</p>
+                                )}
+
+                                <button
+                                    type="submit"
+                                    className="w-full py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+                                >
+                                    Complete Payment
+                                </button>
+                            </form>
+
+                            <button
+                                onClick={() => setShowPaymentModal(false)}
+                                className="absolute top-2 right-3 text-gray-400 hover:text-black text-xl"
+                            >
+                                &times;
+                            </button>
+                        </div>
+                    </div>
+                )
+            }
         </div>
+
+
     );
 }

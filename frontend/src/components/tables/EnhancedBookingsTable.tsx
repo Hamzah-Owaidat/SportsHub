@@ -5,7 +5,7 @@ import Pagination from "./Pagination";
 import { cancelBooking, getMyBookings } from "@/lib/api/stadium";
 import { Search, RefreshCw } from 'lucide-react';
 import { BookingFilter } from "../ui/pages/myBookings/BookingFilter";
-import { BookingStats } from "../ui/pages/myBookings/bookingStats";
+import { BookingStats } from "../ui/pages/myBookings/BookingStats";
 import { BookingTableRow } from "../ui/pages/myBookings/BookingTableRow";
 
 export default function EnhancedBookingsTable() {
@@ -49,6 +49,8 @@ export default function EnhancedBookingsTable() {
                             : booking
                     )
                 );
+
+                fetchBookings(true);
             }
         } catch (error) {
             console.error("Cancellation failed:", error);
