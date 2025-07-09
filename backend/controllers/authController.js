@@ -158,16 +158,70 @@ exports.forgotPassword = asyncHandler(async (req, res) => {
     return res.status(200).json({ message: "If that email is in our system, you will receive a reset link." });
   }
 
+  const platform = req.query.platform;
   const resetToken = user.createPasswordResetToken();
   await user.save({ validateBeforeSave: false });
 
-  const resetURL = `${process.env.FRONTEND_URL}/auth/reset-password/${resetToken}`;
+  let resetURL;
 
+  if (platform === "mobile") {
+    resetURL = `https://jaafarhajali.github.io/redirect?token=${resetToken}`;
+  } else {
+    resetURL = `http://localhost:3000/auth/reset-password/${resetToken}`;
+  }
   const message = `
-    <p>Hello ${user.username},</p>
-    <p>You requested to reset your password. Click the link below to reset it:</p>
-    <a href="${resetURL}" target="_blank">Reset your password</a>
-    <p>This link will expire in 10 minutes.</p>
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Password Reset</title>
+        <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .button { 
+                background-color: #2196F3 !important; 
+                color: white !important; 
+                padding: 15px 30px !important; 
+                text-decoration: none !important; 
+                border-radius: 5px !important; 
+                display: inline-block !important; 
+                font-size: 16px !important; 
+                font-weight: bold !important;
+                margin: 20px 0 !important;
+                text-align: center !important;
+                min-width: 200px !important;
+            }
+            .link { word-break: break-all; color: #2196F3; font-size: 14px; background-color: #f0f0f0; padding: 10px; border-radius: 5px; }
+            @media only screen and (max-width: 600px) {
+                .container { padding: 10px !important; }
+                .button { width: 90% !important; padding: 20px !important; font-size: 18px !important; }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h2 style="color: #2196F3; text-align: center;">SportsHub Password Reset</h2>
+            <p>Hello ${user.username},</p>
+            <p>You requested to reset your password. Click the button below to reset it:</p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${resetURL}" class="button">Reset Your Password</a>
+            </div>
+            
+            <p>If the button doesn't work, copy and paste this link into your browser:</p>
+            <div class="link">${resetURL}</div>
+            
+            <p><strong>This link will expire in 10 minutes.</strong></p>
+            <p>If you didn't request this password reset, please ignore this email.</p>
+            
+            <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+            <p style="font-size: 12px; color: #666; text-align: center;">
+                This is an automated email from SportsHub. Please do not reply to this email.
+            </p>
+        </div>
+    </body>
+    </html>
   `;
 
   try {
