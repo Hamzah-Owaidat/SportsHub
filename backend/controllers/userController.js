@@ -1,8 +1,9 @@
 const User = require("../models/userModel");
 const asyncHandler = require("express-async-handler");
-const path = require("path");
-const fs = require("fs");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
+const sendVerificationEmail = require("../utils/sendVerification");
+
 
 // your existing updateUserProfile...
 exports.updateUserProfile = asyncHandler(async (req, res) => {
@@ -56,6 +57,8 @@ exports.updateUserProfile = asyncHandler(async (req, res) => {
         isActive: updatedUser.isActive,
         termsAccepted: updatedUser.termsAccepted,
         team: updatedUser.team,
+        wallet: updatedUser.wallet,
+        isVerified: updatedUser.isVerified,
         createdBy: updatedUser.createdBy,
         updatedBy: updatedUser.updatedBy,
         createdAt: updatedUser.createdAt,
@@ -73,3 +76,112 @@ exports.updateUserProfile = asyncHandler(async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
+
+exports.sendEmailVerification = asyncHandler(async (req, res) => {
+  if (!req.user || !req.user.id) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const user = await User.findById(req.user.id);
+  if (!user) return res.status(404).json({ message: "User not found" });
+  if (user.isVerified) return res.status(400).json({ message: "User is already verified" });
+
+  const token = crypto.randomBytes(32).toString("hex");
+  user.verificationToken = token;
+  user.verificationTokenExpires = Date.now() + 24 * 60 * 60 * 1000; // 24h
+  await user.save({ validateBeforeSave: false });
+
+  const platform = req.query.platform;
+  let verifyURL;
+
+  if (platform === "mobile") {
+    console.log("Sending verification for mobile...");
+    verifyURL = `https://jaafarhajali.github.io/redirect?verifyToken=${token}`;
+  } else {
+    verifyURL = `http://localhost:3000/verify-email?token=${token}`;
+  }
+
+  const message = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Email Verification</title>
+        <style>
+            body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
+            .btn {
+                display: inline-block;
+                background-color: #4CAF50;
+                color: white;
+                padding: 12px 24px;
+                text-decoration: none;
+                border-radius: 5px;
+                font-weight: bold;
+                margin-top: 20px;
+            }
+            .link {
+                margin-top: 10px;
+                font-size: 14px;
+                word-break: break-word;
+                background-color: #f0f0f0;
+                padding: 10px;
+                border-radius: 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <h2>Email Verification - SportsHub</h2>
+        <p>Hello ${user.username},</p>
+        <p>Please click the button below to verify your email address:</p>
+        <a href="${verifyURL}" class="btn">Verify Email</a>
+        <p>If the button doesn't work, copy and paste this link into your browser:</p>
+        <div class="link">${verifyURL}</div>
+        <p><strong>This link will expire in 24 hours.</strong></p>
+    </body>
+    </html>
+  `;
+
+  try {
+    await sendVerificationEmail({
+      email: user.email,
+      subject: "Verify Your Email - SportsHub",
+      message,
+    });
+
+    res.status(200).json({ message: "Verification email sent" });
+  } catch (err) {
+    console.error("Verification email failed:", err);
+    user.verificationToken = undefined;
+    user.verificationTokenExpires = undefined;
+    await user.save({ validateBeforeSave: false });
+    res.status(500).json({ message: "Failed to send verification email" });
+  }
+});
+
+
+exports.verifyEmail = asyncHandler(async (req, res) => {
+  const { token } = req.query;
+
+  const user = await User.findOne({
+    verificationToken: token,
+    verificationTokenExpires: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    return res.status(400).json({ message: "Invalid or expired verification token" });
+  }
+
+  user.isVerified = true;
+  user.verificationToken = undefined;
+  user.verificationTokenExpires = undefined;
+  await user.save({ validateBeforeSave: false });
+
+  const newToken = user.getSignedJwtToken(); // ✅ generate new token
+
+  res.status(200).json({
+    message: "Email verified successfully",
+    token: newToken, // ✅ return token to frontend
+  });
+});
+
+

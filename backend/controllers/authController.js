@@ -112,6 +112,7 @@ exports.login = asyncHandler(async (req, res) => {
 
   const foundUser = await User.findOne({ email }).select("+password");
 
+  // Check credentials
   if (!foundUser || !(await foundUser.correctPassword(password))) {
     return res.status(401).json({
       success: false,
@@ -119,8 +120,18 @@ exports.login = asyncHandler(async (req, res) => {
     });
   }
 
+  // ❌ Check if user is inactive
+  if (!foundUser.isActive) {
+    return res.status(403).json({
+      success: false,
+      message: "Your account is deactivated. Please contact support.",
+    });
+  }
+
+  // ✅ All checks passed — send token
   sendTokenResponse(foundUser, 200, res);
 });
+
 
 // @desc      Logout user
 // @route     GET /api/auth/logout
@@ -165,6 +176,7 @@ exports.forgotPassword = asyncHandler(async (req, res) => {
   let resetURL;
 
   if (platform === "mobile") {
+    console.log("mobile msg")
     resetURL = `https://jaafarhajali.github.io/redirect?token=${resetToken}`;
   } else {
     resetURL = `http://localhost:3000/auth/reset-password/${resetToken}`;

@@ -113,6 +113,11 @@ const userSchema = new mongoose.Schema({
     ref: "Team",
   },
 
+  wallet: {
+    type: Number,
+    default: 100000000,
+  },
+
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
@@ -192,7 +197,9 @@ userSchema.methods.getSignedJwtToken = function () {
       profilePhoto: this.profilePhoto,
       isActive: this.isActive,
       termsAccepted: this.termsAccepted,
+      isVerified: this.isVerified,
       team: this.team,
+      wallet: this.wallet,
       createdBy: this.createdBy,
       updatedBy: this.updatedBy,
       createdAt: this.createdAt,

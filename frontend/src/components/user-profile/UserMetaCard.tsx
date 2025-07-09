@@ -8,10 +8,8 @@ import Input from "../form/input/InputField";
 import Label from "../form/Label";
 import Image from "next/image";
 import { useUser } from "../../context/UserContext";
-import { jwtDecode } from "jwt-decode";
 import { toast } from "react-toastify";
 import { updateUser } from "@/lib/api/users";
-import ProfilePhotoPreview from "../ui/previewphoto";
 
 
 export default function UserMetaCard() {
@@ -102,6 +100,29 @@ export default function UserMetaCard() {
     }
   };
 
+  const handleVerifyEmail = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/send-verification?platform=web`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.success(data.message || "Verification email sent");
+      } else {
+        toast.error(data.message || "Something went wrong");
+      }
+    } catch (err) {
+      console.error("Verification email error:", err);
+      toast.error("Failed to send verification email");
+    }
+  };
+
 
 
 
@@ -150,6 +171,19 @@ export default function UserMetaCard() {
                     {user?.email}
                   </p>
                 </div>
+
+                {user?.isVerified ? (
+                  <span className="inline-flex items-center mt-2 gap-2 text-green-600 dark:text-green-400 text-sm font-semibold">
+                    ✅ Verified
+                  </span>
+                ) : (
+                  <button
+                    onClick={handleVerifyEmail}
+                    className="mt-2 inline-block px-4 py-1.5 text-sm font-medium text-white bg-yellow-500 hover:bg-yellow-600 rounded-full transition"
+                  >
+                    Verify Email
+                  </button>
+                )}
 
                 <div>
                   <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">

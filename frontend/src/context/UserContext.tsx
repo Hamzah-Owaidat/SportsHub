@@ -13,6 +13,7 @@ type DecodedToken = {
   phoneNumber: string;
   profilePhoto: string | null;
   isActive: boolean;
+  isVerified: boolean;
   termsAccepted: boolean;
   team: string;
   createdBy: string | null;
