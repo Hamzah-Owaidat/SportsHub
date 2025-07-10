@@ -1,13 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MoreVertical, Edit, Trash2 } from 'lucide-react';
+import { MoreVertical, Edit, Trash2, XCircle } from 'lucide-react';
 
 interface ActionsProps {
   onEdit?: () => void;
   onDelete?: () => void;
   isLastRow?: boolean; // Add this prop to identify the last row
+  deleteLabel?: string; 
 }
 
-const Actions: React.FC<ActionsProps> = ({ onEdit, onDelete, isLastRow = false }) => {
+const Actions: React.FC<ActionsProps> = ({ onEdit, onDelete, isLastRow = false, deleteLabel }) => {
   const [isOpen, setIsOpen] = useState(false);
   const actionRef = useRef<HTMLDivElement>(null);
 
@@ -28,6 +29,8 @@ const Actions: React.FC<ActionsProps> = ({ onEdit, onDelete, isLastRow = false }
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  const DeleteIcon = deleteLabel?.toLowerCase() === "cancel" ? XCircle : Trash2;
 
   return (
     <div className="relative" ref={actionRef}>
@@ -63,8 +66,8 @@ const Actions: React.FC<ActionsProps> = ({ onEdit, onDelete, isLastRow = false }
                 }}
                 className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-600"
               >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete
+                <DeleteIcon className="h-4 w-4 mr-2" />
+                {deleteLabel || "Delete"}
               </button>
             )}
           </div>

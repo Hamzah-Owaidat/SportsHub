@@ -42,17 +42,22 @@ router.get(
   authMiddleware.role(["admin", "stadiumOwner"]),
   stadiumController.getStadiumsByOwner
 );
+// router.get(
+//   "/stadiums/:id/bookings",
+//   authMiddleware.owns("stadiumModel", "id", "ownerId"),
+//   bookingsController.getBookingsForOwner
+// );
+// router.put(
+//   "/stadiums/:id/bookings/:bookingId/cancel",
+//   authMiddleware.owns("stadiumModel", "id", "ownerId"),
+//   bookingsController.ownerCancelBooking
+// );
 
-router.get(
-  "/stadiums/:id/bookings",
-  authMiddleware.owns("stadiumModel", "id", "ownerId"),
-  bookingsController.getBookingsForOwner
-);
-router.put(
-  "/stadiums/:id/bookings/:bookingId/cancel",
-  authMiddleware.owns("stadiumModel", "id", "ownerId"),
-  bookingsController.ownerCancelBooking
-);
+// Dashboard Bookings management
+router.get("/bookings", authMiddleware.role("admin"), bookingsController.getAllBookings);
+router.post("/bookings", authMiddleware.role("admin"), bookingsController.createBook);
+router.put("/bookings/:id", authMiddleware.role("admin"), bookingsController.updateBooking);
+router.put("/bookings/cancel/:id", authMiddleware.role("admin"), bookingsController.cancelBooking);
 
 // Dashboard academy management
 router.get("/academies", authMiddleware.role(["admin"]), academyController.getAllAcademies);

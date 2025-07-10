@@ -9,13 +9,13 @@ import React, { useState } from "react";
 
 export default function RolesDashboard() {
   const [isAddRoleModalOpen, setIsAddRoleModalOpen] = useState(false);
-    const [tableData, setTableData] = useState<Role[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
-    
-  
-    const handleAddRole = () => {
-      setIsAddRoleModalOpen(true);
-    };
+  const [tableData, setTableData] = useState<Role[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+
+  const handleAddRole = () => {
+    setIsAddRoleModalOpen(true);
+  };
 
   return (
     <div>

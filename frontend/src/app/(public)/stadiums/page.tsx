@@ -1,4 +1,4 @@
-import StadiumsClientPage from "@/components/ui/pages/stadium/StadiumsClientPage";
+import StadiumsClientPage from "@/components/ui/pages/stadiums/StadiumsClientPage";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {

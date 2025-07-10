@@ -11,10 +11,11 @@ import {
   LockIcon
 } from "../icons/index";
 import { useUser } from "@/context/UserContext"; // adjust path if needed
+import { LayoutDashboard, Users, Landmark, CalendarClock, UsersRound, Trophy, GraduationCap } from "lucide-react";
 
 const roleAccessMap: Record<string, string[]> = {
-  admin: ["Dashboard", "Users", "Roles", "Stadiums", "Tournaments", "Academies"],
-  stadiumOwner: ["Dashboard", "Stadiums", "Tournaments"],
+  admin: ["Dashboard", "Users", "Roles", "Stadiums", "Bookings", "Teams", "Tournaments", "Academies"],
+  stadiumOwner: ["Dashboard", "Stadiums","Bookings", "Tournaments"],
   academyOwner: ["Dashboard", "Academies"],
 };
 
@@ -28,8 +29,8 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   {
-    icon: <GridIcon />,
     name: "Dashboard",
+    icon: <GridIcon />,
     path: "/dashboard",
   },
   {
@@ -39,17 +40,27 @@ const navItems: NavItem[] = [
   },
   {
     name: "Stadiums",
-    icon: <UserCircleIcon />,
-    path: "/dashboard/stadium",
+    icon: <Landmark />,
+    path: "/dashboard/stadiums",
+  },
+  {
+    name: "Bookings",
+    icon: <CalendarClock />,
+    path: "/dashboard/bookings",
+  },
+  {
+    name: "Teams",
+    icon: <UsersRound />,
+    path: "/dashboard/teams",
   },
   {
     name: "Tournaments",
-    icon: <UserCircleIcon />,
+    icon: <Trophy />,
     path: "/dashboard/tournaments",
   },
   {
     name: "Academies",
-    icon: <UserCircleIcon />,
+    icon: <GraduationCap />,
     path: "/dashboard/academies",
   },
 ];

@@ -322,7 +322,7 @@ export default function StadiumClientPage() {
                         <div className="bg-white/80 dark:bg-stone-800/80 backdrop-blur-md rounded-3xl shadow-xl overflow-hidden border border-gray-200/50 dark:border-stone-700/50">
                             <div className="relative h-64 sm:h-72 overflow-hidden">
                                 <Image
-                                    src={imageUrl}
+                                    src={imageUrl && "/images/grid-image/image-01.png"}
                                     alt={stadium.name}
                                     fill
                                     loading='lazy'

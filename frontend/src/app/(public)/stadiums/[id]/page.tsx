@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import StadiumClientPage from "@/components/ui/pages/stadium/StadiumClientPage";
+import StadiumClientPage from "@/components/ui/pages/stadiums/StadiumClientPage";
 
 export const metadata: Metadata = {
   title: "Stadium Details | SportsHub",
