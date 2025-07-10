@@ -12,9 +12,10 @@ import Actions from "../ui/actions/Actions"
 import Pagination from "./Pagination";
 import { Booking } from "@/types/Booking";
 import { toast } from "react-toastify";
-import { getAllBookings } from "@/lib/api/dashboard/bookings";
+import { getAllBookings, getBookingsByOwner } from "@/lib/api/dashboard/bookings";
 import { EditBookingModal } from "../ui/modal/bookings/EditBookingModal";
 import { cancelBooking } from "@/lib/api/dashboard/bookings";
+import { useUser } from "@/context/UserContext";
 
 
 interface BookingsTableProps {
@@ -32,6 +33,7 @@ export default function BookingsTable({
     setLoading,
 }: BookingsTableProps) {
 
+    const { user } = useUser();
     const [currentPage, setCurrentPage] = useState(1);
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -47,7 +49,13 @@ export default function BookingsTable({
     useEffect(() => {
         const fetchBookings = async () => {
             try {
-                const bookings = await getAllBookings();
+                let bookings: React.SetStateAction<Booking[]> = [];
+
+                if (user?.role === 'admin') {
+                    bookings = await getAllBookings();
+                } else if (user?.role === 'stadiumOwner') {
+                    bookings = await getBookingsByOwner(user.id);
+                }
                 const sortedBookings = bookings.data.sort(
                     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
                 );

@@ -50,7 +50,7 @@ export default function UsersTable({
           getAllRoles()
         ]);
 
-        setTableData(users);
+        setTableData(users.data.users);
         setRoles(rolesData);
       } catch (error) {
         console.error('Failed to fetch data:', error);

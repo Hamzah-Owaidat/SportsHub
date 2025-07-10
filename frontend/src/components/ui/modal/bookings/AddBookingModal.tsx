@@ -1,3 +1,4 @@
+'use client';
 import React, { useEffect, useState } from "react";
 import { getAllUsers } from "@/lib/api/dashboard/users";
 import { getAllStadiums } from "@/lib/api/stadium";
@@ -6,6 +7,8 @@ import { Modal } from "..";
 import { createBooking } from "@/lib/api/dashboard/bookings";
 import { Booking } from "@/types/Booking";
 import { getStadiumById } from "@/lib/api/stadium";
+import { useUser } from "@/context/UserContext";
+import { getStadiumsByOwner } from "@/lib/api/dashboard/stadiums";
 
 
 interface AddBookingModalProps {
@@ -19,7 +22,8 @@ export const AddBookingModal: React.FC<AddBookingModalProps> = ({
     onClose,
     setTableData,
 }) => {
-    const [stadiums, setStadiums] = useState([]);
+    const { user } = useUser();
+    const [stadiums, setStadiums] = useState<any[]>([]);
     const [users, setUsers] = useState([]);
     const [stadiumId, setStadiumId] = useState("");
     const [userId, setUserId] = useState("");
@@ -32,8 +36,12 @@ export const AddBookingModal: React.FC<AddBookingModalProps> = ({
 
     useEffect(() => {
         if (isOpen) {
-            getAllStadiums().then(setStadiums);
-            getAllUsers().then(setUsers);
+            if (user?.role === "admin") {
+                getAllStadiums().then(setStadiums);
+            } else {
+                getStadiumsByOwner(user?.id).then((res) => setStadiums(res.data));
+            }
+            getAllUsers().then((res) => setUsers(res.data.users));
         }
     }, [isOpen]);
 
@@ -46,7 +54,6 @@ export const AddBookingModal: React.FC<AddBookingModalProps> = ({
 
             try {
                 const stadium = await getStadiumById(stadiumId);
-
                 const calendarEntry = stadium.calendar.find((entry: any) => {
                     const entryDate = new Date(entry.date);
                     const selectedDate = new Date(matchDate);
@@ -56,11 +63,25 @@ export const AddBookingModal: React.FC<AddBookingModalProps> = ({
                 });
 
                 if (calendarEntry) {
-                    const freeSlots = calendarEntry.slots
-                        .filter((slot: any) => !slot.isBooked)
+                    const now = new Date();
+                    const selectedDate = new Date(matchDate);
+                    selectedDate.setHours(0, 0, 0, 0);
+
+                    const freeFutureSlots = calendarEntry.slots
+                        .filter((slot: any) => {
+                            if (slot.isBooked) return false;
+
+                            // Build the slot time as Date
+                            const [hour, minute] = slot.startTime.split(":").map(Number);
+                            const slotTime = new Date(matchDate);
+                            slotTime.setHours(hour, minute, 0, 0);
+
+                            // Keep only slots in the future
+                            return slotTime > now;
+                        })
                         .map((slot: any) => slot.startTime);
 
-                    setAvailableSlots(freeSlots);
+                    setAvailableSlots(freeFutureSlots);
                 } else {
                     setAvailableSlots([]);
                 }
@@ -72,6 +93,7 @@ export const AddBookingModal: React.FC<AddBookingModalProps> = ({
 
         fetchAvailableSlots();
     }, [stadiumId, matchDate]);
+
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -102,7 +124,7 @@ export const AddBookingModal: React.FC<AddBookingModalProps> = ({
                         required
                     >
                         <option value="">Select a stadium</option>
-                        {stadiums.map((s: any) => (
+                        {stadiums && Array.isArray(stadiums) && stadiums.map((s) => (
                             <option key={s._id} value={s._id}>{s.name}</option>
                         ))}
                     </select>

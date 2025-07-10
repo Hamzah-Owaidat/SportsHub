@@ -1,5 +1,7 @@
 const Booking = require("../../models/bookingModel");
 const Stadium = require("../../models/stadiumModel");
+const User = require("../../models/userModel");
+
 const mongoose = require("mongoose");
 
 // 🟡 GET all bookings
@@ -145,9 +147,7 @@ exports.updateBooking = async (req, res) => {
       const oldDate = new Date(booking.matchDate);
       oldDate.setHours(0, 0, 0, 0);
 
-      const oldEntry = oldStadium.calendar.find((entry) =>
-        new Date(entry.date).getTime() === oldDate.getTime()
-      );
+      const oldEntry = oldStadium.calendar.find((entry) => new Date(entry.date).getTime() === oldDate.getTime());
 
       if (oldEntry) {
         const oldSlot = oldEntry.slots.find((s) => s.startTime === booking.timeSlot);
@@ -174,9 +174,7 @@ exports.updateBooking = async (req, res) => {
       return res.status(400).json({ success: false, message: "Cannot book for a past date" });
     }
 
-    const calendarEntry = newStadium.calendar.find((entry) =>
-      new Date(entry.date).getTime() === bookingDate.getTime()
-    );
+    const calendarEntry = newStadium.calendar.find((entry) => new Date(entry.date).getTime() === bookingDate.getTime());
 
     if (!calendarEntry) {
       return res.status(400).json({ success: false, message: "No available slots for this date" });
@@ -222,7 +220,6 @@ exports.updateBooking = async (req, res) => {
       message: "Booking updated successfully",
       data: populatedUpdated,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -241,20 +238,68 @@ exports.cancelBooking = async (req, res) => {
       return res.status(404).json({ success: false, message: "Booking not found" });
     }
 
-    if (booking.status !== "pending" && booking.status !== "approved") {
+    if (booking.status !== "approved") {
       return res.status(400).json({
         success: false,
-        message: "Only pending or approved bookings can be cancelled",
+        message: "Only approved bookings can be cancelled",
       });
     }
 
-    // Set status and skip wallet updates
+    const now = new Date();
+    const matchDateTime = new Date(booking.matchDate);
+    const [hour, minute] = booking.timeSlot.split(":").map(Number);
+    matchDateTime.setHours(hour, minute, 0, 0);
+
+    const stadium = await Stadium.findById(booking.stadiumId).populate("ownerId");
+    const user = await User.findById(booking.userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found for this booking",
+      });
+    }
+    const stadiumOwner = stadium.ownerId;
+    if (!stadiumOwner) {
+      return res.status(404).json({
+        success: false,
+        message: "Stadium owner not found",
+      });
+    }
+
+    let refundMessage = "Booking cancelled without refund";
+
+    if (booking.isPaid) {
+      const price = booking.price || stadium.pricePerMatch;
+      const penaltyWindow = stadium.penaltyPolicy.hoursBefore;
+      const penaltyAmount = stadium.penaltyPolicy.penaltyAmount;
+      const hoursBeforeMatch = (matchDateTime - now) / (1000 * 60 * 60);
+      const applyPenalty = hoursBeforeMatch < penaltyWindow;
+
+      let refundToUser = price;
+      let ownerAdjustment = -price;
+
+      if (applyPenalty) {
+        refundToUser = penaltyAmount >= price ? 0 : price - penaltyAmount;
+        ownerAdjustment = -price + penaltyAmount;
+        refundMessage = `Booking cancelled with penalty of ${penaltyAmount}`;
+      } else {
+        refundMessage = "Paid booking cancelled and fully refunded";
+      }
+
+      user.wallet += refundToUser;
+      stadiumOwner.wallet += ownerAdjustment;
+
+      await user.save({ validateBeforeSave: false });
+      await stadiumOwner.save({ validateBeforeSave: false });
+
+      booking.penaltyApplied = applyPenalty;
+    }
+
+    // Cancel booking
     booking.status = "cancelled";
-    booking.penaltyApplied = false;
     await booking.save();
 
-    // Free the slot from the stadium calendar
-    const stadium = await Stadium.findById(booking.stadiumId);
+    // Free the slot from the calendar
     const bookingDate = new Date(booking.matchDate);
     bookingDate.setHours(0, 0, 0, 0);
 
@@ -275,93 +320,53 @@ exports.cancelBooking = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Booking cancelled by admin without refund or penalty",
-      data: booking,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Admin failed to cancel booking",
-      error: error.message,
-    });
-  }
-};
-
-
-// 🔴 StadiumOwner cancels a booking (dashboard action)
-exports.ownerCancelBooking = async (req, res) => {
-  try {
-    const { bookingId } = req.params; // bookingId
-    const ownerId = req.user.id;
-
-    const booking = await Booking.findById(bookingId);
-    if (!booking) {
-      return res.status(404).json({ success: false, message: "Booking not found" });
-    }
-
-    // Check if the booking belongs to a stadium the owner owns
-    const stadium = await Stadium.findById(booking.stadiumId);
-    if (!stadium || stadium.ownerId.toString() !== ownerId.toString()) {
-      return res.status(403).json({ success: false, message: "Not authorized to cancel this booking" });
-    }
-
-    if (booking.status === "cancelled") {
-      return res.status(400).json({ success: false, message: "Booking is already cancelled" });
-    }
-
-    const matchDateTime = new Date(booking.matchDate);
-    const [hour, minute] = booking.timeSlot.split(":").map(Number);
-    matchDateTime.setHours(hour, minute, 0, 0);
-
-    const now = new Date();
-
-    // Check penalty
-    const penaltyWindow = stadium.penaltyPolicy.hoursBefore;
-    const hoursBeforeMatch = (matchDateTime - now) / (1000 * 60 * 60);
-    const applyPenalty = hoursBeforeMatch < penaltyWindow;
-
-    // Cancel booking
-    booking.status = "cancelled";
-    booking.penaltyApplied = applyPenalty;
-    await booking.save();
-
-    // Free the slot
-    const dateOnly = new Date(booking.matchDate);
-    dateOnly.setHours(0, 0, 0, 0);
-
-    const calendarEntry = stadium.calendar.find((entry) => new Date(entry.date).getTime() === dateOnly.getTime());
-
-    if (calendarEntry) {
-      const slot = calendarEntry.slots.find(
-        (s) => s.startTime === booking.timeSlot && s.bookingId?.toString() === booking._id.toString()
-      );
-      if (slot) {
-        slot.isBooked = false;
-        slot.bookingId = null;
-
-        // ✅ Use updateOne instead of stadium.save()
-        await Stadium.updateOne(
-          { _id: stadium._id, "calendar.date": dateOnly },
-          {
-            $set: {
-              "calendar.$.slots": calendarEntry.slots,
-            },
-          }
-        );
-      }
-    }
-
-    res.status(200).json({
-      success: true,
-      message: `Booking cancelled by owner${
-        applyPenalty ? ` (penalty applies) ${stadium.penaltyPolicy.penaltyAmount}` : ""
-      }`,
+      message: refundMessage,
       data: booking,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       message: "Failed to cancel booking",
+      error: error.message,
+    });
+  }
+};
+
+exports.getBookingsByOwner = async (req, res) => {
+  try {
+    const ownerId = req.user.id; // or req.params.ownerId if passed in params
+
+    // Find all stadiums that belong to this owner
+    const stadiums = await Stadium.find({ ownerId }).select("_id");
+
+    const stadiumIds = stadiums.map((stadium) => stadium._id);
+
+    // Fetch all bookings where stadiumId is in stadiumIds
+    const bookings = await Booking.find({ stadiumId: { $in: stadiumIds } })
+      .populate("userId", "username email")
+      .populate("stadiumId", "name location")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const enhancedBookings = bookings.map((booking) => {
+      if (booking.penaltyApplied && booking.stadiumId?.penaltyPolicy) {
+        return {
+          ...booking,
+          penaltyAmount: booking.stadiumId.penaltyPolicy.penaltyAmount,
+        };
+      }
+      return booking;
+    });
+
+    res.status(200).json({
+      success: true,
+      count: enhancedBookings.length,
+      data: enhancedBookings,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch bookings for owner",
       error: error.message,
     });
   }

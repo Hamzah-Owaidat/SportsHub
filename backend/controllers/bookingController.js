@@ -83,6 +83,7 @@ exports.bookMatch = async (req, res) => {
       stadiumId,
       matchDate: new Date(matchDate),
       timeSlot,
+      isPaid: true,
       price: BOOKING_PRICE,
     });
 

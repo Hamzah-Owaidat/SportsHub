@@ -1,3 +1,4 @@
+'use client';
 import React, { useEffect, useState } from "react";
 import { Modal } from "..";
 import { getAllUsers } from "@/lib/api/dashboard/users";
@@ -5,6 +6,8 @@ import { getAllStadiums, getStadiumById } from "@/lib/api/stadium";
 import { updateBooking } from "@/lib/api/dashboard/bookings";
 import { toast } from "react-toastify";
 import { Booking } from "@/types/Booking";
+import { getStadiumsByOwner } from "@/lib/api/dashboard/stadiums";
+import { useUser } from "@/context/UserContext";
 
 interface EditBookingModalProps {
   isOpen: boolean;
@@ -20,6 +23,7 @@ export const EditBookingModal: React.FC<EditBookingModalProps> = ({
   booking,
   onUpdate,
 }) => {
+  const { user } = useUser();
   const [stadiums, setStadiums] = useState([]);
   const [users, setUsers] = useState([]);
   const [stadiumId, setStadiumId] = useState("");
@@ -30,8 +34,12 @@ export const EditBookingModal: React.FC<EditBookingModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      getAllStadiums().then(setStadiums);
-      getAllUsers().then(setUsers);
+      if (user?.role === "admin") {
+        getAllStadiums().then((res) => setStadiums(res.data));
+      } else {
+        getStadiumsByOwner(user?.id).then((res) => setStadiums(res.data));
+      }
+      getAllUsers().then((res) => setUsers(res.data.users));
 
       if (booking) {
         setStadiumId(booking.stadiumId._id || booking.stadiumId);

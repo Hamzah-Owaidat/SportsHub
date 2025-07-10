@@ -12,7 +12,7 @@ const uploadStadium = require("../middlewares/uploadStadium");
 const uploadAcademy = require("../middlewares/uploadAcademy");
 
 // Dashboard users management
-router.get("/users", authMiddleware.admin, usersController.getAllUsers);
+router.get("/users", authMiddleware.role(["admin", "stadiumOwner"]), usersController.getAllUsers);
 router.get("/users/academy-owners", authMiddleware.role("admin"), usersController.getAcademyOwners);
 router.get("/users/stadium-owners", authMiddleware.role("admin"), usersController.getStadiumOwners);
 router.get("/users/:id", authMiddleware.admin, usersController.getUser);
@@ -55,9 +55,10 @@ router.get(
 
 // Dashboard Bookings management
 router.get("/bookings", authMiddleware.role("admin"), bookingsController.getAllBookings);
-router.post("/bookings", authMiddleware.role("admin"), bookingsController.createBook);
-router.put("/bookings/:id", authMiddleware.role("admin"), bookingsController.updateBooking);
-router.put("/bookings/cancel/:id", authMiddleware.role("admin"), bookingsController.cancelBooking);
+router.get('/bookings/owner/:ownerId', authMiddleware.role("stadiumOwner"), bookingsController.getBookingsByOwner);
+router.post("/bookings", authMiddleware.role(["admin", "stadiumOwner"]), bookingsController.createBook);
+router.put("/bookings/:id", authMiddleware.role(["admin", "stadiumOwner"]), bookingsController.updateBooking);
+router.put("/bookings/cancel/:id", authMiddleware.role(["admin", "stadiumOwner"]), bookingsController.cancelBooking);
 
 // Dashboard academy management
 router.get("/academies", authMiddleware.role(["admin"]), academyController.getAllAcademies);

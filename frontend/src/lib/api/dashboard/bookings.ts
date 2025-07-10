@@ -28,6 +28,10 @@ export const getAllBookings = async () => {
     const res = await axiosInstance.get('bookings');
     return res.data;
 }
+export const getBookingsByOwner = async (ownerId: string) => {
+    const res = await axiosInstance.get(`bookings/owner/${ownerId}`);
+    return res.data;
+}
 
 export const createBooking = async (stadiumId, userId, matchDate, timeSlot) => {
     const res = await axiosInstance.post('bookings', {

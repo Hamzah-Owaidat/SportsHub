@@ -52,9 +52,9 @@ export default function StadiumsTable({
           stadiumsData = await getStadiumsByOwner(user.id);
         }
 
-        stadiumsData.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        const filteredStadium = stadiumsData.data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-        setTableData(stadiumsData);
+        setTableData(filteredStadium);
       } catch (error) {
         toast.error("Failed to load stadiums");
         console.error(error);

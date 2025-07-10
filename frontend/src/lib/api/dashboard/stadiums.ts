@@ -26,12 +26,12 @@ axiosInstance.interceptors.request.use((config) => {
 
 export async function getAllStadiums() {
   const res = await axiosInstance.get("stadiums");
-  return res.data.data;
+  return res.data;
 }
 
 export const getStadiumsByOwner = async (ownerId: string) => {
   const res = await axiosInstance.get(`stadiums/owner/${ownerId}`);
-  return res.data.data;
+  return res.data;
 };
 
 export const addStadium = async (stadiumData: FormData) => {

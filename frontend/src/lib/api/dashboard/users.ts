@@ -27,7 +27,7 @@ axiosInstance.interceptors.request.use((config) => {
 export const getAllUsers = async () => {
   const res = await axiosInstance.get('users');
   // Return the users array nested inside data.users
-  return res.data?.data?.users || [];
+  return res.data;
 };
 
 // Add a user
