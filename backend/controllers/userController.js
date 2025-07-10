@@ -96,7 +96,7 @@ exports.sendEmailVerification = asyncHandler(async (req, res) => {
 
   if (platform === "mobile") {
     console.log("Sending verification for mobile...");
-    verifyURL = `https://jaafarhajali.github.io/redirect?verifyToken=${token}`;
+    verifyURL = `https://jaafarhajali.github.io/varification/?verifyToken=${token}`;
   } else {
     verifyURL = `http://localhost:3000/verify-email?token=${token}`;
   }
