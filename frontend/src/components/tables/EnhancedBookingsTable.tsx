@@ -22,7 +22,9 @@ export default function EnhancedBookingsTable() {
         if (showRefreshLoader) setRefreshing(true);
         try {
             const data = await getMyBookings();
-            setTableData(data);
+            const sortedData = [...data].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+            setTableData(sortedData);
         } catch (err) {
             console.error("Failed to fetch bookings:", err);
         } finally {

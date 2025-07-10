@@ -54,6 +54,8 @@ export default function AcademiesTable({
           academiesData = await getAcademyByOwner(user.id);
         }
 
+        academiesData.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
         setTableData(academiesData);
       } catch (error) {
         toast.error("Failed to load academies");

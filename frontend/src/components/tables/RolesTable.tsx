@@ -47,6 +47,8 @@ export default function RolesTable({
         const fetchRoles = async () => {
             try {
                 const roles = await getAllRoles();
+                roles.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
                 setTableData(roles);
             } catch (error) {
                 console.error('Failed to fetch roles:', error);

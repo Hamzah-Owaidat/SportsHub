@@ -60,6 +60,8 @@ export default function TournamentsTable({
                     return;
                 }
 
+                res.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
                 setTableData(res);
             } catch (err) {
                 console.error(err);
