@@ -225,6 +225,7 @@ export default function TournamentsClient() {
     return filtered;
   }, [tournaments, filters, user]);
 
+  const isTeamLeader = user?.role === 'teamLeader';
 
   const handleSearch = (searchTerm: string) => {
     setFilters(prev => ({ ...prev, search: searchTerm }));
@@ -262,6 +263,23 @@ export default function TournamentsClient() {
     }
   };
 
+  const handleLeaveTournament = (tournamentId: string, teamId: string) => {
+    setTournaments(prevTournaments =>
+      prevTournaments.map(t => {
+        if (t._id === tournamentId) {
+          return {
+            ...t,
+            teams: Array.isArray(t.teams)
+              ? t.teams.filter(team => (typeof team === 'string' ? team !== teamId : team?._id !== teamId))
+              : []
+          };
+        }
+        return t;
+      })
+    );
+  };
+
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-stone-900 dark:via-stone-800 dark:to-stone-900">
@@ -280,7 +298,7 @@ export default function TournamentsClient() {
             <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-cyan-500/5"></div>
             <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl -translate-y-48 translate-x-48"></div>
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-cyan-400/10 to-blue-400/10 rounded-full blur-2xl translate-y-32 -translate-x-32"></div>
-            
+
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
               <div className="text-center space-y-6">
                 <div className="flex justify-center">
@@ -290,7 +308,7 @@ export default function TournamentsClient() {
                   </div>
                 </div>
                 <div className="space-y-4">
-                  <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-gray-900 dark:text-white" style={{ marginBottom: '1rem'}}>
+                  <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-gray-900 dark:text-white" style={{ marginBottom: '1rem' }}>
                     <span className="bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 bg-clip-text text-transparent">
                       Epic Tournaments
                     </span>
@@ -299,7 +317,7 @@ export default function TournamentsClient() {
                     Discover and join thrilling competitions. Battle for glory, earn amazing prizes, and become a champion in your favorite sports!
                   </p>
                 </div>
-                
+
                 {/* Quick Stats Preview */}
                 <div className="flex flex-wrap justify-center gap-6 pt-4">
                   <div className="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-2xl border border-white/50 dark:border-stone-700/50">
@@ -359,16 +377,20 @@ export default function TournamentsClient() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
                   {filteredTournaments.map((tournament, index) => (
-                    <div 
+                    <div
                       key={tournament._id}
                       className="animate-fadeInUp"
                       style={{ animationDelay: `${index * 100}ms` }}
                     >
                       <TournamentCard
+                        key={tournament._id}
                         tournament={tournament}
                         onJoin={handleJoinTournament}
                         userTeamId={user?.team}
+                        isTeamLeader={isTeamLeader}
+                        onLeave={handleLeaveTournament}
                       />
+
                     </div>
                   ))}
                 </div>

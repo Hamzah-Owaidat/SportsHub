@@ -1,9 +1,9 @@
 const mongoose = require("mongoose");
 
 const tournamentSchema = new mongoose.Schema({
-  createdBy: {
+  owner: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User", // assuming stadium owner is a user
+    ref: "User", // Always the stadium owner
     required: true,
   },
   stadiumId: {
@@ -56,6 +56,11 @@ const tournamentSchema = new mongoose.Schema({
   updatedAt: {
     type: Date,
     default: Date.now,
+  },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User", // Could be admin or stadium owner
+    required: true,
   },
   updatedBy: {
     type: mongoose.Schema.Types.ObjectId,

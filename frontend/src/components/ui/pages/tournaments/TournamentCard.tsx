@@ -2,6 +2,8 @@
 import { MapPin, Users, Banknote, Trophy, Calendar, Zap, Crown } from "lucide-react";
 import { formatCurrency, formatDate, getTournamentStatus } from '@/lib/utils/utils'; // adjust path based on your structure
 import { useState } from "react";
+import { leaveTournament } from "@/lib/api/tournaments";
+import { toast } from "react-toastify";
 
 interface Tournament {
   _id: string;
@@ -25,15 +27,19 @@ interface TournamentCardProps {
   tournament: Tournament;
   onJoin?: (tournamentId: string) => void;
   userTeamId?: string;
+  isTeamLeader?: boolean;
+  onLeave?: (tournamentId: string, teamId: string) => void;  // NEW
 }
 
-const TournamentCard = ({ tournament, onJoin, userTeamId }: TournamentCardProps) => {
+
+const TournamentCard = ({ tournament, onJoin, userTeamId, isTeamLeader, onLeave }: TournamentCardProps) => {
 
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [cardNumber, setCardNumber] = useState('');
   const [expiry, setExpiry] = useState('');
   const [cvc, setCvc] = useState('');
   const [paymentError, setPaymentError] = useState('');
+
 
   // Add safety checks for tournament data
   if (!tournament || typeof tournament !== 'object') {
@@ -69,9 +75,34 @@ const TournamentCard = ({ tournament, onJoin, userTeamId }: TournamentCardProps)
     })
     : false;
 
-    const handleOpenPaymentModal = () => {
-        setShowPaymentModal(true);
-    };
+  const handleOpenPaymentModal = () => {
+    setShowPaymentModal(true);
+  };
+
+  const canLeave = hasJoined && isTeamLeader && status === 'upcoming' && (() => {
+    const now = new Date().getTime();
+    const start = new Date(tournament.startDate).getTime();
+    const hoursBefore = (start - now) / (1000 * 60 * 60);
+    return hoursBefore >= 24;
+  })();
+
+
+  const handleLeave = async () => {
+    try {
+      const res = await leaveTournament({ tournamentId: tournament._id, teamId: userTeamId! });
+      toast.success(res.message || "Left tournament successfully");
+
+      // Notify parent to update tournaments state
+      onLeave?.(tournament._id, userTeamId!);
+
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Could not leave tournament");
+    }
+  };
+
+
+
+
 
   return (
     <div className="group relative bg-white/80 dark:bg-stone-800/80 backdrop-blur-md rounded-3xl shadow-lg hover:shadow-2xl border border-gray-200/50 dark:border-stone-700/50 transition-all duration-500 transform hover:-translate-y-2 overflow-hidden">
@@ -200,131 +231,130 @@ const TournamentCard = ({ tournament, onJoin, userTeamId }: TournamentCardProps)
             )}
           </div>
 
-          <button
-            onClick={handleOpenPaymentModal}
-            className={`group/btn relative overflow-hidden px-6 py-3 rounded-2xl font-bold text-sm transition-all duration-300 transform hover:-translate-y-0.5 hover:shadow-lg ${status === 'upcoming' && spotsLeft > 0 && !hasJoined
+          {!hasJoined ? (
+            <button
+              onClick={handleOpenPaymentModal}
+              className={`group/btn relative overflow-hidden px-6 py-3 rounded-2xl font-bold text-sm transition-all duration-300 transform hover:-translate-y-0.5 hover:shadow-lg ${status === 'upcoming' && spotsLeft > 0
                 ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg'
-                : hasJoined
-                  ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg cursor-default'
-                  : 'bg-gray-200 dark:bg-stone-700 text-gray-500 dark:text-stone-400 cursor-not-allowed'
-              }`}
-            disabled={status !== 'upcoming' || spotsLeft === 0 || hasJoined}
-          >
-            {/* Button shine effect */}
-            {(status === 'upcoming' && spotsLeft > 0 && !hasJoined) && (
-              <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-transparent to-white/20 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-1000"></div>
-            )}
-
-            <span className="relative flex items-center gap-2">
-              {hasJoined ? (
-                <>
-                  <span className="text-lg">✓</span>
-                  Joined
-                </>
-              ) : status === 'upcoming' && spotsLeft > 0 ? (
-                <>
-                  <span className="text-lg group-hover/btn:scale-110 transition-transform">🚀</span>
-                  Join Tournament
-                </>
-              ) : status === 'ongoing' ? (
-                <>
-                  <span className="text-lg">👁️</span>
-                  View Live
-                </>
-              ) : spotsLeft === 0 ? (
-                'Full'
-              ) : (
-                'Ended'
+                : 'bg-gray-200 dark:bg-stone-700 text-gray-500 dark:text-stone-400 cursor-not-allowed'
+                }`}
+              disabled={status !== 'upcoming' || spotsLeft === 0}
+            >
+              {(status === 'upcoming' && spotsLeft > 0) && (
+                <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-transparent to-white/20 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-1000"></div>
               )}
-            </span>
-          </button>
+              <span className="relative flex items-center gap-2">
+                <span className="text-lg group-hover/btn:scale-110 transition-transform">🚀</span>
+                Join Tournament
+              </span>
+            </button>
+          ) : (
+            <div className="flex flex-col items-end gap-2">
+
+              {canLeave ? (
+                <button
+                  onClick={handleLeave}
+                  className="px-5 py-4 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-bold shadow-sm transition"
+                >
+                  🛑 Leave Tournament
+                </button>
+              ) :
+                <button
+                  className="px-6 py-3 rounded-2xl bg-green-500 text-white font-bold text-sm cursor-default"
+                  disabled
+                >
+                  ✓ Joined
+                </button>
+              }
+            </div>
+          )}
         </div>
       </div>
 
       {
-                showPaymentModal && (
-                    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
-                        <div className="bg-white rounded-xl p-8 w-[95%] max-w-md shadow-xl relative">
-                            <h2 className="text-2xl font-bold mb-4 text-center">Enter Card Details</h2>
+        showPaymentModal && (
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+            <div className="bg-white rounded-xl p-8 w-[95%] max-w-md shadow-xl relative">
+              <h2 className="text-2xl font-bold mb-4 text-center">Enter Card Details</h2>
 
-                            <form onSubmit={(e) => {
-                                e.preventDefault();
-                                if (!cardNumber || !expiry || !cvc) {
-                                    setPaymentError('All fields are required');
-                                    return;
-                                }
-                                if (cardNumber.replaceAll(' ', '').length !== 16) {
-                                    setPaymentError('Card number must be 16 digits');
-                                    return;
-                                }
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                if (!cardNumber || !expiry || !cvc) {
+                  setPaymentError('All fields are required');
+                  return;
+                }
+                if (cardNumber.replaceAll(' ', '').length !== 16) {
+                  setPaymentError('Card number must be 16 digits');
+                  return;
+                }
 
-                                setPaymentError('');
-                                setShowPaymentModal(false); // Close modal
-                                handlejoin();
-                            }}>
-                                <div className="mb-4">
-                                    <label className="block text-sm font-medium">Card Number</label>
-                                    <input
-                                        type="text"
-                                        value={cardNumber}
-                                        onChange={(e) => {
-                                            let val = e.target.value.replace(/\D/g, '').slice(0, 16);
-                                            val = val.replace(/(\d{4})(?=\d)/g, '$1 ');
-                                            setCardNumber(val);
-                                        }}
-                                        className="w-full border px-4 py-2 rounded mt-1"
-                                        placeholder="1234 5678 9012 3456"
-                                        required
-                                    />
-                                </div>
+                setPaymentError('');
+                setShowPaymentModal(false); // Close modal
+                handlejoin();
+              }}>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium">Card Number</label>
+                  <input
+                    type="text"
+                    value={cardNumber}
+                    onChange={(e) => {
+                      let val = e.target.value.replace(/\D/g, '').slice(0, 16);
+                      val = val.replace(/(\d{4})(?=\d)/g, '$1 ');
+                      setCardNumber(val);
+                    }}
+                    className="w-full border px-4 py-2 rounded mt-1"
+                    placeholder="1234 5678 9012 3456"
+                    required
+                  />
+                </div>
 
-                                <div className="mb-4 flex gap-4">
-                                    <div className="w-1/2">
-                                        <label className="block text-sm font-medium">Expiry Date</label>
-                                        <input
-                                            type="text"
-                                            value={expiry}
-                                            onChange={(e) => setExpiry(e.target.value)}
-                                            className="w-full border px-4 py-2 rounded mt-1"
-                                            placeholder="MM/YY"
-                                            required
-                                        />
-                                    </div>
-                                    <div className="w-1/2">
-                                        <label className="block text-sm font-medium">CVC</label>
-                                        <input
-                                            type="text"
-                                            value={cvc}
-                                            onChange={(e) => setCvc(e.target.value.replace(/\D/g, '').slice(0, 3))}
-                                            className="w-full border px-4 py-2 rounded mt-1"
-                                            placeholder="123"
-                                            required
-                                        />
-                                    </div>
-                                </div>
+                <div className="mb-4 flex gap-4">
+                  <div className="w-1/2">
+                    <label className="block text-sm font-medium">Expiry Date</label>
+                    <input
+                      type="text"
+                      value={expiry}
+                      onChange={(e) => setExpiry(e.target.value)}
+                      className="w-full border px-4 py-2 rounded mt-1"
+                      placeholder="MM/YY"
+                      required
+                    />
+                  </div>
+                  <div className="w-1/2">
+                    <label className="block text-sm font-medium">CVC</label>
+                    <input
+                      type="text"
+                      value={cvc}
+                      onChange={(e) => setCvc(e.target.value.replace(/\D/g, '').slice(0, 3))}
+                      className="w-full border px-4 py-2 rounded mt-1"
+                      placeholder="123"
+                      required
+                    />
+                  </div>
+                </div>
 
-                                {paymentError && (
-                                    <p className="text-red-600 text-sm mb-2">{paymentError}</p>
-                                )}
+                {paymentError && (
+                  <p className="text-red-600 text-sm mb-2">{paymentError}</p>
+                )}
 
-                                <button
-                                    type="submit"
-                                    className="w-full py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
-                                >
-                                    Complete Payment
-                                </button>
-                            </form>
+                <button
+                  type="submit"
+                  className="w-full py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+                >
+                  Complete Payment
+                </button>
+              </form>
 
-                            <button
-                                onClick={() => setShowPaymentModal(false)}
-                                className="absolute top-2 right-3 text-gray-400 hover:text-black text-xl"
-                            >
-                                &times;
-                            </button>
-                        </div>
-                    </div>
-                )
-            }
+              <button
+                onClick={() => setShowPaymentModal(false)}
+                className="absolute top-2 right-3 text-gray-400 hover:text-black text-xl"
+              >
+                &times;
+              </button>
+            </div>
+          </div>
+        )
+      }
     </div>
   );
 };

@@ -33,3 +33,8 @@ export const joinTournament = async (payload: { tournamentId: string, teamId: st
   const res = await axiosInstance.post('/join', payload);
   return res.data;
 };
+
+export const leaveTournament = async (payload: { tournamentId: string, teamId: string }) => {
+  const res = await axiosInstance.post('/leave', payload);
+  return res.data;
+};

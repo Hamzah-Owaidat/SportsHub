@@ -2,6 +2,7 @@ const asyncHandler = require("express-async-handler");
 const Tournament = require("../../models/tournamentModel");
 const Team = require("../../models/teamModel");
 const User = require("../../models/userModel");
+const Stadium = require("../../models/stadiumModel");
 const Notification = require("../../models/notificationModel");
 
 // Get all tournaments
@@ -42,33 +43,35 @@ exports.addTournament = asyncHandler(async (req, res) => {
     maxTeams,
     startDate,
     endDate,
-    stadiumId
+    stadiumId,
   } = req.body;
 
-  // ✅ DATE VALIDATION
+  // ✅ Validate dates
   const now = new Date();
   const start = new Date(startDate);
   const end = new Date(endDate);
 
   if (start < now) {
-    return res.status(400).json({
-      error: "Start date cannot be before today.",
-    });
+    return res.status(400).json({ error: "Start date cannot be before today." });
   }
 
   if (end < now) {
-    return res.status(400).json({
-      error: "End date cannot be before today.",
-    });
+    return res.status(400).json({ error: "End date cannot be before today." });
   }
 
   if (end < start) {
-    return res.status(400).json({
-      error: "End date cannot be before the start date.",
-    });
+    return res.status(400).json({ error: "End date cannot be before the start date." });
   }
 
-  // ✅ Create Tournament
+  // ✅ Get stadium to extract owner
+  const stadium = await Stadium.findById(stadiumId);
+  if (!stadium) {
+    return res.status(404).json({ error: "Stadium not found." });
+  }
+
+  const ownerId = stadium.ownerId; // make sure Stadium model includes `owner`
+
+  // ✅ Create tournament with owner
   let newTournament = await Tournament.create({
     name,
     description,
@@ -78,11 +81,15 @@ exports.addTournament = asyncHandler(async (req, res) => {
     startDate,
     endDate,
     stadiumId,
-    createdBy: req.user.id,
+    createdBy: req.user.id, // admin or stadium owner
     updatedBy: req.user.id,
+    owner: ownerId, // stadium's actual owner
   });
 
-  newTournament = await newTournament.populate("stadiumId", "name");
+  // ✅ Populate stadium and owner
+  newTournament = await Tournament.findById(newTournament._id)
+    .populate("stadiumId", "name")
+    .populate("owner", "username");
 
   // ✅ Notify all users
   const users = await User.find({}, "_id");
@@ -107,6 +114,7 @@ exports.addTournament = asyncHandler(async (req, res) => {
     )
   );
 
+  // ✅ Return success response
   res.status(201).json({
     status: "success",
     data: newTournament,
