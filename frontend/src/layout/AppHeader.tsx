@@ -143,20 +143,6 @@ const AppHeader: React.FC = () => {
 
         </div>
       </div>
-      {/* Global Toast Container - must be top-level and positioned fixed */}
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="colored"
-        className="z-auto"
-      />
     </header>
   );
 };

@@ -77,7 +77,7 @@ router.get("/academies/owner/:ownerId", authMiddleware.role(["academyOwner"]), a
 // Dashboard tournaments management
 router.get("/tournaments", authMiddleware.role(["admin"]), tournamentsController.getAllTournaments);
 router.get("/my-tournaments", authMiddleware.stadiumOwner, tournamentsController.getMyTournaments);
-router.post("/tournaments", authMiddleware.stadiumOwner, tournamentsController.addTournament);
+router.post("/tournaments", authMiddleware.role(["admin", "stadiumOwner"]), tournamentsController.addTournament);
 // router.get("/tournaments/:id", authMiddleware.role(["admin", "stadiumOwner"]), tournamentsController.getTournamentById);
 router.put(
   "/tournaments/:id",

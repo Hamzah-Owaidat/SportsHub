@@ -115,6 +115,7 @@ export default function StadiumsTable({
             <TableRow>
               <TableCell isHeader className="px-5 py-3 font-medium text-gray-500">Image</TableCell>
               <TableCell isHeader className="px-5 py-3 font-medium text-gray-500">Name</TableCell>
+              <TableCell isHeader className="px-5 py-3 font-medium text-gray-500">Owner</TableCell>
               <TableCell isHeader className="px-5 py-3 font-medium text-gray-500">Location</TableCell>
               <TableCell isHeader className="px-5 py-3 font-medium text-gray-500">Price/Match</TableCell>
               <TableCell isHeader className="px-5 py-3 font-medium text-gray-500">Max Players</TableCell>
@@ -152,6 +153,7 @@ export default function StadiumsTable({
                     </div>
                   </TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">{stadium.name}</TableCell>
+                  <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">{stadium.ownerId.username}</TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">{stadium.location}</TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">{stadium.pricePerMatch.toLocaleString()} LBP</TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">{stadium.maxPlayers}</TableCell>

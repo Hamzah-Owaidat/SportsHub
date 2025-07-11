@@ -7,7 +7,7 @@ import Input from "@/components/form/input/InputField";
 import FieldError from "@/components/helper/FieldError";
 import { toast } from "react-toastify";
 import { addTournament } from "@/lib/api/dashboard/tournaments";
-import { getStadiumsByOwner } from "@/lib/api/dashboard/stadiums";
+import { getAllStadiums, getStadiumsByOwner } from "@/lib/api/dashboard/stadiums";
 import { useUser } from "@/context/UserContext";
 import { Tournament } from "@/types/Tournament";
 
@@ -49,9 +49,11 @@ const AddTournamentModal: React.FC<AddTournamentModalProps> = ({
                     return;
                 }
 
-                const data = await getStadiumsByOwner(ownerId);
-                setStadiums(data);
-                console.log("Fetched stadiums:", data);
+                const data = user?.role === 'admin'
+                    ? await getAllStadiums()
+                    : await getStadiumsByOwner(ownerId);
+
+                setStadiums(data.data);
 
                 if (data.length === 1) {
                     setFormData((prev) => ({ ...prev, stadiumId: data[0]._id }));
@@ -78,10 +80,11 @@ const AddTournamentModal: React.FC<AddTournamentModalProps> = ({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setErrors({});
+        setLoading(true);
 
         const newErrors: any = {};
 
-        // Validate required fields
+        // Required field validation
         if (!formData.name.trim()) newErrors.name = "Name is required";
         if (!formData.description.trim()) newErrors.description = "Description is required";
         if (!formData.entryPricePerTeam) newErrors.entryPricePerTeam = "Entry price is required";
@@ -91,24 +94,50 @@ const AddTournamentModal: React.FC<AddTournamentModalProps> = ({
         if (!formData.endDate) newErrors.endDate = "End date is required";
         if (!formData.stadiumId) newErrors.stadiumId = "Stadium is required";
 
-        // If any error exists, abort
+        // Stop here if missing fields
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
+            toast.error("Please fix the validation errors.");
             setLoading(false);
             return;
         }
+
+        // ✅ Date validation
+        const now = new Date();
+        const start = new Date(formData.startDate);
+        const end = new Date(formData.endDate);
+
+        if (start < now) {
+            toast.error("Start date cannot be in the past.");
+            setLoading(false);
+            return;
+        }
+
+        if (end < now) {
+            toast.error("End date cannot be in the past.");
+            setLoading(false);
+            return;
+        }
+
+        if (end < start) {
+            toast.error("End date cannot be before the start date.");
+            setLoading(false);
+            return;
+        }
+
+        // ✅ Proceed to submit
         try {
-            setLoading(true);
             const newTournament = await addTournament(formData);
             toast.success("Tournament created!");
             onClose();
-            setTableData(prev => [...prev, newTournament.data]);
+            setTableData(prev => [newTournament.data, ...prev]);
         } catch (err: any) {
             toast.error("Failed to add tournament");
         } finally {
             setLoading(false);
         }
     };
+
 
     return (
         <Modal isOpen={isOpen} onClose={onClose}>

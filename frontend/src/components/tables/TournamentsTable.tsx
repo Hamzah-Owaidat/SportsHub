@@ -202,14 +202,14 @@ export default function TournamentsTable({
                                 >
                                     Created At
                                 </TableCell>
-                                {user?.role === "stadiumOwner" &&
-                                    <TableCell
-                                        isHeader
-                                        className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400"
-                                    >
-                                        Action
-                                    </TableCell>
-                                }
+
+                                <TableCell
+                                    isHeader
+                                    className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400"
+                                >
+                                    Action
+                                </TableCell>
+
                             </TableRow>
                         </TableHeader>
 
@@ -256,15 +256,15 @@ export default function TournamentsTable({
                                         <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">
                                             {new Date(tournament.createdAt).toLocaleDateString()}
                                         </TableCell>
-                                        {user?.role === "stadiumOwner" &&
-                                            <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">
-                                                <Actions
-                                                    onEdit={() => handleEdit(tournament)}
-                                                    onDelete={() => handleDeleteTournament(tournament._id)}
-                                                    isLastRow={index === currentUsers.length - 1}
-                                                />
-                                            </TableCell>
-                                        }
+
+                                        <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">
+                                            <Actions
+                                                onEdit={() => handleEdit(tournament)}
+                                                onDelete={() => handleDeleteTournament(tournament._id)}
+                                                isLastRow={index === currentUsers.length - 1}
+                                            />
+                                        </TableCell>
+
                                     </TableRow>
                                 ))
                             )}

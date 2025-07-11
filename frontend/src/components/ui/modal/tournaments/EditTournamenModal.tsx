@@ -7,7 +7,7 @@ import Input from "@/components/form/input/InputField";
 import FieldError from "@/components/helper/FieldError";
 import { toast } from "react-toastify";
 import { addTournament, updateTournament } from "@/lib/api/dashboard/tournaments";
-import { getStadiumsByOwner } from "@/lib/api/dashboard/stadiums";
+import { getAllStadiums, getStadiumsByOwner } from "@/lib/api/dashboard/stadiums";
 import { useUser } from "@/context/UserContext";
 import { Tournament } from "@/types/Tournament";
 
@@ -66,8 +66,11 @@ const EditTournamentModal: React.FC<EditTournamentModalProps> = ({
                     return;
                 }
 
-                const data = await getStadiumsByOwner(ownerId);
-                setStadiums(data);
+                const data = user?.role === 'admin'
+                    ? await getAllStadiums()
+                    : await getStadiumsByOwner(ownerId);
+
+                setStadiums(data.data);
                 console.log("Fetched stadiums:", data);
 
                 if (data.length === 1) {
@@ -114,6 +117,29 @@ const EditTournamentModal: React.FC<EditTournamentModalProps> = ({
             setLoading(false);
             return;
         }
+        // ✅ Date validation
+        const now = new Date();
+        const start = new Date(formData.startDate);
+        const end = new Date(formData.endDate);
+
+        if (start < now) {
+            toast.error("Start date cannot be in the past.");
+            setLoading(false);
+            return;
+        }
+
+        if (end < now) {
+            toast.error("End date cannot be in the past.");
+            setLoading(false);
+            return;
+        }
+
+        if (end < start) {
+            toast.error("End date cannot be before the start date.");
+            setLoading(false);
+            return;
+        }
+
         try {
             setLoading(true);
             const updated = await updateTournament(tournament!._id, formData);
@@ -127,74 +153,74 @@ const EditTournamentModal: React.FC<EditTournamentModalProps> = ({
     }
 
 
-return (
-    <Modal isOpen={isOpen} onClose={onClose}>
-        <div className="p-6 max-w-xl w-full">
-            <h2 className="text-xl font-semibold pb-6 dark:text-white">Edit Tournament</h2>
-            <form onSubmit={handleSubmit} className="space-y-5">
-                <div>
-                    <Label>Name</Label>
-                    <Input name="name" defaultValue={formData.name} onChange={handleChange} />
-                    {errors.name && <FieldError message={errors.name} />}
-                </div>
-                <div>
-                    <Label>Description</Label>
-                    <Input name="description" defaultValue={formData.description} onChange={handleChange} />
-                    {errors.description && <FieldError message={errors.description} />}
-                </div>
-                <div className="grid grid-cols-2 gap-4">
+    return (
+        <Modal isOpen={isOpen} onClose={onClose}>
+            <div className="p-6 max-w-xl w-full">
+                <h2 className="text-xl font-semibold pb-6 dark:text-white">Edit Tournament</h2>
+                <form onSubmit={handleSubmit} className="space-y-5">
                     <div>
-                        <Label>Entry Price Per Team</Label>
-                        <Input name="entryPricePerTeam" defaultValue={formData.entryPricePerTeam} onChange={handleChange} />
-                        {errors.entryPricePerTeam && <FieldError message={errors.entryPricePerTeam} />}
+                        <Label>Name</Label>
+                        <Input name="name" defaultValue={formData.name} onChange={handleChange} />
+                        {errors.name && <FieldError message={errors.name} />}
                     </div>
                     <div>
-                        <Label>Reward Prize</Label>
-                        <Input name="rewardPrize" defaultValue={formData.rewardPrize} onChange={handleChange} />
-                        {errors.rewardPrize && <FieldError message={errors.rewardPrize} />}
+                        <Label>Description</Label>
+                        <Input name="description" defaultValue={formData.description} onChange={handleChange} />
+                        {errors.description && <FieldError message={errors.description} />}
                     </div>
-                </div>
-                <div>
-                    <Label>Max Teams</Label>
-                    <Input name="maxTeams" defaultValue={formData.maxTeams} onChange={handleChange} />
-                    {errors.maxTeams && <FieldError message={errors.maxTeams} />}
-                </div>
-                <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <Label>Entry Price Per Team</Label>
+                            <Input name="entryPricePerTeam" defaultValue={formData.entryPricePerTeam} onChange={handleChange} />
+                            {errors.entryPricePerTeam && <FieldError message={errors.entryPricePerTeam} />}
+                        </div>
+                        <div>
+                            <Label>Reward Prize</Label>
+                            <Input name="rewardPrize" defaultValue={formData.rewardPrize} onChange={handleChange} />
+                            {errors.rewardPrize && <FieldError message={errors.rewardPrize} />}
+                        </div>
+                    </div>
                     <div>
-                        <Label>Start Date</Label>
-                        <Input type="date" name="startDate" defaultValue={formData.startDate} onChange={handleChange} />
-                        {errors.startDate && <FieldError message={errors.startDate} />}
+                        <Label>Max Teams</Label>
+                        <Input name="maxTeams" defaultValue={formData.maxTeams} onChange={handleChange} />
+                        {errors.maxTeams && <FieldError message={errors.maxTeams} />}
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <Label>Start Date</Label>
+                            <Input type="date" name="startDate" defaultValue={formData.startDate} onChange={handleChange} />
+                            {errors.startDate && <FieldError message={errors.startDate} />}
+                        </div>
+                        <div>
+                            <Label>End Date</Label>
+                            <Input type="date" name="endDate" defaultValue={formData.endDate} onChange={handleChange} />
+                            {errors.endDate && <FieldError message={errors.endDate} />}
+                        </div>
                     </div>
                     <div>
-                        <Label>End Date</Label>
-                        <Input type="date" name="endDate" defaultValue={formData.endDate} onChange={handleChange} />
-                        {errors.endDate && <FieldError message={errors.endDate} />}
+                        <Label>Stadium</Label>
+                        <select
+                            name="stadiumId"
+                            value={formData.stadiumId}
+                            onChange={handleChange}
+                            className="w-full rounded border px-3 py-2 placeholder:text-gray-400 dark:bg-stone-950 dark:text-white/90 dark:placeholder:text-white/30 dark:border-gray-700"
+                        >
+                            <option value="">Select a stadium</option>
+                            {stadiums.map((stadium: any) => (
+                                <option key={stadium._id} value={stadium._id}>
+                                    {stadium.name}
+                                </option>
+                            ))}
+                        </select>
+                        {errors.stadiumId && <FieldError message={errors.stadiumId} />}
                     </div>
-                </div>
-                <div>
-                    <Label>Stadium</Label>
-                    <select
-                        name="stadiumId"
-                        value={formData.stadiumId}
-                        onChange={handleChange}
-                        className="w-full rounded border px-3 py-2 placeholder:text-gray-400 dark:bg-stone-950 dark:text-white/90 dark:placeholder:text-white/30 dark:border-gray-700"
-                    >
-                        <option value="">Select a stadium</option>
-                        {stadiums.map((stadium: any) => (
-                            <option key={stadium._id} value={stadium._id}>
-                                {stadium.name}
-                            </option>
-                        ))}
-                    </select>
-                    {errors.stadiumId && <FieldError message={errors.stadiumId} />}
-                </div>
-                <Button type="submit" variant="sea" loading={loading} className="w-full">
-                    Update Tournament
-                </Button>
-            </form>
-        </div>
-    </Modal>
-);
+                    <Button type="submit" variant="sea" loading={loading} className="w-full">
+                        Update Tournament
+                    </Button>
+                </form>
+            </div>
+        </Modal>
+    );
 };
 
 export default EditTournamentModal;

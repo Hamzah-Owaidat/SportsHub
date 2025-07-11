@@ -8,6 +8,8 @@ import Backdrop from "@/layout/Backdrop";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import React from "react";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function DashbaordLayoutWrapper({
     children,
@@ -51,6 +53,19 @@ export default function DashbaordLayoutWrapper({
                     {children}
                 </div>
             </div>
+            <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="colored"
+                className="!z-[999999]"
+            />
         </div>
     );
 }

@@ -13,8 +13,6 @@ export default function TournamentsDashboard() {
     const [tableData, setTableData] = useState<Tournament[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
 
-    const { user } = useUser();
-
     const handleAddTournament = () => {
         setIsAddTournamentModalOpen(true);
     };
@@ -24,7 +22,7 @@ export default function TournamentsDashboard() {
             <div className="space-y-6">
                 <ComponentCard
                     title="Tournaments Table"
-                    showAddButton={user?.role === "stadiumOwner" && true}
+                    showAddButton={true}
                     addButtonText="Add Tournament"
                     onAddClick={handleAddTournament}
                 >

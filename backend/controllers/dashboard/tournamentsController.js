@@ -34,8 +34,41 @@ exports.getMyTournaments = asyncHandler(async (req, res) => {
 
 // Create new tournament
 exports.addTournament = asyncHandler(async (req, res) => {
-  const { name, description, entryPricePerTeam, rewardPrize, maxTeams, startDate, endDate, stadiumId } = req.body;
+  const {
+    name,
+    description,
+    entryPricePerTeam,
+    rewardPrize,
+    maxTeams,
+    startDate,
+    endDate,
+    stadiumId
+  } = req.body;
 
+  // ✅ DATE VALIDATION
+  const now = new Date();
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  if (start < now) {
+    return res.status(400).json({
+      error: "Start date cannot be before today.",
+    });
+  }
+
+  if (end < now) {
+    return res.status(400).json({
+      error: "End date cannot be before today.",
+    });
+  }
+
+  if (end < start) {
+    return res.status(400).json({
+      error: "End date cannot be before the start date.",
+    });
+  }
+
+  // ✅ Create Tournament
   let newTournament = await Tournament.create({
     name,
     description,
@@ -51,7 +84,7 @@ exports.addTournament = asyncHandler(async (req, res) => {
 
   newTournament = await newTournament.populate("stadiumId", "name");
 
-  // Notify all users about new tournament
+  // ✅ Notify all users
   const users = await User.find({}, "_id");
   const notifications = await Promise.all(
     users.map((user) =>
@@ -66,7 +99,6 @@ exports.addTournament = asyncHandler(async (req, res) => {
     )
   );
 
-  // Push notifications to users
   await Promise.all(
     notifications.map((notification) =>
       User.findByIdAndUpdate(notification.user, {
@@ -80,6 +112,7 @@ exports.addTournament = asyncHandler(async (req, res) => {
     data: newTournament,
   });
 });
+
 
 // Update a tournament
 exports.updateTournament = asyncHandler(async (req, res) => {
