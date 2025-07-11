@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const dashboardController = require("../controllers/dashboard/dashboardController");
 const usersController = require("../controllers/dashboard/usersController");
 const rolesController = require("../controllers/dashboard/rolesController");
 const stadiumController = require("../controllers/dashboard/stadiumsController");
@@ -11,6 +12,10 @@ const { authMiddleware } = require("../middlewares/authMiddleware");
 const upload = require("../middlewares/upload");
 const uploadStadium = require("../middlewares/uploadStadium");
 const uploadAcademy = require("../middlewares/uploadAcademy");
+
+// Dashboard Stats
+router.get('/metrics', authMiddleware.role(["admin", "stadiumOwner"]), dashboardController.getDashboardMetrics);
+router.get('/statistics', authMiddleware.role(["admin", "stadiumOwner"]), dashboardController.getStatistics);
 
 // Dashboard users management
 router.get("/users", authMiddleware.role(["admin", "stadiumOwner"]), usersController.getAllUsers);
