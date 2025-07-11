@@ -6,6 +6,7 @@ const stadiumController = require("../controllers/dashboard/stadiumsController")
 const academyController = require("../controllers/dashboard/academiesController");
 const tournamentsController = require("../controllers/dashboard/tournamentsController");
 const bookingsController = require("../controllers/dashboard/bookingsController");
+const teamsController = require("../controllers/dashboard/teamsController");
 const { authMiddleware } = require("../middlewares/authMiddleware");
 const upload = require("../middlewares/upload");
 const uploadStadium = require("../middlewares/uploadStadium");
@@ -88,5 +89,11 @@ router.delete(
   authMiddleware.owns("tournamentModel", "id", "createdBy"),
   tournamentsController.deleteTournament
 );
+
+// Dashboard teams management
+router.get("/teams", authMiddleware.role("admin"), teamsController.getAllTeams);
+router.post("/teams", authMiddleware.role("admin"), teamsController.createTeamByAdmin);
+router.patch("/teams/:teamId", authMiddleware.role("admin"), teamsController.updateTeamByAdmin);
+router.delete("/teams/:teamId", authMiddleware.role("admin"), teamsController.deleteTeamByAdmin);
 
 module.exports = router;

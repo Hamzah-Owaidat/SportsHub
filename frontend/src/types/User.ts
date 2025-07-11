@@ -1,4 +1,6 @@
-import { Role } from './Role';
+import { Role } from "./Role";
+import { Team } from "./Team";
+
 export interface User {
   _id: string;
   username: string;
@@ -10,4 +12,8 @@ export interface User {
   isVerified?: boolean;
   createdAt: string;
   updatedAt: string;
+
+  // Newly added fields
+  team?: Team | string | null;
+  wallet: number;
 }
