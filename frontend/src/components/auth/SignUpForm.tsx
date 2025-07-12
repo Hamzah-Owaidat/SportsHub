@@ -3,13 +3,10 @@ import Checkbox from "@/components/form/input/Checkbox";
 import Label from "@/components/form/Label";
 import Input from "@/components/form/input/InputField";
 import { EyeCloseIcon, EyeIcon } from "@/icons";
-// import { User } from "lucide-react";
 import { Button } from "lebify-ui";
 import Link from "next/link";
 import React, { useState } from "react";
-import { loginWithGoogle, register } from "@/lib/api/auth";
 import { useRouter } from "next/navigation";
-import GoogleSignInButton from "./GoogleSignInButton";
 import { toast } from "react-toastify";
 
 export default function SignUpForm() {
@@ -17,6 +14,8 @@ export default function SignUpForm() {
   const usernamePattern = /^[A-Za-z\s]+$/;
   const phoneNumberPattern = /^\+?[1-9]\d{1,14}$/;
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const passwordPattern = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-+=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+
 
 
   const router = useRouter();
@@ -78,6 +77,8 @@ export default function SignUpForm() {
       newErrors.password = "Password is required";
     } else if (formData.password.length < 8) {
       newErrors.password = "Password must be at least 8 characters long";
+    } else if (!passwordPattern.test(formData.password)) {
+      newErrors.password = "Password must include at least one uppercase letter, one number, and one special character";
     }
 
     if (!formData.confirmPassword) {

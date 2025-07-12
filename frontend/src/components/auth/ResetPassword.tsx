@@ -14,6 +14,10 @@ interface ResetPasswordProps {
 }
 
 export default function ResetPassword({ token }: ResetPasswordProps) {
+
+    const passwordPattern = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-+=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+
+
     const router = useRouter();
 
     React.useEffect(() => {
@@ -46,6 +50,7 @@ export default function ResetPassword({ token }: ResetPasswordProps) {
         const newErrors: any = {};
         if (!formData.password) newErrors.password = "Password is required";
         else if (formData.password.length < 8) newErrors.password = "Password must be at least 8 characters";
+        else if (!passwordPattern.test(formData.password)) newErrors.password = "Password must include at least one uppercase letter, one number, and one special character";
 
         if (!formData.passwordConfirm) newErrors.passwordConfirm = "Confirm password is required";
         else if (formData.password !== formData.passwordConfirm) newErrors.passwordConfirm = "Passwords do not match";
