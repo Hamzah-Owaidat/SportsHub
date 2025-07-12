@@ -20,7 +20,7 @@ export default function Ecommerce() {
         <EcommerceMetrics />
 
         {
-          user?.role === "admin" ? <MonthlyRegisterUserChart /> : <StatisticsChart />
+          user?.role === "admin" || "academyOwner" ? <MonthlyRegisterUserChart /> : <StatisticsChart />
         }
       </div>
     </div>

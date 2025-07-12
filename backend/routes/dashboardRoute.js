@@ -14,8 +14,8 @@ const uploadStadium = require("../middlewares/uploadStadium");
 const uploadAcademy = require("../middlewares/uploadAcademy");
 
 // Dashboard Stats
-router.get("/metrics", authMiddleware.role(["admin", "stadiumOwner"]), dashboardController.getDashboardMetrics);
-router.get("/statistics", authMiddleware.role(["admin", "stadiumOwner"]), dashboardController.getStatistics);
+router.get("/metrics", authMiddleware.role(["admin", "stadiumOwner", "academyOwner"]), dashboardController.getDashboardMetrics);
+router.get("/statistics", authMiddleware.role(["admin", "stadiumOwner", "academyOwner"]), dashboardController.getStatistics);
 
 // Dashboard users management
 router.get("/users", authMiddleware.role(["admin", "stadiumOwner"]), usersController.getAllUsers);
@@ -53,16 +53,6 @@ router.get(
   authMiddleware.role(["admin", "stadiumOwner"]),
   stadiumController.getStadiumsByOwner
 );
-// router.get(
-//   "/stadiums/:id/bookings",
-//   authMiddleware.owns("stadiumModel", "id", "ownerId"),
-//   bookingsController.getBookingsForOwner
-// );
-// router.put(
-//   "/stadiums/:id/bookings/:bookingId/cancel",
-//   authMiddleware.owns("stadiumModel", "id", "ownerId"),
-//   bookingsController.ownerCancelBooking
-// );
 
 // Dashboard Bookings management
 router.get("/bookings", authMiddleware.role("admin"), bookingsController.getAllBookings);

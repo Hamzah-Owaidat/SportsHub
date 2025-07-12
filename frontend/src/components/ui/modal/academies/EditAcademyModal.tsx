@@ -128,7 +128,7 @@ export default function EditAcademyModal({
         <Modal isOpen={isOpen} onClose={handleClose}>
             <div className="p-6 w-full">
                 <h2 className="text-xl font-bold mb-4">Edit Academy</h2>
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} encType='multipart/form-data' className="space-y-4">
                     <div>
                         <Label>Name {errors.name && <span className="text-error-500">*</span>}</Label>
                         <Input

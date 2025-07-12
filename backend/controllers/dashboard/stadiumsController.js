@@ -3,7 +3,7 @@ const User = require("../../models/userModel");
 const mongoose = require("mongoose");
 const Notification = require("../../models/notificationModel");
 const Booking = require("../../models/bookingModel");
-const Tournament = require('../../models/tournamentModel');
+const Tournament = require("../../models/tournamentModel");
 
 const generateSlots = require("../../utils/generateSlots"); // Adjust path if needed
 
@@ -252,35 +252,56 @@ const addStadium = async (req, res) => {
 const updateStadium = async (req, res) => {
   try {
     const { id } = req.params;
-    const updateData = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ success: false, message: "Invalid stadium ID" });
     }
 
-    if (req.files && req.files.length > 0) {
-      const photos = req.files?.map((file) => `/images/stadiumsImages/${file.filename}`) || [];
-      updateData.photos = photos;
-    }
-
-    updateData.updatedAt = new Date();
-
-    const updatedStadium = await Stadium.findByIdAndUpdate(id, updateData, {
-      new: true,
-      runValidators: true,
-    }).populate("ownerId", "username email");
-
-    if (!updatedStadium) {
+    const stadium = await Stadium.findById(id);
+    if (!stadium) {
       return res.status(404).json({ success: false, message: "Stadium not found" });
     }
 
-    if (updateData.workingHours?.start && updateData.workingHours?.end) {
+    // Parse JSON fields if sent as strings
+    if (typeof req.body.workingHours === 'string') {
+      try {
+        req.body.workingHours = JSON.parse(req.body.workingHours);
+      } catch (err) {
+        return res.status(400).json({ success: false, message: "Invalid JSON for workingHours" });
+      }
+    }
+
+    if (typeof req.body.penaltyPolicy === 'string') {
+      try {
+        req.body.penaltyPolicy = JSON.parse(req.body.penaltyPolicy);
+      } catch (err) {
+        return res.status(400).json({ success: false, message: "Invalid JSON for penaltyPolicy" });
+      }
+    }
+
+    // Update fields
+    Object.entries(req.body).forEach(([key, val]) => {
+      stadium.set(key, val);
+    });
+
+    // Handle photo uploads
+    if (req.files?.length) {
+      const photos = req.files.map((f) => `/images/stadiumsImages/${f.filename}`);
+      stadium.photos = photos;
+    }
+
+    stadium.updatedAt = new Date();
+
+    await stadium.save(); // This is the updated document now
+
+    // Regenerate calendar only if workingHours changed
+    if (req.body.workingHours?.start && req.body.workingHours?.end) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
       // Save old booked slots
       const oldBookedMap = new Map();
-      updatedStadium.calendar.forEach((entry) => {
+      stadium.calendar.forEach((entry) => {
         entry.slots.forEach((slot) => {
           if (slot.isBooked && slot.bookingId) {
             const key = `${entry.date.toISOString().split("T")[0]}_${slot.startTime}`;
@@ -289,21 +310,28 @@ const updateStadium = async (req, res) => {
         });
       });
 
-      updatedStadium.calendar = updatedStadium.calendar.filter(
-        (entry) => entry.date < today || entry.date > new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)
+      // Clear current week's calendar
+      stadium.calendar = stadium.calendar.filter(
+        (entry) =>
+          entry.date < today ||
+          entry.date > new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)
       );
 
-      await updatedStadium.save();
+      await stadium.save();
+
       const endDate = new Date();
       endDate.setDate(today.getDate() + 14);
 
-      await fillCalendarWithSlots(updatedStadium, today, endDate, oldBookedMap);
+      await fillCalendarWithSlots(stadium, today, endDate, oldBookedMap);
     }
+
+    // Populate and return updated stadium
+    await stadium.populate("ownerId", "username email");
 
     res.status(200).json({
       success: true,
       message: "Stadium updated successfully",
-      data: updatedStadium,
+      data: stadium,
     });
   } catch (error) {
     if (error.name === "ValidationError") {
@@ -311,6 +339,7 @@ const updateStadium = async (req, res) => {
       return res.status(400).json({ success: false, message: "Validation error", errors });
     }
 
+    console.error("Error updating stadium:", error);
     res.status(500).json({ success: false, message: "Error updating stadium", error: error.message });
   }
 };

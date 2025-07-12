@@ -46,8 +46,23 @@ export const addStadium = async (stadiumData: FormData) => {
 }
 
 export const updateStadium = async (id, formData) => {
-  
-  const res = await axiosInstance.put(`stadiums/${id}`, formData,
+  const fd = new FormData();
+
+  Object.entries(formData).forEach(([key, value]) => {
+  if (key === "photos" && Array.isArray(value)) {
+    value.forEach((file) => fd.append("photos", file));
+  } else if (
+    typeof value === "object" &&
+    value !== null &&
+    !(value instanceof File)
+  ) {
+    // For nested objects like workingHours or penaltyPolicy
+    fd.append(key, JSON.stringify(value));
+  } else if (value !== undefined && value !== null && value !== "") {
+    fd.append(key, String(value));
+  }
+});
+  const res = await axiosInstance.put(`stadiums/${id}`, fd,
     {
       headers: {
         "Content-Type": "multipart/form-data",

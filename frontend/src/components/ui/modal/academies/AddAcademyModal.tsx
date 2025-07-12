@@ -115,7 +115,13 @@ const AddAcademyModal: React.FC<AddAcademyModalProps> = ({ isOpen, onClose, setT
             toast.success("Academy added successfully");
             resetForm();
             onClose();
-            setTableData(prev => [...prev, response.data]);
+            setTableData(prev => [
+                {
+                    ...response.data,
+                    ownerId: user,
+                },
+                ...prev,
+            ]);
 
         } catch (error) {
             console.error(error);

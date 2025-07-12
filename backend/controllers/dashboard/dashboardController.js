@@ -4,6 +4,7 @@ const User = require("../../models/userModel");
 const Stadium = require("../../models/stadiumModel");
 const Booking = require("../../models/bookingModel");
 const Tournament = require("../../models/tournamentModel");
+const Academy = require("../../models/academyModel");
 
 // GET /dashboard/metrics
 exports.getDashboardMetrics = asyncHandler(async (req, res) => {
@@ -52,6 +53,24 @@ exports.getDashboardMetrics = asyncHandler(async (req, res) => {
     });
   }
 
+  if (role === "academyOwner") {
+    // Get the academy created by the current user
+    const academy = await Academy.findOne({ ownerId: userId });
+
+    if (!academy) {
+      return res.status(404).json({ message: "Academy not found for this owner" });
+    }
+
+    // Example: Users who favorited this academy or have it linked
+    const viewers = await User.countDocuments({ academyId: academy._id });
+
+    return res.status(200).json({
+      role: "academyOwner",
+      academyId: academy._id,
+      viewersCount: viewers,
+    });
+  }
+
   res.status(403).json({ message: "Unauthorized" });
 });
 
@@ -70,7 +89,7 @@ exports.getStatistics = asyncHandler(async (req, res) => {
     yearly: { $year: "$createdAt" },
   }[type];
 
-  if (role === "admin") {
+  if (role === "admin" || "academyOwner") {
     const users = await User.aggregate([
       { $match: { createdAt: { $gte: startOfYear } } },
       { $group: { _id: groupBy, count: { $sum: 1 } } },

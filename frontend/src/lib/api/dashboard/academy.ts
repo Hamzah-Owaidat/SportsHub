@@ -35,8 +35,17 @@ export const addAcademy = async (formData: FormData) => {
     return res.data;
 } 
 
-export const updateAcademy = async (id, formData) => {
-  const res = await axiosInstance.put(`academies/${id}`, formData, {
+export const updateAcademy = async (id, updatedData) => {
+  const fd = new FormData();
+
+  Object.entries(updatedData).forEach(([key, value]) => {
+    if (key === "photos") {
+      (value as File[] | undefined)?.forEach((file) => fd.append("photos", file));
+    } else if (value !== undefined && value !== null && value !== "") {
+      fd.append(key, String(value));
+    }
+  });
+  const res = await axiosInstance.put(`academies/${id}`, fd, {
     headers: {
       "Content-type": "multipart/form-data",
     }

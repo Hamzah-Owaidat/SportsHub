@@ -1,6 +1,4 @@
-// components/dashboard/EcommerceMetrics.tsx
 "use client";
-
 import { useEffect, useState } from "react";
 import { getDashboardMetrics } from "@/lib/api/dashboard/dashboard";
 import MetricCard from "./MetricCard";
@@ -36,6 +34,12 @@ export const EcommerceMetrics = () => {
           <MetricCard title="Bookings" value={metrics.bookingCount} icon={<ClipboardIcon />} />
           <MetricCard title="Tournaments" value={metrics.tournamentCount} icon={<TrophyIcon />} />
           <MetricCard title="Profit" value={`${metrics.profit?.toFixed(2)} LBP`} icon={<Banknote />} />
+        </>
+      )}
+
+      {metrics.role === "academyOwner" && (
+        <>
+          <MetricCard title="Users can see your academy" value={metrics.userCount} icon={<UserIcon />} />
         </>
       )}
     </div>

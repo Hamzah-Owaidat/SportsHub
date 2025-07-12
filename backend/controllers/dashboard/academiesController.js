@@ -1,6 +1,7 @@
 const Academy = require("../../models/academyModel");
 const Notification = require("../../models/notificationModel");
 const User = require("../../models/userModel");
+const mongoose = require("mongoose");
 
 // GET all academies
 const getAllAcademies = async (req, res) => {
@@ -114,28 +115,29 @@ const addAcademy = async (req, res) => {
 const updateAcademy = async (req, res) => {
   try {
     const { id } = req.params;
+    const updateData = req.body;
 
-    if (!id) {
-      return res.status(400).json({ success: false, message: "Academy ID is required" });
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: "Invalid stadium ID" });
     }
 
-    const updated = await Academy.findByIdAndUpdate(
-      id,
-      {
-        ...req.body,
-        updatedAt: new Date(), // ensure it's a Date object
-      },
-      {
-        new: true, // return the updated document
-        runValidators: true, // ensure schema validations run
-      }
-    );
+    if (req.files && req.files.length > 0) {
+      const photos = req.files?.map((file) => `/images/academiesImages/${file.filename}`) || [];
+      updateData.photos = photos;
+    }
 
-    if (!updated) {
+    updateData.updatedAt = new Date();
+
+    const updatedAcademy = await Academy.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true,
+    }).populate("ownerId", "username email");
+
+    if (!updatedAcademy) {
       return res.status(404).json({ success: false, message: "Academy not found" });
     }
 
-    return res.status(200).json({ success: true, data: updated });
+    return res.status(200).json({ success: true, data: updatedAcademy });
   } catch (error) {
     console.error("Error updating academy:", error);
     return res.status(500).json({ success: false, message: "Server error", error: error.message });
