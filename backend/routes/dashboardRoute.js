@@ -14,8 +14,8 @@ const uploadStadium = require("../middlewares/uploadStadium");
 const uploadAcademy = require("../middlewares/uploadAcademy");
 
 // Dashboard Stats
-router.get('/metrics', authMiddleware.role(["admin", "stadiumOwner"]), dashboardController.getDashboardMetrics);
-router.get('/statistics', authMiddleware.role(["admin", "stadiumOwner"]), dashboardController.getStatistics);
+router.get("/metrics", authMiddleware.role(["admin", "stadiumOwner"]), dashboardController.getDashboardMetrics);
+router.get("/statistics", authMiddleware.role(["admin", "stadiumOwner"]), dashboardController.getStatistics);
 
 // Dashboard users management
 router.get("/users", authMiddleware.role(["admin", "stadiumOwner"]), usersController.getAllUsers);
@@ -41,7 +41,12 @@ router.post(
   uploadStadium.array("photos", 5),
   stadiumController.addStadium
 );
-router.put("/stadiums/:id", authMiddleware.owns("stadiumModel", "id", "ownerId"), uploadStadium.array("photos", 5), stadiumController.updateStadium);
+router.put(
+  "/stadiums/:id",
+  authMiddleware.owns("stadiumModel", "id", "ownerId"),
+  uploadStadium.array("photos", 5),
+  stadiumController.updateStadium
+);
 router.delete("/stadiums/:id", authMiddleware.owns("stadiumModel", "id", "ownerId"), stadiumController.deleteStadium);
 router.get(
   "/stadiums/owner/:ownerId",
@@ -61,7 +66,7 @@ router.get(
 
 // Dashboard Bookings management
 router.get("/bookings", authMiddleware.role("admin"), bookingsController.getAllBookings);
-router.get('/bookings/owner/:ownerId', authMiddleware.role("stadiumOwner"), bookingsController.getBookingsByOwner);
+router.get("/bookings/owner/:ownerId", authMiddleware.role("stadiumOwner"), bookingsController.getBookingsByOwner);
 router.post("/bookings", authMiddleware.role(["admin", "stadiumOwner"]), bookingsController.createBook);
 router.put("/bookings/:id", authMiddleware.role(["admin", "stadiumOwner"]), bookingsController.updateBooking);
 router.put("/bookings/cancel/:id", authMiddleware.role(["admin", "stadiumOwner"]), bookingsController.cancelBooking);
@@ -75,7 +80,12 @@ router.post(
   academyController.addAcademy
 );
 router.get("/academies/:id", authMiddleware.role(["admin", "academyOwner"]), academyController.getAcademyById);
-router.put("/academies/:id", authMiddleware.owns("academyModel", "id", "ownerId"), uploadAcademy.array("photos", 5), academyController.updateAcademy);
+router.put(
+  "/academies/:id",
+  authMiddleware.owns("academyModel", "id", "ownerId"),
+  uploadAcademy.array("photos", 5),
+  academyController.updateAcademy
+);
 router.delete("/academies/:id", authMiddleware.owns("academyModel", "id", "ownerId"), academyController.deleteAcademy);
 router.get("/academies/owner/:ownerId", authMiddleware.role(["academyOwner"]), academyController.getAcademiesByOwner);
 
@@ -83,11 +93,26 @@ router.get("/academies/owner/:ownerId", authMiddleware.role(["academyOwner"]), a
 router.get("/tournaments", authMiddleware.role(["admin"]), tournamentsController.getAllTournaments);
 router.get("/my-tournaments", authMiddleware.stadiumOwner, tournamentsController.getMyTournaments);
 router.post("/tournaments", authMiddleware.role(["admin", "stadiumOwner"]), tournamentsController.addTournament);
-// router.get("/tournaments/:id", authMiddleware.role(["admin", "stadiumOwner"]), tournamentsController.getTournamentById);
+router.get(
+  "/tournaments/:id/teams",
+  authMiddleware.role(["admin", "stadiumOwner"]),
+  tournamentsController.getTournamentTeams
+);
 router.put(
   "/tournaments/:id",
   authMiddleware.owns("tournamentModel", "id", "createdBy"),
   tournamentsController.updateTournament
+);
+router.post(
+  "/tournaments/add-team",
+  authMiddleware.role(["admin", "stadiumOwner"]),
+  tournamentsController.addTeamToTournament
+);
+
+router.post(
+  "/tournaments/remove-team",
+  authMiddleware.role(["admin", "stadiumOwner"]),
+  tournamentsController.removeTeamFromTournament
 );
 router.delete(
   "/tournaments/:id",
@@ -100,5 +125,6 @@ router.get("/teams", authMiddleware.role("admin"), teamsController.getAllTeams);
 router.post("/teams", authMiddleware.role("admin"), teamsController.createTeamByAdmin);
 router.patch("/teams/:teamId", authMiddleware.role("admin"), teamsController.updateTeamByAdmin);
 router.delete("/teams/:teamId", authMiddleware.role("admin"), teamsController.deleteTeamByAdmin);
+router.get("/teams/search", authMiddleware.role(["admin", "stadiumOwner"]), teamsController.searchTeams);
 
 module.exports = router;

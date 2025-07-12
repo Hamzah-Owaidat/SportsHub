@@ -43,3 +43,8 @@ export const deleteTeam = async (teamId: string) => {
     const res = await axiosInstance.delete(`teams/${teamId}`);
     return res.data;
 }
+
+export const searchTeams = async (name: string) => {
+  const res = await axiosInstance.get(`teams/search?name=${encodeURIComponent(name)}`);
+  return res.data;
+};

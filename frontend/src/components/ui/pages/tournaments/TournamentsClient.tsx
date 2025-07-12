@@ -233,7 +233,6 @@ export default function TournamentsClient() {
 
   const handleJoinTournament = async (tournamentId: string) => {
     try {
-      // Assume currentUserTeamId is available
       const teamId = user?.team;
 
       if (!teamId) {
@@ -243,13 +242,12 @@ export default function TournamentsClient() {
 
       const response = await joinTournament({ tournamentId, teamId });
 
-      // Optimistically update the tournament state
       setTournaments(prevTournaments =>
         prevTournaments.map(t => {
           if (t._id === tournamentId) {
             return {
               ...t,
-              teams: [...(t.teams || []), { _id: teamId }] // Add team to teams array
+              teams: [...(t.teams || []), { _id: teamId }]
             };
           }
           return t;
@@ -257,11 +255,13 @@ export default function TournamentsClient() {
       );
 
       toast.success(response.message);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to join tournament';
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data?.message || error?.message || 'Failed to join tournament';
       toast.error(errorMessage);
     }
   };
+
 
   const handleLeaveTournament = (tournamentId: string, teamId: string) => {
     setTournaments(prevTournaments =>

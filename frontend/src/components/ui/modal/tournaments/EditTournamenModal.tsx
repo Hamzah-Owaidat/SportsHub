@@ -6,10 +6,13 @@ import Label from "@/components/form/Label";
 import Input from "@/components/form/input/InputField";
 import FieldError from "@/components/helper/FieldError";
 import { toast } from "react-toastify";
-import { addTournament, updateTournament } from "@/lib/api/dashboard/tournaments";
+import { addTeamToTournament, addTournament, getTournamentTeams, removeTeamFromTournament, updateTournament } from "@/lib/api/dashboard/tournaments";
 import { getAllStadiums, getStadiumsByOwner } from "@/lib/api/dashboard/stadiums";
 import { useUser } from "@/context/UserContext";
 import { Tournament } from "@/types/Tournament";
+import { Team } from "@/types/Team";
+import axios from "axios";
+import { searchTeams } from "@/lib/api/dashboard/teams";
 
 interface EditTournamentModalProps {
     isOpen: boolean;
@@ -40,6 +43,13 @@ const EditTournamentModal: React.FC<EditTournamentModalProps> = ({
     const [errors, setErrors] = useState<any>({});
     const [loading, setLoading] = useState(false);
     const [stadiums, setStadiums] = useState([]);
+    const [activeTab, setActiveTab] = useState<"info" | "teams">("info");
+    const [currentTeams, setCurrentTeams] = useState<Team[]>([]);
+    const [searchResults, setSearchResults] = useState<Team[]>([]);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [debouncedQuery, setDebouncedQuery] = useState("");
+
+
 
     useEffect(() => {
         if (tournament) {
@@ -152,72 +162,203 @@ const EditTournamentModal: React.FC<EditTournamentModalProps> = ({
         }
     }
 
+    const handleSearch = async (query: string) => {
+        if (!query.trim()) {
+            setSearchResults([]);
+            return;
+        }
+        try {
+            const res = await searchTeams(query);
+            setSearchResults(res.data); // assuming backend responds with { status, data: [...] }
+        } catch (err) {
+            toast.error("Search failed");
+        }
+    };
+
+
+    const handleAddTeam = async (teamId: string) => {
+        try {
+            await addTeamToTournament(tournament?._id, teamId);
+            toast.success("Team added");
+            fetchTournamentTeams(); // re-fetch updated teams
+        } catch (err) {
+            toast.error("Failed to add team");
+        }
+    };
+
+    const handleRemoveTeam = async (teamId: string) => {
+        try {
+            await removeTeamFromTournament(tournament?._id, teamId);
+            toast.success("Team removed");
+            fetchTournamentTeams();
+        } catch (err) {
+            toast.error("Failed to remove team");
+        }
+    };
+
+    const fetchTournamentTeams = async () => {
+        if (!tournament?._id) return;
+
+        try {
+            const res = await getTournamentTeams(tournament._id);
+            setCurrentTeams(res.data);  // assuming your backend response shape: { status, data }
+        } catch (err) {
+            toast.error("Failed to fetch tournament teams");
+        }
+    };
+
+
+    useEffect(() => {
+        if (isOpen && tournament && activeTab === "teams") {
+            fetchTournamentTeams();
+        }
+    }, [isOpen, tournament, activeTab]);
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedQuery(searchQuery);
+        }, 400); // adjust delay here (ms)
+
+        return () => {
+            clearTimeout(handler); // cancel if user keeps typing
+        };
+    }, [searchQuery]);
+
+    useEffect(() => {
+        const fetchSearch = async () => {
+            if (!debouncedQuery.trim()) {
+                setSearchResults([]);
+                return;
+            }
+            try {
+                const res = await searchTeams(debouncedQuery);
+                setSearchResults(res.data);
+            } catch (err) {
+                toast.error("Search failed");
+            }
+        };
+
+        fetchSearch();
+    }, [debouncedQuery]);
+
+
 
     return (
         <Modal isOpen={isOpen} onClose={onClose}>
             <div className="p-6 max-w-xl w-full">
                 <h2 className="text-xl font-semibold pb-6 dark:text-white">Edit Tournament</h2>
-                <form onSubmit={handleSubmit} className="space-y-5">
-                    <div>
-                        <Label>Name</Label>
-                        <Input name="name" defaultValue={formData.name} onChange={handleChange} />
-                        {errors.name && <FieldError message={errors.name} />}
-                    </div>
-                    <div>
-                        <Label>Description</Label>
-                        <Input name="description" defaultValue={formData.description} onChange={handleChange} />
-                        {errors.description && <FieldError message={errors.description} />}
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
+                <div className="flex border-b mb-4">
+                    <button
+                        className={`px-4 py-2 ${activeTab === "info" ? "border-b-2 border-blue-500 font-semibold" : "text-gray-500"}`}
+                        onClick={() => setActiveTab("info")}
+                    >
+                        Tournament Info
+                    </button>
+                    <button
+                        className={`px-4 py-2 ${activeTab === "teams" ? "border-b-2 border-blue-500 font-semibold" : "text-gray-500"}`}
+                        onClick={() => setActiveTab("teams")}
+                    >
+                        Manage Teams
+                    </button>
+                </div>
+                {activeTab === "info" && (
+                    <form onSubmit={handleSubmit} className="space-y-5">
                         <div>
-                            <Label>Entry Price Per Team</Label>
-                            <Input name="entryPricePerTeam" defaultValue={formData.entryPricePerTeam} onChange={handleChange} />
-                            {errors.entryPricePerTeam && <FieldError message={errors.entryPricePerTeam} />}
+                            <Label>Name</Label>
+                            <Input name="name" defaultValue={formData.name} onChange={handleChange} />
+                            {errors.name && <FieldError message={errors.name} />}
                         </div>
                         <div>
-                            <Label>Reward Prize</Label>
-                            <Input name="rewardPrize" defaultValue={formData.rewardPrize} onChange={handleChange} />
-                            {errors.rewardPrize && <FieldError message={errors.rewardPrize} />}
+                            <Label>Description</Label>
+                            <Input name="description" defaultValue={formData.description} onChange={handleChange} />
+                            {errors.description && <FieldError message={errors.description} />}
                         </div>
-                    </div>
-                    <div>
-                        <Label>Max Teams</Label>
-                        <Input name="maxTeams" defaultValue={formData.maxTeams} onChange={handleChange} />
-                        {errors.maxTeams && <FieldError message={errors.maxTeams} />}
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <Label>Entry Price Per Team</Label>
+                                <Input name="entryPricePerTeam" defaultValue={formData.entryPricePerTeam} onChange={handleChange} />
+                                {errors.entryPricePerTeam && <FieldError message={errors.entryPricePerTeam} />}
+                            </div>
+                            <div>
+                                <Label>Reward Prize</Label>
+                                <Input name="rewardPrize" defaultValue={formData.rewardPrize} onChange={handleChange} />
+                                {errors.rewardPrize && <FieldError message={errors.rewardPrize} />}
+                            </div>
+                        </div>
                         <div>
-                            <Label>Start Date</Label>
-                            <Input type="date" name="startDate" defaultValue={formData.startDate} onChange={handleChange} />
-                            {errors.startDate && <FieldError message={errors.startDate} />}
+                            <Label>Max Teams</Label>
+                            <Input name="maxTeams" defaultValue={formData.maxTeams} onChange={handleChange} />
+                            {errors.maxTeams && <FieldError message={errors.maxTeams} />}
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <Label>Start Date</Label>
+                                <Input type="date" name="startDate" defaultValue={formData.startDate} onChange={handleChange} />
+                                {errors.startDate && <FieldError message={errors.startDate} />}
+                            </div>
+                            <div>
+                                <Label>End Date</Label>
+                                <Input type="date" name="endDate" defaultValue={formData.endDate} onChange={handleChange} />
+                                {errors.endDate && <FieldError message={errors.endDate} />}
+                            </div>
                         </div>
                         <div>
-                            <Label>End Date</Label>
-                            <Input type="date" name="endDate" defaultValue={formData.endDate} onChange={handleChange} />
-                            {errors.endDate && <FieldError message={errors.endDate} />}
+                            <Label>Stadium</Label>
+                            <select
+                                name="stadiumId"
+                                value={formData.stadiumId}
+                                onChange={handleChange}
+                                className="w-full rounded border px-3 py-2 placeholder:text-gray-400 dark:bg-stone-950 dark:text-white/90 dark:placeholder:text-white/30 dark:border-gray-700"
+                            >
+                                <option value="">Select a stadium</option>
+                                {stadiums.map((stadium: any) => (
+                                    <option key={stadium._id} value={stadium._id}>
+                                        {stadium.name}
+                                    </option>
+                                ))}
+                            </select>
+                            {errors.stadiumId && <FieldError message={errors.stadiumId} />}
                         </div>
-                    </div>
-                    <div>
-                        <Label>Stadium</Label>
-                        <select
-                            name="stadiumId"
-                            value={formData.stadiumId}
-                            onChange={handleChange}
-                            className="w-full rounded border px-3 py-2 placeholder:text-gray-400 dark:bg-stone-950 dark:text-white/90 dark:placeholder:text-white/30 dark:border-gray-700"
-                        >
-                            <option value="">Select a stadium</option>
-                            {stadiums.map((stadium: any) => (
-                                <option key={stadium._id} value={stadium._id}>
-                                    {stadium.name}
-                                </option>
+                        <Button type="submit" variant="sea" loading={loading} className="w-full">
+                            Update Tournament
+                        </Button>
+                    </form>
+                )}
+
+                {activeTab === "teams" && (
+                    <div className="space-y-4">
+                        {/* Search input */}
+                        <input
+                            type="text"
+                            placeholder="Search team by name"
+                            className="w-full rounded border px-3 py-2"
+                            onChange={(e) => setSearchQuery(e.target.value)}
+
+                        />
+
+                        {/* Current teams list */}
+                        <ul className="space-y-2">
+                            {currentTeams.map((team) => (
+                                <li key={team._id} className="flex justify-between items-center bg-gray-100 p-2 rounded">
+                                    <span>{team.name}</span>
+                                    <button onClick={() => handleRemoveTeam(team._id)} className="text-red-500 hover:text-red-700">
+                                        🗑️
+                                    </button>
+                                </li>
                             ))}
-                        </select>
-                        {errors.stadiumId && <FieldError message={errors.stadiumId} />}
+                        </ul>
+
+                        {/* (Optional) Search results list */}
+                        {searchResults.map((team) => (
+                            <div key={team._id} className="flex justify-between items-center bg-white p-2 border rounded">
+                                <span>{team.name}</span>
+                                <button onClick={() => handleAddTeam(team._id)} className="text-green-600 hover:text-green-800">
+                                    ➕ Add
+                                </button>
+                            </div>
+                        ))}
                     </div>
-                    <Button type="submit" variant="sea" loading={loading} className="w-full">
-                        Update Tournament
-                    </Button>
-                </form>
+                )}
             </div>
         </Modal>
     );

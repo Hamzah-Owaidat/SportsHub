@@ -49,3 +49,24 @@ export const deleteTournament = async (id) => {
   const res = await axiosInstance.delete(`tournaments/${id}`);
   return res.data;
 }
+
+export const addTeamToTournament = async (tournamentId: string, teamId: string) => {
+  const res = await axiosInstance.post("tournaments/add-team", {
+    tournamentId,
+    teamId,
+  });
+  return res.data;
+};
+
+export const removeTeamFromTournament = async (tournamentId: string, teamId: string) => {
+  const res = await axiosInstance.post("tournaments/remove-team", {
+    tournamentId,
+    teamId,
+  });
+  return res.data;
+};
+
+export const getTournamentTeams = async (tournamentId: string) => {
+  const res = await axiosInstance.get(`tournaments/${tournamentId}/teams`);
+  return res.data;
+};

@@ -35,16 +35,7 @@ exports.getMyTournaments = asyncHandler(async (req, res) => {
 
 // Create new tournament
 exports.addTournament = asyncHandler(async (req, res) => {
-  const {
-    name,
-    description,
-    entryPricePerTeam,
-    rewardPrize,
-    maxTeams,
-    startDate,
-    endDate,
-    stadiumId,
-  } = req.body;
+  const { name, description, entryPricePerTeam, rewardPrize, maxTeams, startDate, endDate, stadiumId } = req.body;
 
   // ✅ Validate dates
   const now = new Date();
@@ -121,7 +112,6 @@ exports.addTournament = asyncHandler(async (req, res) => {
   });
 });
 
-
 // Update a tournament
 exports.updateTournament = asyncHandler(async (req, res) => {
   const { name, description, entryPricePerTeam, rewardPrize, maxTeams, startDate, endDate, stadiumId } = req.body;
@@ -189,5 +179,130 @@ exports.deleteTournament = asyncHandler(async (req, res) => {
   res.status(200).json({
     status: "success",
     message: "Tournament deleted",
+  });
+});
+
+exports.addTeamToTournament = asyncHandler(async (req, res) => {
+  const { tournamentId, teamId } = req.body;
+
+  const tournament = await Tournament.findById(tournamentId);
+  if (!tournament) throw new Error("Tournament not found");
+
+  if (tournament.teams.includes(teamId)) {
+    return res.status(400).json({ message: "Team already joined" });
+  }
+
+  if (tournament.teams.length >= tournament.maxTeams) {
+    return res.status(400).json({ message: "Max teams limit reached" });
+  }
+
+  tournament.teams.push(teamId);
+  tournament.updatedBy = req.user.id;
+  tournament.updatedAt = Date.now();
+
+  await tournament.save();
+
+  // Notify team members
+  const team = await Team.findById(teamId).populate("members", "_id username");
+  if (team && team.members.length > 0) {
+    const message = `Your team "${team.name}" has been added to the tournament "${tournament.name}" by an admin.`;
+
+    const notifications = await Promise.all(
+      team.members.map((member) =>
+        Notification.create({
+          user: member._id,
+          message,
+          type: "info",
+          metadata: { teamId, tournamentId },
+        })
+      )
+    );
+
+    await Promise.all(
+      team.members.map((member, i) =>
+        User.findByIdAndUpdate(member._id, {
+          $push: { notifications: notifications[i]._id },
+        })
+      )
+    );
+  }
+
+  res.status(200).json({ message: "Team added to tournament" });
+});
+
+exports.removeTeamFromTournament = asyncHandler(async (req, res) => {
+  const { tournamentId, teamId } = req.body;
+
+  const [tournament, team] = await Promise.all([Tournament.findById(tournamentId), Team.findById(teamId)]);
+
+  if (!tournament) return res.status(404).json({ message: "Tournament not found" });
+  if (!team) return res.status(404).json({ message: "Team not found" });
+
+  if (!tournament.teams.includes(teamId)) return res.status(400).json({ message: "Team not in tournament" });
+
+  /* ---------- REFUND SECTION ---------- */
+  const paidIndex = team.paidTournaments.findIndex((id) => id.toString() === tournamentId);
+
+  if (paidIndex !== -1) {
+    const leader = await User.findById(team.leader);
+    const tournamentMgr = await User.findById(tournament.owner); // or owner
+
+    leader.wallet += tournament.entryPricePerTeam;
+    tournamentMgr.wallet -= tournament.entryPricePerTeam;
+
+    await Promise.all([leader.save({ validateBeforeSave: false }), tournamentMgr.save({ validateBeforeSave: false })]);
+
+    // remove this tournament from the paid list
+    team.paidTournaments.splice(paidIndex, 1);
+    await team.save();
+  }
+  /* ------------------------------------- */
+
+  // finally, remove the team from the tournament
+  tournament.teams = tournament.teams.filter((id) => id.toString() !== teamId);
+  tournament.updatedBy = req.user.id;
+  tournament.updatedAt = Date.now();
+  await tournament.save();
+
+  // ---------- NOTIFY ----------
+  if (team && team.members.length > 0) {
+    const message = `Your team "${team.name}" has been removed from the tournament "${tournament.name}" by an admin.`;
+
+    const notifications = await Promise.all(
+      team.members.map((member) =>
+        Notification.create({
+          user: member._id,
+          message,
+          type: "info",
+          metadata: { teamId, tournamentId },
+        })
+      )
+    );
+
+    await Promise.all(
+      team.members.map((member, i) =>
+        User.findByIdAndUpdate(member._id, {
+          $push: { notifications: notifications[i]._id },
+        })
+      )
+    );
+  }
+
+  res.status(200).json({ message: "Team removed and refunded (if applicable)" });
+});
+
+exports.getTournamentTeams = asyncHandler(async (req, res) => {
+  const tournament = await Tournament.findById(req.params.id).populate({
+    path: "teams",
+    select: "_id name leader",
+    populate: { path: "leader", select: "username" }, // optional
+  });
+
+  if (!tournament) return res.status(404).json({ status: "fail", message: "Tournament not found" });
+
+  res.status(200).json({
+    status: "success",
+    results: tournament.teams.length,
+    data: tournament.teams,
   });
 });

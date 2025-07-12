@@ -37,8 +37,10 @@ exports.joinTournament = asyncHandler(async (req, res) => {
   }
 
   if (tournament.teams.length >= tournament.maxTeams) {
-    res.status(400);
-    throw new Error("Tournament is already full");
+    return res.status(400).json({
+      status: "failed",
+      message: "Tournament is already full"
+    });
   }
 
   // Get the team leader (payer)
@@ -51,8 +53,10 @@ exports.joinTournament = asyncHandler(async (req, res) => {
   const entryFee = tournament.entryPricePerTeam;
 
   if (payer.wallet < entryFee) {
-    res.status(400);
-    throw new Error(`Insufficient wallet balance. You need ${entryFee}, but you have ${payer.wallet}`);
+    return res.status(400).json({
+      status: "failed",
+      message: `Insufficient wallet balance. You need ${entryFee}, but you have ${payer.wallet}`
+    });
   }
 
   // Deduct entry fee from payer
@@ -74,11 +78,17 @@ exports.joinTournament = asyncHandler(async (req, res) => {
 
   // Notify team members
   const team = await Team.findById(teamId).populate("members", "_id username");
+
+  if (!team.paidTournaments.includes(tournamentId)) {
+    team.paidTournaments.push(tournamentId);
+    await team.save({ validateBeforeSave: false });
+  }
+
   if (team && team.members.length > 0) {
     const message = `Your team "${team.name}" has joined the tournament "${tournament.name}".`;
 
     const notifications = await Promise.all(
-      team.members.map(member =>
+      team.members.map((member) =>
         Notification.create({
           user: member._id,
           message,
@@ -130,8 +140,10 @@ exports.leaveTournament = asyncHandler(async (req, res) => {
   // Check if user is the team leader
   const team = await Team.findById(teamId).populate("members", "_id username");
   if (!team || String(team.leader) !== String(req.user.id)) {
-    res.status(403);
-    throw new Error("Only the team leader can leave the tournament");
+    return res.status(403).json({
+      status: "failed",
+      message: "Only the team leader can leave the tournament"
+    });
   }
 
   // Check 24-hour restriction
@@ -140,11 +152,11 @@ exports.leaveTournament = asyncHandler(async (req, res) => {
   const hoursBeforeStart = (startDate.getTime() - now.getTime()) / (1000 * 60 * 60);
 
   if (hoursBeforeStart < 24) {
-  return res.status(200).json({
-    status: "fail",
-    message: "You can no longer leave. Less than 24 hours before tournament start",
-  });
-}
+    return res.status(200).json({
+      status: "fail",
+      message: "You can no longer leave. Less than 24 hours before tournament start",
+    });
+  }
 
   const entryFee = tournament.entryPricePerTeam;
 
@@ -165,7 +177,7 @@ exports.leaveTournament = asyncHandler(async (req, res) => {
   }
 
   // Remove team from tournament
-  tournament.teams = tournament.teams.filter(id => String(id) !== String(teamId));
+  tournament.teams = tournament.teams.filter((id) => String(id) !== String(teamId));
   tournament.updatedBy = req.user.id;
   tournament.updatedAt = Date.now();
   await tournament.save();
@@ -174,7 +186,7 @@ exports.leaveTournament = asyncHandler(async (req, res) => {
   const message = `Your team "${team.name}" has left the tournament "${tournament.name}". Entry fee refunded.`;
 
   const notifications = await Promise.all(
-    team.members.map(member =>
+    team.members.map((member) =>
       Notification.create({
         user: member._id,
         message,

@@ -252,3 +252,20 @@ exports.deleteTeamByAdmin = asyncHandler(async (req, res) => {
 
   res.json({ message: `Team "${team.name}" deleted successfully by admin` });
 });
+
+exports.searchTeams = asyncHandler(async (req, res) => {
+  const { name = "" } = req.query;
+
+  // simple fuzzy search – adjust regex as needed
+  const teams = await Team.find({
+    name: { $regex: name, $options: "i" },
+  })
+    .select("_id name leader")           // return only what you need
+    .populate("leader", "username");     // optional: show the leader
+
+  res.status(200).json({
+    status: "success",
+    results: teams.length,
+    data: teams,
+  });
+});

@@ -20,6 +20,13 @@ const teamSchema = new mongoose.Schema({
     },
   ],
 
+  paidTournaments: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Tournament",
+    }
+  ],
+
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
