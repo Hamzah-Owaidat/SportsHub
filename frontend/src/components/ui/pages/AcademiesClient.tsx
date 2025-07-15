@@ -510,11 +510,11 @@ export default function AcademiesClient() {
                               <p className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wide">About</p>
                               <p className="text-sm font-medium text-gray-900 dark:text-white leading-relaxed" title={academy.description}>
                                 {academy.description.length > 120 
-                                  ? `${academy.description.substring(0, 120)}...` 
+                                  ? `${academy.description.substring(0, 110)}...` 
                                   : academy.description
                                 }
                               </p>
-                              {academy.description.length > 120 && (
+                              {academy.description.length > 110 && (
                                 <button 
                                   className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 transition-colors mt-1"
                                   onClick={(e) => {

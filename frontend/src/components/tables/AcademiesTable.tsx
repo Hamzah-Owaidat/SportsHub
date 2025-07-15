@@ -115,7 +115,7 @@ export default function AcademiesTable({
             <TableRow>
               <TableCell isHeader className="px-5 py-3 font-medium text-gray-500">Image</TableCell>
               <TableCell isHeader className="px-5 py-3 font-medium text-gray-500">Name</TableCell>
-              { user?.role === "admin" && <TableCell isHeader className="px-5 py-3 font-medium text-gray-500">Owner</TableCell>}
+              {user?.role === "admin" && <TableCell isHeader className="px-5 py-3 font-medium text-gray-500">Owner</TableCell>}
               <TableCell isHeader className="px-5 py-3 font-medium text-gray-500">Description</TableCell>
               <TableCell isHeader className="px-5 py-3 font-medium text-gray-500">Location</TableCell>
               <TableCell isHeader className="px-5 py-3 font-medium text-gray-500">Phone</TableCell>
@@ -154,8 +154,12 @@ export default function AcademiesTable({
                   </TableCell>
 
                   <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">{academy.name}</TableCell>
-                  {user?.role === "admin" && <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">{academy.ownerId.username}</TableCell>  }
-                  <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">{academy.description}</TableCell>
+                  {user?.role === "admin" && <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">{academy.ownerId.username}</TableCell>}
+                  <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400 text-center max-w-xs truncate hover:whitespace-normal hover:bg-black/10 group relative">
+                    <span className="truncate block group-hover:whitespace-normal group-hover:break-words group-hover:max-w-sm" title={academy.description}>
+                      {academy.description}
+                    </span>
+                  </TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">{academy.location}</TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">{academy.phoneNumber}</TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">{academy.email}</TableCell>
