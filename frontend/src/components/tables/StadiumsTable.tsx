@@ -15,6 +15,7 @@ import { useUser } from "@/context/UserContext";
 import { getStadiumsByOwner, getAllStadiums, deleteStadium } from "@/lib/api/dashboard/stadiums";
 import { Stadium } from "@/types/Stadium";
 import EditStadiumModal from "../ui/modal/stadiums/EditStadiumModal";
+import Loading from "../ui/loading";
 
 interface StadiumsTableProps {
   tableData: Stadium[];
@@ -52,7 +53,7 @@ export default function StadiumsTable({
           stadiumsData = await getStadiumsByOwner(user.id);
         }
 
-        const filteredStadium = stadiumsData.data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        const filteredStadium = stadiumsData.data.sort((a: Stadium, b: Stadium) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
         setTableData(filteredStadium);
       } catch (error) {
@@ -64,7 +65,7 @@ export default function StadiumsTable({
     }
 
     fetchStadiums();
-  }, []);
+  }, [setLoading, setTableData, user?.id, user?.role]);
 
   const handlePageChange = (pageNumber: number) => {
     setCurrentPage(pageNumber);
@@ -98,9 +99,14 @@ export default function StadiumsTable({
 
       setTableData(prev => prev.filter(stadium => stadium._id !== stadiumId));
       toast.success("Stadium deleted successfully");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      toast.error(error.response?.data?.message || "Error deleting stadium");
+      if (typeof error === "object" && error !== null && "response" in error) {
+        const err = error as { response?: { data?: { message?: string } } };
+        toast.error(err.response?.data?.message || "Error deleting stadium");
+      } else {
+        toast.error("Error deleting stadium");
+      }
     } finally {
       setLoading(false);
     }
@@ -128,11 +134,19 @@ export default function StadiumsTable({
           <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
             {loading ? (
               <TableRow>
-                <TableCell className="px-5 py-4 text-center" colSpan={8}>Loading data...</TableCell>
+                <TableCell className="py-10 text-center" colSpan={9}>
+                  <div className="flex justify-center">
+                    <Loading />
+                  </div>
+                </TableCell>
               </TableRow>
             ) : currentStadiums.length === 0 ? (
               <TableRow>
-                <TableCell className="px-5 py-4 text-center" colSpan={8}>No stadiums found</TableCell>
+                <TableCell className="py-10 text-center" colSpan={9}>
+                  <div className="flex justify-center">
+                    No stadiums found
+                  </div>
+                </TableCell>
               </TableRow>
             ) : (
               currentStadiums.map((stadium, index) => (

@@ -6,9 +6,15 @@ import StadiumsTable from "@/components/tables/StadiumsTable";
 import { Stadium } from "@/types/Stadium";
 import { useState } from "react";
 import AddStadiumModal from "../modal/stadiums/AddStadiumModal";
+import { exportTableToExcel } from "@/lib/api/dashboard/export";
+import { getStadiumsByOwner } from "@/lib/api/dashboard/stadiums";
+import { getAllStadiums } from "@/lib/api/stadium";
+import { toast } from "react-toastify";
+import { useUser } from "@/context/UserContext";
 
 export default function StadiumsDashboard() {
 
+    const { user } = useUser();
     const [isAddStadiumModalOpen, setIsAddStadiumModalOpen] = useState(false);
     const [tableData, setTableData] = useState<Stadium[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -17,6 +23,32 @@ export default function StadiumsDashboard() {
     const handleAddStadium = () => {
         setIsAddStadiumModalOpen(true);
     };
+
+    const fetchStadiums = async () => {
+        setLoading(true);
+        try {
+            let stadiumsData: Stadium[] = [];
+
+            if (user?.role === 'admin') {
+                stadiumsData = await getAllStadiums();
+            } else if (user?.role === 'stadiumOwner') {
+                stadiumsData = await getStadiumsByOwner(user.id);
+            }
+
+            const filteredStadium = stadiumsData.sort(
+                (a: Stadium, b: Stadium) =>
+                    new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()
+            );
+
+            setTableData(filteredStadium);
+        } catch (error) {
+            toast.error("Failed to load stadiums");
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
 
     return (
         <div>
@@ -27,6 +59,10 @@ export default function StadiumsDashboard() {
                     showAddButton={true}
                     addButtonText="Add Stadium"
                     onAddClick={handleAddStadium}
+                    showExportButton={true}
+                    onExportClick={() => exportTableToExcel("stadiums")}
+                    showRefreshButton
+                    onRefreshClick={fetchStadiums}
                 >
                     <StadiumsTable
                         tableData={tableData}

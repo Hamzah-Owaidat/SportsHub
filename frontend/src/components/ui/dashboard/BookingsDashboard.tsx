@@ -5,10 +5,14 @@ import BookingsTable from "@/components/tables/BookingsTable";
 import { Booking } from "@/types/Booking";
 import { useState } from "react";
 import { AddBookingModal } from "../modal/bookings/AddBookingModal";
+import { exportTableToExcel } from "@/lib/api/dashboard/export";
+import { getAllBookings, getBookingsByOwner } from "@/lib/api/dashboard/bookings";
+import { useUser } from "@/context/UserContext";
 
 
 
 export default function BookingsDashboard() {
+    const { user } = useUser();
     const [isAddBookingModalOpen, setIsAddBookingModalOpen] = useState(false);
     const [tableData, setTableData] = useState<Booking[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -16,6 +20,29 @@ export default function BookingsDashboard() {
     const handleAddBooking = () => {
         setIsAddBookingModalOpen(true);
     };
+
+    const fetchBookings = async () => {
+        try {
+            setLoading(true);
+            let bookings;
+
+            if (user?.role === 'admin') {
+                bookings = await getAllBookings();
+            } else if (user?.role === 'stadiumOwner') {
+                bookings = await getBookingsByOwner(user.id);
+            }
+            const sortedBookings = bookings.data.sort(
+                (a: Booking, b: Booking) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            );
+
+            setTableData(sortedBookings);
+        } catch (error) {
+            console.error('Failed to fetch bookings:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div>
             <PageBreadcrumb pageTitle="Bookings Table" />
@@ -25,6 +52,10 @@ export default function BookingsDashboard() {
                     showAddButton={true}
                     addButtonText="Add Book"
                     onAddClick={handleAddBooking}
+                    showExportButton={true}
+                    onExportClick={() => exportTableToExcel("bookings")}
+                    showRefreshButton
+                    onRefreshClick={fetchBookings}
                 >
                     <BookingsTable
                         tableData={tableData}

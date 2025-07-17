@@ -5,6 +5,8 @@ import TeamsTable from "@/components/tables/TeamsTable";
 import { Team } from "@/types/Team";
 import React, { useState } from "react";
 import { AddTeamModal } from "../modal/teams/AddTeamModal";
+import { exportTableToExcel } from "@/lib/api/dashboard/export";
+import { getAllTeams } from "@/lib/api/dashboard/teams";
 
 
 export default function TeamsDashboard() {
@@ -17,6 +19,19 @@ export default function TeamsDashboard() {
         setIsAddTeamModalOpen(true);
     };
 
+    const fetchTeams = async () => {
+        setLoading(true);
+        try {
+            const teams = await getAllTeams();
+            const sortedTeams = teams.data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            setTableData(sortedTeams);
+        } catch (error) {
+            console.error("Failed to fetch teams:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div>
             <PageBreadcrumb pageTitle="Teams Table" />
@@ -26,6 +41,10 @@ export default function TeamsDashboard() {
                     showAddButton={true}
                     addButtonText="Add Team"
                     onAddClick={handleAddTeam}
+                    showExportButton={true}
+                    onExportClick={() => exportTableToExcel("teams")}
+                    showRefreshButton
+                    onRefreshClick={fetchTeams}
                 >
                     <TeamsTable
                         tableData={tableData}

@@ -8,6 +8,7 @@ const academyController = require("../controllers/dashboard/academiesController"
 const tournamentsController = require("../controllers/dashboard/tournamentsController");
 const bookingsController = require("../controllers/dashboard/bookingsController");
 const teamsController = require("../controllers/dashboard/teamsController");
+const exportController = require("../controllers/dashboard/exportController")
 const { authMiddleware } = require("../middlewares/authMiddleware");
 const upload = require("../middlewares/upload");
 const uploadStadium = require("../middlewares/uploadStadium");
@@ -116,5 +117,8 @@ router.post("/teams", authMiddleware.role("admin"), teamsController.createTeamBy
 router.patch("/teams/:teamId", authMiddleware.role("admin"), teamsController.updateTeamByAdmin);
 router.delete("/teams/:teamId", authMiddleware.role("admin"), teamsController.deleteTeamByAdmin);
 router.get("/teams/search", authMiddleware.role(["admin", "stadiumOwner"]), teamsController.searchTeams);
+
+// Dashboard export
+router.get("/export/:table", authMiddleware.role(["admin", "stadiumOwner", "academyOwner"]), exportController.exportTableToExcel);
 
 module.exports = router;

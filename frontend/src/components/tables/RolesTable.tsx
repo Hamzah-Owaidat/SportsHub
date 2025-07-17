@@ -14,6 +14,7 @@ import { deleteRole, getAllRoles } from '@/lib/api/dashboard/roles';
 import { Role } from "@/types/Role";
 import { toast } from "react-toastify";
 import EditRoleModal from "../ui/modal/roles/EditRoleModal";
+import Loading from "../ui/loading";
 
 
 interface RolesTableProps {
@@ -47,7 +48,7 @@ export default function RolesTable({
         const fetchRoles = async () => {
             try {
                 const roles = await getAllRoles();
-                roles.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+                roles.sort((a: Role, b: Role) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
                 setTableData(roles);
             } catch (error) {
@@ -58,7 +59,7 @@ export default function RolesTable({
         };
 
         fetchRoles();
-    }, []);
+    }, [setLoading, setTableData]);
 
 
     const handleDelete = async (id: string) => {
@@ -151,14 +152,18 @@ export default function RolesTable({
                         <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                             {loading ? (
                                 <TableRow>
-                                    <TableCell className="px-5 py-4 text-center">
-                                        Loading data...
+                                    <TableCell colSpan={8} className="py-10 text-center">
+                                        <div className="flex justify-center">
+                                            <Loading />
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ) : currentRoles.length === 0 ? (
                                 <TableRow>
-                                    <TableCell className="px-5 py-4 text-center">
-                                        No roles found
+                                    <TableCell colSpan={8} className="py-10 text-center">
+                                        <div className="flex justify-center">
+                                            No Roles Founds
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ) : (

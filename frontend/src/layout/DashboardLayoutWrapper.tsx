@@ -1,5 +1,4 @@
 'use client';
-
 import { useSidebar } from "@/context/SidebarContext";
 import { useUser } from "@/context/UserContext";
 import AppHeader from "@/layout/AppHeader";
@@ -20,6 +19,17 @@ export default function DashbaordLayoutWrapper({
     const { user, loading } = useUser();
     const router = useRouter();
 
+    const LoadingSpinner = () => (
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-green-50 dark:from-stone-900 dark:via-stone-800 dark:to-stone-900 flex items-center justify-center">
+            <div className="text-center space-y-6">
+                <div className="relative w-20 h-20 mx-auto">
+                    <div className="w-20 h-20 border-4 border-green-200 dark:border-stone-600 rounded-full animate-spin border-t-green-600 dark:border-t-green-400"></div>
+                    <div className="absolute inset-4 border-2 border-blue-200 dark:border-stone-700 rounded-full animate-spin border-t-blue-600 dark:border-t-blue-400 animate-reverse"></div>
+                </div>
+            </div>
+        </div>
+    );
+
     useEffect(() => {
         if (!loading && !user) {
             router.push("/auth/signin");
@@ -27,7 +37,7 @@ export default function DashbaordLayoutWrapper({
     }, [user, loading, router]);
 
     if (loading) {
-        return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+        return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>;
     }
 
     if (!user && !loading) {

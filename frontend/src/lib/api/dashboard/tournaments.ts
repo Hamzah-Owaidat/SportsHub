@@ -27,12 +27,12 @@ axiosInstance.interceptors.request.use((config) => {
 
 export const getAllTournaments = async (): Promise<Tournament[]> => {
   const res = await axiosInstance.get("tournaments");
-  return res.data.data;
+  return res.data?.data;
 };
 
 export const getMyTournaments = async (): Promise<Tournament[]> => {
   const res = await axiosInstance.get("my-tournaments");
-  return res.data.data;
+  return res.data?.data;
 };
 
 export const addTournament = async (payload: TournamentPayload) => {

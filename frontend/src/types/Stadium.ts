@@ -19,6 +19,7 @@ export interface Stadium {
     start: string;
     end: string;
   };
+  createdAt: string;
 }
 
 export interface PenaltyPolicy {

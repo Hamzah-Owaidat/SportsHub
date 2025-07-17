@@ -3,6 +3,8 @@ import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import RolesTable from "@/components/tables/RolesTable";
 import AddRoleModal from "@/components/ui/modal/roles/AddRoleModal";
+import { exportTableToExcel } from "@/lib/api/dashboard/export";
+import { getAllRoles } from "@/lib/api/dashboard/roles";
 import { Role } from "@/types/Role";
 import React, { useState } from "react";
 
@@ -17,6 +19,20 @@ export default function RolesDashboard() {
     setIsAddRoleModalOpen(true);
   };
 
+  const fetchRoles = async () => {
+    try {
+      setLoading(true);
+      const roles = await getAllRoles();
+      roles.sort((a:Role, b:Role) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+      setTableData(roles);
+    } catch (error) {
+      console.error('Failed to fetch roles:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div>
       <PageBreadcrumb pageTitle="Roles Table" />
@@ -26,6 +42,10 @@ export default function RolesDashboard() {
           showAddButton={true}
           addButtonText="Add Role"
           onAddClick={handleAddRole}
+          showExportButton={true}
+          onExportClick={() => exportTableToExcel("roles")}
+          showRefreshButton
+          onRefreshClick={fetchRoles}
         >
           <RolesTable
             tableData={tableData}

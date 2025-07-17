@@ -16,6 +16,7 @@ import { Tournament } from "@/types/Tournament";
 import { useUser } from "@/context/UserContext";
 import { getStadiumById } from "@/lib/api/stadium";
 import EditTournamentModal from "../ui/modal/tournaments/EditTournamenModal";
+import Loading from "../ui/loading";
 
 
 interface TournamentsTableProps {
@@ -42,35 +43,35 @@ export default function TournamentsTable({
     // Calculate pagination using the fetched data
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentUsers = tableData.slice(indexOfFirstItem, indexOfLastItem);
+    const currentTournaments = tableData.slice(indexOfFirstItem, indexOfLastItem);
     const totalPages = Math.ceil(tableData.length / itemsPerPage);
 
-    useEffect(() => {
-        async function loadTournaments() {
-            try {
-                setLoading(true);
+    async function loadTournaments() {
+        try {
+            setLoading(true);
 
-                let res;
-                if (user?.role === "admin") {
-                    res = await getAllTournaments();
-                } else if (user?.role === "stadiumOwner") {
-                    res = await getMyTournaments();
-                } else {
-                    toast.error("Unauthorized to view tournaments");
-                    return;
-                }
-
-                res.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-                setTableData(res);
-            } catch (err) {
-                console.error(err);
-                toast.error("Failed to load tournaments");
-            } finally {
-                setLoading(false);
+            let res;
+            if (user?.role === "admin") {
+                res = await getAllTournaments();
+            } else if (user?.role === "stadiumOwner") {
+                res = await getMyTournaments();
+            } else {
+                toast.error("Unauthorized to view tournaments");
+                return;
             }
-        }
 
+            res.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+            setTableData(res);
+        } catch (err) {
+            console.error(err);
+            toast.error("Failed to load tournaments");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    useEffect(() => {
         loadTournaments();
     }, []);
 
@@ -117,7 +118,6 @@ export default function TournamentsTable({
 
         toast.success("Tournament updated successfully!");
     };
-
 
     const handleDeleteTournament = async (tournamentId: string) => {
         const confirmDelete = window.confirm("Are you sure you want to delete this tournament?");
@@ -217,17 +217,21 @@ export default function TournamentsTable({
                             {loading ? (
                                 <TableRow>
                                     <TableCell className="px-5 py-4 text-center">
-                                        Loading data...
+                                        <div className="flex justify-center">
+                                            <Loading />
+                                        </div>
                                     </TableCell>
                                 </TableRow>
-                            ) : currentUsers.length === 0 ? (
+                            ) : currentTournaments.length === 0 ? (
                                 <TableRow>
                                     <TableCell className="px-5 py-4 text-center">
-                                        No tournaments found
+                                        <div className="flex justify-center">
+                                            No tournaments found
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                currentUsers.map((tournament, index) => (
+                                currentTournaments.map((tournament, index) => (
                                     <TableRow key={tournament._id}>
                                         <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">
                                             {tournament.name}
@@ -261,7 +265,7 @@ export default function TournamentsTable({
                                             <Actions
                                                 onEdit={() => handleEdit(tournament)}
                                                 onDelete={() => handleDeleteTournament(tournament._id)}
-                                                isLastRow={index === currentUsers.length - 1}
+                                                isLastRow={index === currentTournaments.length - 1}
                                             />
                                         </TableCell>
 

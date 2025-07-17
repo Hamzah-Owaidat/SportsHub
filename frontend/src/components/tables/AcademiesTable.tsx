@@ -16,6 +16,7 @@ import { useUser } from "@/context/UserContext";
 import { Academy } from "@/types/Academy";
 import { getAllAcademies, getAcademyByOwner, deleteAcademy } from "@/lib/api/dashboard/academy";
 import EditAcademyModal from "../ui/modal/academies/EditAcademyModal";
+import Loading from "../ui/loading";
 
 interface AcademiesTableProps {
   tableData: Academy[];
@@ -46,7 +47,7 @@ export default function AcademiesTable({
     async function fetchAcademies() {
       setLoading(true);
       try {
-        let academiesData: React.SetStateAction<Academy[]> = [];
+        let academiesData: Academy[] = [];
 
         if (user?.role === 'admin') {
           academiesData = await getAllAcademies();
@@ -66,7 +67,7 @@ export default function AcademiesTable({
     }
 
     fetchAcademies();
-  }, []);
+  }, [setLoading, setTableData, user?.id, user?.role]);
 
   const handlePageChange = (pageNumber: number) => {
     setCurrentPage(pageNumber);
@@ -128,11 +129,19 @@ export default function AcademiesTable({
           <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
             {loading ? (
               <TableRow>
-                <TableCell className="px-5 py-4 text-center">Loading data...</TableCell>
+                <TableCell colSpan={8} className="py-10 text-center">
+                  <div className="flex justify-center">
+                    <Loading />
+                  </div>
+                </TableCell>
               </TableRow>
             ) : currentAcademies.length === 0 ? (
               <TableRow>
-                <TableCell className="px-5 py-4 text-center">No academies found</TableCell>
+                <TableCell colSpan={8} className="py-10 text-center">
+                  <div className="flex justify-center">
+                    No Academies Founds
+                  </div>
+                </TableCell>
               </TableRow>
             ) : (
               currentAcademies.map((academy, index) => (

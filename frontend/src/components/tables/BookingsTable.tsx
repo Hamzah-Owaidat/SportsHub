@@ -16,6 +16,7 @@ import { getAllBookings, getBookingsByOwner } from "@/lib/api/dashboard/bookings
 import { EditBookingModal } from "../ui/modal/bookings/EditBookingModal";
 import { cancelBooking } from "@/lib/api/dashboard/bookings";
 import { useUser } from "@/context/UserContext";
+import Loading from "../ui/loading";
 
 
 interface BookingsTableProps {
@@ -49,7 +50,7 @@ export default function BookingsTable({
     useEffect(() => {
         const fetchBookings = async () => {
             try {
-                let bookings: React.SetStateAction<Booking[]> = [];
+                let bookings;
 
                 if (user?.role === 'admin') {
                     bookings = await getAllBookings();
@@ -57,7 +58,7 @@ export default function BookingsTable({
                     bookings = await getBookingsByOwner(user.id);
                 }
                 const sortedBookings = bookings.data.sort(
-                    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                    (a: Booking, b: Booking) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
                 );
 
                 setTableData(sortedBookings);
@@ -69,7 +70,7 @@ export default function BookingsTable({
         };
 
         fetchBookings();
-    }, []);
+    }, [setTableData, setLoading, user?.role, user?.id]);
 
 
     const handleCancel = async (id: string) => {
@@ -185,14 +186,18 @@ export default function BookingsTable({
                         <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                             {loading ? (
                                 <TableRow>
-                                    <TableCell className="px-5 py-4 text-center">
-                                        Loading data...
+                                    <TableCell colSpan={9} className="py-10 text-center">
+                                        <div className="flex justify-center">
+                                            <Loading />
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ) : currentBookings.length === 0 ? (
                                 <TableRow>
-                                    <TableCell className="px-5 py-4 text-center">
-                                        No bookings found
+                                    <TableCell colSpan={9} className="py-10 text-center">
+                                        <div className="flex justify-center">
+                                            No Bookings Founds
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ) : (

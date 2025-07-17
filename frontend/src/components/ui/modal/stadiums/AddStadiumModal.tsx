@@ -167,7 +167,7 @@ const AddStadiumModal: React.FC<AddStadiumModalProps> = ({ isOpen, onClose, setT
             toast.success("Stadium added successfully");
             resetForm();
             onClose();
-            setTableData(prev => [...prev, newStadiumResponse.data]); // Assuming `data` holds the stadium
+            setTableData(prev => [newStadiumResponse.data, ...prev]);
 
         } catch (error) {
             console.error(error);

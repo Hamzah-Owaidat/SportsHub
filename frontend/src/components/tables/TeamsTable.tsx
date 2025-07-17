@@ -17,6 +17,7 @@ import { Team } from "@/types/Team";
 import EditTeamModal from "../ui/modal/teams/EditTeamModal";
 import { getAllUsers } from '@/lib/api/dashboard/users'; // Adjust path if needed
 import { User } from '@/types/User';
+import Loading from "../ui/loading";
 
 interface TeamsTableProps {
     tableData: Team[];
@@ -56,7 +57,7 @@ const TeamsTable: React.FC<TeamsTableProps> = ({
         };
 
         fetchTeams();
-    }, []);
+    }, [setLoading, setTableData]);
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -121,11 +122,19 @@ const TeamsTable: React.FC<TeamsTableProps> = ({
                     <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                         {loading ? (
                             <TableRow>
-                                <TableCell colSpan={6} className="px-5 py-4 text-center">Loading data...</TableCell>
+                                <TableCell colSpan={6} className="px-5 py-4 text-center">
+                                    <div className="flex justify-center">
+                                        <Loading />
+                                    </div>
+                                </TableCell>
                             </TableRow>
                         ) : currentTeams.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={6} className="px-5 py-4 text-center">No teams found</TableCell>
+                                <TableCell colSpan={6} className="px-5 py-4 text-center">
+                                    <div className="flex justify-center">
+                                        No teams found
+                                    </div>
+                                </TableCell>
                             </TableRow>
                         ) : (
                             currentTeams.map((team, index) => (

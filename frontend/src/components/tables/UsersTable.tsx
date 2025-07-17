@@ -18,6 +18,7 @@ import { User } from "@/types/User";
 import { toast } from "react-toastify";
 import EditUserModal from "../ui/modal/users/EditUserModal";
 import { Role } from "@/types/Role";
+import Loading from "../ui/loading";
 
 
 interface UsersTableProps {
@@ -25,7 +26,9 @@ interface UsersTableProps {
   setTableData: React.Dispatch<React.SetStateAction<User[]>>;
   loading: boolean;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  roles?: Role[];
 }
+
 
 export default function UsersTable({
   tableData,
@@ -173,14 +176,18 @@ export default function UsersTable({
             <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
               {loading ? (
                 <TableRow>
-                  <TableCell className="px-5 py-4 sm:px-6 text-center">
-                    Loading data...
+                  <TableCell colSpan={8} className="py-10 text-center">
+                    <div className="flex justify-center">
+                      <Loading />
+                    </div>
                   </TableCell>
                 </TableRow>
               ) : currentUsers.length === 0 ? (
                 <TableRow>
-                  <TableCell className="px-5 py-4 sm:px-6 text-center">
-                    No users found
+                  <TableCell colSpan={8} className="py-10 text-center">
+                    <div className="flex justify-center">
+                      No Users Founds
+                    </div>
                   </TableCell>
                 </TableRow>
               ) : (
@@ -264,15 +271,17 @@ export default function UsersTable({
       </div>
 
       {/* Pagination */}
-      {!loading && tableData.length > 0 && (
-        <div className="flex justify-center py-4">
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
-        </div>
-      )}
+      {
+        !loading && tableData.length > 0 && (
+          <div className="flex justify-center py-4">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          </div>
+        )
+      }
 
       {/* Fixed: EditUserModal with proper props */}
       <EditUserModal
@@ -282,6 +291,6 @@ export default function UsersTable({
         roles={roles}
         onUpdate={handleUserUpdate}
       />
-    </div>
+    </div >
   );
 }
