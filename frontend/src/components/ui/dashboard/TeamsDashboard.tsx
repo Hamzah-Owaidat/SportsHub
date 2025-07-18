@@ -41,7 +41,7 @@ export default function TeamsDashboard() {
                     showAddButton={true}
                     addButtonText="Add Team"
                     onAddClick={handleAddTeam}
-                    showExportButton={true}
+                    showExportButton={loading ? false : true}
                     onExportClick={() => exportTableToExcel("teams")}
                     showRefreshButton
                     onRefreshClick={fetchTeams}

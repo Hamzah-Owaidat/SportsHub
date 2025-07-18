@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useUser } from "@/context/UserContext";
 import TeamInfoCard from "@/components/user-profile/TeamInfoCard";
 import UserMetaCard from "@/components/user-profile/UserMetaCard";
+import { useUser } from "@/context/UserContext";
 
 const LoadingSpinner = () => (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-stone-900 dark:via-stone-800 dark:to-stone-900 flex items-center justify-center">
@@ -23,12 +23,13 @@ export default function ProfileContent() {
     const [authChecked, setAuthChecked] = useState(false);
 
     useEffect(() => {
-        if (user === null) {
+        const token = localStorage.getItem("token");
+        if (!token) {
             router.replace("/auth/signin");
-        } else if (user) {
+        } else if (token) {
             setAuthChecked(true);
         }
-    }, [user, router]);
+    }, [router]);
 
     if (!authChecked) {
         return <LoadingSpinner />;
@@ -37,7 +38,7 @@ export default function ProfileContent() {
     return (
         <>
             <UserMetaCard />
-            <TeamInfoCard />
+            {user?.role === "user" || user?.role === "TeamLeader" && <TeamInfoCard />}
         </>
     );
 }

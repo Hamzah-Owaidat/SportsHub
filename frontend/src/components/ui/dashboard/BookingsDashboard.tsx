@@ -52,7 +52,7 @@ export default function BookingsDashboard() {
                     showAddButton={true}
                     addButtonText="Add Book"
                     onAddClick={handleAddBooking}
-                    showExportButton={true}
+                    showExportButton={loading ? false : true}
                     onExportClick={() => exportTableToExcel("bookings")}
                     showRefreshButton
                     onRefreshClick={fetchBookings}

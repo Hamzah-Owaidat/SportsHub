@@ -42,7 +42,7 @@ export default function RolesDashboard() {
           showAddButton={true}
           addButtonText="Add Role"
           onAddClick={handleAddRole}
-          showExportButton={true}
+          showExportButton={loading ? false : true}
           onExportClick={() => exportTableToExcel("roles")}
           showRefreshButton
           onRefreshClick={fetchRoles}

@@ -15,10 +15,8 @@ import {
   Users,
   ChevronDown,
   X,
-  DollarSign,
-  ArrowUpDown
+  DollarSign
 } from 'lucide-react';
-import { useUser } from '@/context/UserContext';
 import { useRouter } from 'next/navigation';
 
 type SortOption = 'name' | 'price-low' | 'price-high' | 'location';
@@ -46,16 +44,16 @@ const StadiumClientPage = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
 
-  const { user } = useUser();
   const router = useRouter();
 
   useEffect(() => {
-    if (user === null) {
-      router.replace('/auth/signin');
-    } else if (user) {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.replace("/auth/signin");
+    } else if (token) {
       setAuthChecked(true);
     }
-  }, [user, router]);
+  }, [router]);
 
   useEffect(() => {
     if (authChecked) {

@@ -53,7 +53,7 @@ export default function AcademiesDashbaord() {
           showAddButton={true}
           addButtonText="Add Academy"
           onAddClick={handleAddAcademy}
-          showExportButton={true}
+          showExportButton={loading ? false : true}
           onExportClick={() => exportTableToExcel("academies")}
           showRefreshButton={true}
           onRefreshClick={fetchAcademies}

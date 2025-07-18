@@ -59,7 +59,7 @@ export default function StadiumsDashboard() {
                     showAddButton={true}
                     addButtonText="Add Stadium"
                     onAddClick={handleAddStadium}
-                    showExportButton={true}
+                    showExportButton={loading ? false : true}
                     onExportClick={() => exportTableToExcel("stadiums")}
                     showRefreshButton
                     onRefreshClick={fetchStadiums}

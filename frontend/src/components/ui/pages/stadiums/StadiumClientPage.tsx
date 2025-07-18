@@ -6,7 +6,6 @@ import { ChevronLeft, ChevronRight, MapPin, Clock, Banknote, Calendar, User, Use
 import { bookStadium, getStadiumById } from '@/lib/api/stadium';
 import { Stadium } from '@/types/Stadium';
 import { toast } from 'react-toastify';
-import { useUser } from '@/context/UserContext';
 
 interface CalendarData {
     date: string;
@@ -49,16 +48,16 @@ export default function StadiumClientPage() {
     const [paymentError, setPaymentError] = useState('');
     const [authChecked, setAuthChecked] = useState(false);
 
-    const { user } = useUser();
     const router = useRouter();
 
     useEffect(() => {
-        if (user === null) {
-            router.replace('/auth/signin');
-        } else if (user) {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            router.replace("/auth/signin");
+        } else if (token) {
             setAuthChecked(true);
         }
-    }, [user, router]);
+    }, [router]);
 
     useEffect(() => {
         const fetchStadium = async () => {

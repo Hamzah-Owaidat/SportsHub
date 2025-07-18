@@ -21,7 +21,6 @@ import {
   Grid,
   List
 } from 'lucide-react';
-import { useUser } from '@/context/UserContext';
 import { useRouter } from 'next/navigation';
 
 // Enhanced Loading Component
@@ -73,18 +72,17 @@ export default function AcademiesClient() {
   });
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
-
-  const { user } = useUser();
   const router = useRouter();
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    if (user === null) {
-      router.replace('/auth/signin');
-    } else if (user) {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.replace("/auth/signin");
+    } else if (token) {
       setAuthChecked(true);
     }
-  }, [user, router]);
+  }, [router]);
 
   useEffect(() => {
     if (authChecked) {

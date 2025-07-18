@@ -48,7 +48,7 @@ export default function UsersDashboard() {
           showAddButton
           addButtonText="Add User"
           onAddClick={handleAddUser}
-          showExportButton
+          showExportButton={loading ? false : true}
           onExportClick={() => exportTableToExcel("users")}
           showRefreshButton
           onRefreshClick={fetchData}

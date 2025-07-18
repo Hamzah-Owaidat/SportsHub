@@ -60,7 +60,7 @@ export default function TournamentsDashboard() {
                     showAddButton={true}
                     addButtonText="Add Tournament"
                     onAddClick={handleAddTournament}
-                    showExportButton={true}
+                    showExportButton={loading ? false : true}
                     onExportClick={() => exportTableToExcel("tournaments")}
                     showRefreshButton
                     onRefreshClick={fetchData}

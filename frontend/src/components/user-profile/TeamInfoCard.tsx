@@ -67,15 +67,7 @@ export default function TeamInfoCard() {
       fetchTeam();
       refreshUser();
     } catch (error) {
-      const message = error.response?.data?.message;
-
-      if (error.response?.status === 403) {
-        toast.error("Access denied: You must be an user to perform this action.");
-        // Optionally, redirect to login page:
-        // router.push("/login");
-      } else {
-        toast.error("Failed to create team");
-      }
+      console.log(error);
     } finally {
       setLoading(false);
     }
@@ -175,12 +167,19 @@ export default function TeamInfoCard() {
           {!team ? (
             <Button
               variant="sea"
-              onClick={() => setShowCreateModal(true)}
+              onClick={() => {
+                if (user?.role !== "user" && user?.role !== "teamLeader") {
+                  toast.error("Access denied: You must be a user to perform this action.");
+                  return;
+                }
+
+                setShowCreateModal(true);
+              }}
               className="bg-gradient-to-r from-emerald-500 to-blue-500 hover:from-emerald-600 hover:to-blue-600 text-white px-6 py-3 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200"
             >
               Create Team
             </Button>
-          ) : user.id === team.leader ? (
+          ) : user?.id === team.leader ? (
             <Button
               variant="sea"
               onClick={deleteTeam}
@@ -343,7 +342,7 @@ export default function TeamInfoCard() {
               Ready to Build Your Team?
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6 mx-auto">
-              You&apos;re not part of any team yet. Create your own squad and <br/> start recruiting the best players!
+              You&apos;re not part of any team yet. Create your own squad and <br /> start recruiting the best players!
             </p>
           </div>
         )}

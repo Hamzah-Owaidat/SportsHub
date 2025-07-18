@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from 'react';
 import { Calendar, TrendingUp } from 'lucide-react';
 import EnhancedBookingsTable from '@/components/tables/EnhancedBookingsTable';
-import { useUser } from '@/context/UserContext';
 import { useRouter } from 'next/navigation';
 
 const LoadingSpinner = () => (
@@ -18,17 +17,17 @@ const LoadingSpinner = () => (
 
 export default function MyBookingsPage() {
 
-    const { user } = useUser();
     const router = useRouter();
     const [authChecked, setAuthChecked] = useState(false);
 
     useEffect(() => {
-        if (user === null) {
-            router.replace('/auth/signin');
-        } else if (user) {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            router.replace("/auth/signin");
+        } else if (token) {
             setAuthChecked(true);
         }
-    }, [user, router]);
+    }, [router]);
 
     if (!authChecked) {
         // Show spinner while auth check is running

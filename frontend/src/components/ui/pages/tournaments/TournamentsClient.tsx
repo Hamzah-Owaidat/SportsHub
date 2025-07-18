@@ -118,12 +118,13 @@ export default function TournamentsClient() {
   };
 
   useEffect(() => {
-    if (user === null) {
-      router.replace('/auth/signin');
-    } else if (user) {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.replace("/auth/signin");
+    } else if (token) {
       setAuthChecked(true);
     }
-  }, [user, router]);
+  }, [router]);
 
   // Fetch tournaments on component mount
   useEffect(() => {
