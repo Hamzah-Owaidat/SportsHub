@@ -1,5 +1,5 @@
 
-import HomeClient from '@/components/ui/pages/HomeClient';
+import HomeClient from '@/components/ui/pages/home/HomeClient';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {

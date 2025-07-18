@@ -13,10 +13,22 @@ export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
 
-  // Check for a token change when the component renders
+  
   useEffect(() => {
     refreshUser();
   }, []);
+
+  if (!user) {
+    return (
+      <Button
+        size="medium"
+        variant="sea"
+        onClick={() => router.push("/auth/signin")}
+      >
+        Sign In
+      </Button>
+    );
+  }
 
   const handleLogout = async () => {
     try {

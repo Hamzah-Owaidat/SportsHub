@@ -1,11 +1,12 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight, MapPin, Clock, Banknote, Calendar, User, Users, AlertCircle } from 'lucide-react';
 import { bookStadium, getStadiumById } from '@/lib/api/stadium';
 import { Stadium } from '@/types/Stadium';
 import { toast } from 'react-toastify';
+import { useUser } from '@/context/UserContext';
 
 interface CalendarData {
     date: string;
@@ -19,6 +20,17 @@ interface CalendarData {
 interface StadiumWithCalendar extends Stadium {
     calendar?: CalendarData[];
 }
+
+const LoadingSpinner = () => (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-stone-900 dark:via-stone-800 dark:to-stone-900 flex items-center justify-center">
+        <div className="text-center space-y-6">
+            <div className="relative w-20 h-20 mx-auto">
+                <div className="w-20 h-20 border-4 border-blue-200 dark:border-stone-600 rounded-full animate-spin border-t-blue-600 dark:border-t-blue-400"></div>
+                <div className="absolute inset-4 border-2 border-purple-200 dark:border-stone-700 rounded-full animate-spin border-t-purple-600 dark:border-t-purple-400 animate-reverse"></div>
+            </div>
+        </div>
+    </div>
+);
 
 export default function StadiumClientPage() {
     const params = useParams();
@@ -35,10 +47,22 @@ export default function StadiumClientPage() {
     const [expiry, setExpiry] = useState('');
     const [cvc, setCvc] = useState('');
     const [paymentError, setPaymentError] = useState('');
+    const [authChecked, setAuthChecked] = useState(false);
+
+    const { user } = useUser();
+    const router = useRouter();
+
+    useEffect(() => {
+        if (user === null) {
+            router.replace('/auth/signin');
+        } else if (user) {
+            setAuthChecked(true);
+        }
+    }, [user, router]);
 
     useEffect(() => {
         const fetchStadium = async () => {
-            if (!id) return;
+            if (!id || !authChecked) return;
 
             try {
                 setLoading(true);
@@ -52,7 +76,12 @@ export default function StadiumClientPage() {
         };
 
         fetchStadium();
-    }, [id]);
+    }, [id, authChecked]);
+
+    if (!authChecked) {
+        // Show spinner while auth check is running
+        return <LoadingSpinner />;
+    }
 
     const getDaysInMonth = (date: Date): (Date | null)[] => {
         const year = date.getFullYear();
@@ -205,7 +234,6 @@ export default function StadiumClientPage() {
     const handleOpenPaymentModal = () => {
         setShowPaymentModal(true);
     };
-
 
     const monthNames = [
         'January', 'February', 'March', 'April', 'May', 'June',

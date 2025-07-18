@@ -1,15 +1,14 @@
 "use client";
-import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
-import axios from "axios";
 import { Check, X } from "lucide-react";
 import teamService from "@/lib/api/team";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { clearAllNotifications, getAllNotifications } from "@/lib/api/notifications";
 import { Button } from "lebify-ui";
+import { useUser } from "@/context/UserContext";
 
 type Notification = {
   _id: string;
@@ -30,17 +29,18 @@ export default function NotificationDropdown() {
   const [notifying, setNotifying] = useState(true);
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
+  const { user } = useUser();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !user) return;
 
     getAllNotifications()
       .then(setNotifications)
       .catch(() => {
         console.error("Failed to load notifications");
       });
-  }, [isOpen]);
+  }, [isOpen, user]);
 
   const handleAccept = async (teamId: string, notificationId: string) => {
     try {
@@ -74,6 +74,11 @@ export default function NotificationDropdown() {
   const closeDropdown = () => setIsOpen(false);
 
   const handleClick = () => {
+    if (!user) {
+      toast.warning("Please login to perform this action");
+      return;
+    }
+
     toggleDropdown();
     setNotifying(false);
   };

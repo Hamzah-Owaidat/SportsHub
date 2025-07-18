@@ -8,17 +8,20 @@ import { ToastContainer } from "react-toastify";
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const { user } = useUser();
 
-  const baseLinks = [
-    { text: "Home", path: "/home" },
-    { text: "Stadiums", path: "/stadiums" },
-    { text: "Tournaments", path: "/tournaments" },
-    { text: "Academies", path: "/academies" },
-    { text: "My Bookings", path: "/my-bookings" },
-  ];
+  const baseLinks = user
+    ? [
+      { text: "Home", path: "/home" },
+      { text: "Stadiums", path: "/stadiums" },
+      { text: "Tournaments", path: "/tournaments" },
+      { text: "Academies", path: "/academies" },
+      { text: "My Bookings", path: "/my-bookings" },
+    ]
+    : [{ text: "Home", path: "/home" }];
 
-  const roleBasedLinks = !["user", "teamLeader"].includes(user?.role)
-    ? [{ text: "Dashboard", path: "/dashboard" }]
-    : [];
+  const roleBasedLinks =
+    user && !["user", "teamLeader"].includes(user?.role)
+      ? [{ text: "Dashboard", path: "/dashboard" }]
+      : [];
 
   const navLinks = [...baseLinks, ...roleBasedLinks];
 

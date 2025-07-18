@@ -5,11 +5,11 @@ import Image from 'next/image';
 import { getAllAcademies } from '@/lib/api/academy';
 import { Academy } from '@/types/Academy';
 import { toast } from 'react-toastify';
-import { 
-  Search, 
-  MapPin, 
-  Phone, 
-  Mail, 
+import {
+  Search,
+  MapPin,
+  Phone,
+  Mail,
   Calendar,
   Trophy,
   Users,
@@ -21,6 +21,8 @@ import {
   Grid,
   List
 } from 'lucide-react';
+import { useUser } from '@/context/UserContext';
+import { useRouter } from 'next/navigation';
 
 // Enhanced Loading Component
 const LoadingSpinner = () => (
@@ -29,10 +31,6 @@ const LoadingSpinner = () => (
       <div className="relative w-20 h-20 mx-auto">
         <div className="w-20 h-20 border-4 border-green-200 dark:border-stone-600 rounded-full animate-spin border-t-green-600 dark:border-t-green-400"></div>
         <div className="absolute inset-4 border-2 border-blue-200 dark:border-stone-700 rounded-full animate-spin border-t-blue-600 dark:border-t-blue-400 animate-reverse"></div>
-      </div>
-      <div className="space-y-2">
-        <p className="text-2xl font-black text-gray-900 dark:text-white">Loading Academies</p>
-        <p className="text-gray-600 dark:text-stone-400 font-medium">Discovering top football academies for you...</p>
       </div>
     </div>
   </div>
@@ -76,6 +74,25 @@ export default function AcademiesClient() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
+  const { user } = useUser();
+  const router = useRouter();
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    if (user === null) {
+      router.replace('/auth/signin');
+    } else if (user) {
+      setAuthChecked(true);
+    }
+  }, [user, router]);
+
+  useEffect(() => {
+    if (authChecked) {
+      fetchAcademies();
+      setIsClient(true);
+    }
+  }, [authChecked]);
+
   const fetchAcademies = async () => {
     try {
       setLoading(true);
@@ -91,11 +108,6 @@ export default function AcademiesClient() {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchAcademies();
-    setIsClient(true);
-  }, []);
 
   // Default image URL for academies without photos
   const DEFAULT_ACADEMY_IMAGE = "https://images.unsplash.com/photo-1574629810360-7efbbe195018?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1993&q=80";
@@ -154,6 +166,10 @@ export default function AcademiesClient() {
     fetchAcademies();
   };
 
+  if (!authChecked) {
+    return <LoadingSpinner />;
+  }
+
   if (loading) return <LoadingSpinner />;
   if (error) return <ErrorMessage message={error} onRetry={handleRetry} />;
 
@@ -165,7 +181,7 @@ export default function AcademiesClient() {
         <div className="absolute inset-0 bg-gradient-to-r from-green-500/5 via-blue-500/5 to-cyan-500/5"></div>
         <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-green-400/10 to-blue-400/10 rounded-full blur-3xl -translate-y-48 translate-x-48"></div>
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-cyan-400/10 to-green-400/10 rounded-full blur-2xl translate-y-32 -translate-x-32"></div>
-        
+
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
           <div className="text-center space-y-6">
             <div className="flex justify-center">
@@ -181,10 +197,10 @@ export default function AcademiesClient() {
                 </span>
               </h1>
               <p className="text-xl text-gray-600 dark:text-stone-300 font-medium mx-auto leading-relaxed">
-                Discover top-rated football academies. Find the perfect training environment to develop <br/> your skills and pursue your dreams!
+                Discover top-rated football academies. Find the perfect training environment to develop <br /> your skills and pursue your dreams!
               </p>
             </div>
-            
+
             {/* Quick Stats Preview */}
             <div className="flex flex-wrap justify-center gap-6 pt-4">
               <div className="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-2xl border border-white/50 dark:border-stone-700/50">
@@ -211,7 +227,7 @@ export default function AcademiesClient() {
           <div className="absolute inset-0 bg-gradient-to-r from-green-500/5 via-blue-500/5 to-cyan-500/5 rounded-3xl"></div>
           <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-400/10 to-blue-400/10 rounded-full blur-2xl"></div>
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-cyan-400/10 to-green-400/10 rounded-full blur-xl"></div>
-          
+
           <div className="relative space-y-6">
             {/* Enhanced Search Section */}
             <div className="space-y-4">
@@ -224,7 +240,7 @@ export default function AcademiesClient() {
                   <p className="text-sm text-gray-600 dark:text-stone-400 font-medium">Search by name, location, contact info, or description</p>
                 </div>
               </div>
-              
+
               {/* Enhanced Search Bar */}
               <div className="relative group">
                 <div className="absolute inset-0 bg-gradient-to-r from-green-600/20 to-blue-600/20 rounded-2xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -264,21 +280,19 @@ export default function AcademiesClient() {
               <div className="flex items-center gap-2 p-1 bg-gray-100 dark:bg-stone-700 rounded-2xl">
                 <button
                   onClick={() => setViewMode('grid')}
-                  className={`p-2 rounded-xl transition-all duration-300 ${
-                    viewMode === 'grid'
-                      ? 'bg-white dark:bg-stone-600 shadow-md text-green-600 dark:text-green-400'
-                      : 'text-gray-500 dark:text-stone-400 hover:text-green-600 dark:hover:text-green-400'
-                  }`}
+                  className={`p-2 rounded-xl transition-all duration-300 ${viewMode === 'grid'
+                    ? 'bg-white dark:bg-stone-600 shadow-md text-green-600 dark:text-green-400'
+                    : 'text-gray-500 dark:text-stone-400 hover:text-green-600 dark:hover:text-green-400'
+                    }`}
                 >
                   <Grid className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`p-2 rounded-xl transition-all duration-300 ${
-                    viewMode === 'list'
-                      ? 'bg-white dark:bg-stone-600 shadow-md text-green-600 dark:text-green-400'
-                      : 'text-gray-500 dark:text-stone-400 hover:text-green-600 dark:hover:text-green-400'
-                  }`}
+                  className={`p-2 rounded-xl transition-all duration-300 ${viewMode === 'list'
+                    ? 'bg-white dark:bg-stone-600 shadow-md text-green-600 dark:text-green-400'
+                    : 'text-gray-500 dark:text-stone-400 hover:text-green-600 dark:hover:text-green-400'
+                    }`}
                 >
                   <List className="w-5 h-5" />
                 </button>
@@ -341,7 +355,7 @@ export default function AcademiesClient() {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Filter Summary */}
                 <div className="mt-6 pt-4 border-t border-gray-200/50 dark:border-stone-600/50">
                   <div className="flex flex-wrap items-center gap-3">
@@ -349,14 +363,14 @@ export default function AcademiesClient() {
                       <Filter className="w-4 h-4 text-gray-500 dark:text-stone-400" />
                       <span className="text-sm font-medium text-gray-600 dark:text-stone-400">Active Filters:</span>
                     </div>
-                    
+
                     {Object.entries(filters).map(([key, value]) => {
                       if (value && key !== 'sortBy') {
                         const labels: { [key: string]: string } = {
                           search: '🔍 Search',
                           location: '📍 Location'
                         };
-                        
+
                         return (
                           <div key={key} className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-xl border border-indigo-200/50 dark:border-indigo-700/50">
                             <span className="text-xs font-bold text-indigo-700 dark:text-indigo-300">
@@ -367,7 +381,7 @@ export default function AcademiesClient() {
                       }
                       return null;
                     })}
-                    
+
                     {(filters.search || filters.location) && (
                       <button
                         onClick={() => setFilters({ search: '', location: '', sortBy: 'newest' })}
@@ -410,29 +424,27 @@ export default function AcademiesClient() {
               </div>
             </div>
           ) : (
-            <div className={viewMode === 'grid' 
+            <div className={viewMode === 'grid'
               ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
               : "space-y-6"
             }>
               {filteredAcademies.map((academy, index) => (
-                <div 
+                <div
                   key={academy._id}
                   className={isClient ? "animate-fadeInUp" : ""}
                   style={isClient ? { animationDelay: `${index * 100}ms` } : {}}
                   suppressHydrationWarning={true}
                 >
-                  <div className={`group relative bg-white/80 dark:bg-stone-800/80 backdrop-blur-md rounded-3xl shadow-lg hover:shadow-2xl border border-gray-200/50 dark:border-stone-700/50 transition-all duration-500 ${isClient ? 'transform hover:-translate-y-2' : ''} overflow-hidden ${
-                    viewMode === 'list' ? 'flex flex-col md:flex-row gap-6' : ''
-                  }`} suppressHydrationWarning={true}>
+                  <div className={`group relative bg-white/80 dark:bg-stone-800/80 backdrop-blur-md rounded-3xl shadow-lg hover:shadow-2xl border border-gray-200/50 dark:border-stone-700/50 transition-all duration-500 ${isClient ? 'transform hover:-translate-y-2' : ''} overflow-hidden ${viewMode === 'list' ? 'flex flex-col md:flex-row gap-6' : ''
+                    }`} suppressHydrationWarning={true}>
                     {/* Animated background gradient */}
                     <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 via-blue-500/5 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    
+
                     {/* Academy Image */}
-                    <div className={`relative overflow-hidden ${
-                      viewMode === 'list' 
-                        ? 'w-full md:w-48 lg:w-56 xl:w-64 md:flex-shrink-0 h-48 md:h-auto' 
-                        : 'w-full h-48 sm:h-56 md:h-64 lg:h-72'
-                    }`} suppressHydrationWarning={true}>
+                    <div className={`relative overflow-hidden ${viewMode === 'list'
+                      ? 'w-full md:w-48 lg:w-56 xl:w-64 md:flex-shrink-0 h-48 md:h-auto'
+                      : 'w-full h-48 sm:h-56 md:h-64 lg:h-72'
+                      }`} suppressHydrationWarning={true}>
                       <Image
                         src={
                           academy.photos && academy.photos.length > 0
@@ -442,11 +454,10 @@ export default function AcademiesClient() {
                         alt={academy.name || 'Football Academy'}
                         width={400}
                         height={250}
-                        className={`object-cover transition-all duration-500 group-hover:scale-110 group-hover:brightness-110 ${
-                          viewMode === 'list' 
-                            ? 'w-full h-full rounded-t-3xl md:rounded-l-3xl md:rounded-t-none' 
-                            : 'w-full h-48 sm:h-56 md:h-64 lg:h-72 rounded-t-3xl'
-                        }`}
+                        className={`object-cover transition-all duration-500 group-hover:scale-110 group-hover:brightness-110 ${viewMode === 'list'
+                          ? 'w-full h-full rounded-t-3xl md:rounded-l-3xl md:rounded-t-none'
+                          : 'w-full h-48 sm:h-56 md:h-64 lg:h-72 rounded-t-3xl'
+                          }`}
                         onError={(e) => {
                           const target = e.currentTarget as HTMLImageElement;
                           if (target.src !== DEFAULT_ACADEMY_IMAGE) {
@@ -454,24 +465,24 @@ export default function AcademiesClient() {
                           }
                         }}
                       />
-                      
+
                       {/* Enhanced gradient overlay with responsive opacity */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
-                      
-                                             {/* Responsive status badge */}
-                       <div className="absolute top-3 left-3" suppressHydrationWarning={true}>
-                         <div className="px-2 py-1 bg-green-500/90 backdrop-blur-sm rounded-full text-xs font-bold text-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                           Active
-                         </div>
-                       </div>
-                      
+
+                      {/* Responsive status badge */}
+                      <div className="absolute top-3 left-3" suppressHydrationWarning={true}>
+                        <div className="px-2 py-1 bg-green-500/90 backdrop-blur-sm rounded-full text-xs font-bold text-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          Active
+                        </div>
+                      </div>
+
                       {/* Default Image Overlay with enhanced responsive design */}
                       {(!academy.photos || academy.photos.length === 0) && (
                         <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 via-blue-500/15 to-cyan-500/10 flex items-center justify-center" suppressHydrationWarning={true}>
                           <div className="text-center space-y-3 p-4 sm:p-6">
-                                                         <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 mx-auto bg-white/90 dark:bg-stone-800/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg transition-all duration-300">
-                               <Trophy className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-green-600 dark:text-green-400" />
-                             </div>
+                            <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 mx-auto bg-white/90 dark:bg-stone-800/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg transition-all duration-300">
+                              <Trophy className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-green-600 dark:text-green-400" />
+                            </div>
                             <div className="space-y-1">
                               <p className="text-xs sm:text-sm font-bold text-white bg-black/30 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg">
                                 Football Academy
@@ -483,12 +494,12 @@ export default function AcademiesClient() {
                           </div>
                         </div>
                       )}
-                      
-                                             {/* Loading shimmer effect */}
-                       <div 
-                         className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                         suppressHydrationWarning={true}
-                       ></div>
+
+                      {/* Loading shimmer effect */}
+                      <div
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                        suppressHydrationWarning={true}
+                      ></div>
                     </div>
 
                     <div className="relative p-6 space-y-4 flex-1">
@@ -497,7 +508,7 @@ export default function AcademiesClient() {
                         <h2 className="text-xl font-black text-gray-900 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
                           {academy.name}
                         </h2>
-                        
+
                         {/* Academy Description */}
                         {academy.description && (
                           <div className="flex items-start gap-3 p-3 bg-amber-50/50 dark:bg-amber-900/20 rounded-2xl border border-amber-100 dark:border-amber-800/50">
@@ -509,13 +520,13 @@ export default function AcademiesClient() {
                             <div className="flex-1 min-w-0">
                               <p className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wide">About</p>
                               <p className="text-sm font-medium text-gray-900 dark:text-white leading-relaxed" title={academy.description}>
-                                {academy.description.length > 120 
-                                  ? `${academy.description.substring(0, 110)}...` 
+                                {academy.description.length > 120
+                                  ? `${academy.description.substring(0, 110)}...`
                                   : academy.description
                                 }
                               </p>
                               {academy.description.length > 110 && (
-                                <button 
+                                <button
                                   className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 transition-colors mt-1"
                                   onClick={(e) => {
                                     e.preventDefault();

@@ -8,6 +8,7 @@ import TournamentCard from '@/components/ui/pages/tournaments/TournamentCard';
 import { getTournamentStatus } from '@/lib/utils/utils';
 import { useUser } from '@/context/UserContext';
 import { toast } from 'react-toastify';
+import { useRouter } from 'next/navigation';
 
 interface Tournament {
   _id: string;
@@ -35,10 +36,6 @@ const LoadingSpinner = () => (
       <div className="relative w-20 h-20 mx-auto">
         <div className="w-20 h-20 border-4 border-blue-200 dark:border-stone-600 rounded-full animate-spin border-t-blue-600 dark:border-t-blue-400"></div>
         <div className="absolute inset-4 border-2 border-purple-200 dark:border-stone-700 rounded-full animate-spin border-t-purple-600 dark:border-t-purple-400 animate-reverse"></div>
-      </div>
-      <div className="space-y-2">
-        <p className="text-2xl font-black text-gray-900 dark:text-white">Loading Tournaments</p>
-        <p className="text-gray-600 dark:text-stone-400 font-medium">Discovering epic competitions for you...</p>
       </div>
     </div>
   </div>
@@ -83,6 +80,8 @@ export default function TournamentsClient() {
     sortBy: 'newest',
     joinedOnly: false,
   });
+  const router = useRouter();
+  const [authChecked, setAuthChecked] = useState(false);
 
   const fetchTournaments = async () => {
     try {
@@ -118,6 +117,13 @@ export default function TournamentsClient() {
     }
   };
 
+  useEffect(() => {
+    if (user === null) {
+      router.replace('/auth/signin');
+    } else if (user) {
+      setAuthChecked(true);
+    }
+  }, [user, router]);
 
   // Fetch tournaments on component mount
   useEffect(() => {
@@ -135,8 +141,10 @@ export default function TournamentsClient() {
       }
     };
 
-    loadTournaments();
-  }, []);
+    if (authChecked) {
+      loadTournaments();
+    }
+  }, [authChecked]);
 
   // Retry function
   const handleRetry = () => {
@@ -262,7 +270,6 @@ export default function TournamentsClient() {
     }
   };
 
-
   const handleLeaveTournament = (tournamentId: string, teamId: string) => {
     setTournaments(prevTournaments =>
       prevTournaments.map(t => {
@@ -279,7 +286,10 @@ export default function TournamentsClient() {
     );
   };
 
-
+  if (!authChecked) {
+    // Show spinner while auth check is running
+    return <LoadingSpinner />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-stone-900 dark:via-stone-800 dark:to-stone-900">

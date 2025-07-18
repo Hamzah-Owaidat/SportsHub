@@ -3,12 +3,12 @@ import React, { useEffect, useState, useMemo } from 'react';
 import StadiumCard from './StadiumCard';
 import { Stadium } from '@/types/Stadium';
 import { getAllStadiums } from '@/lib/api/stadium';
-import { 
-  Search, 
-  MapPin, 
-  Star, 
-  Clock, 
-  Grid3X3, 
+import {
+  Search,
+  MapPin,
+  Star,
+  Clock,
+  Grid3X3,
   List,
   SlidersHorizontal,
   RefreshCw,
@@ -18,8 +18,21 @@ import {
   DollarSign,
   ArrowUpDown
 } from 'lucide-react';
+import { useUser } from '@/context/UserContext';
+import { useRouter } from 'next/navigation';
 
 type SortOption = 'name' | 'price-low' | 'price-high' | 'location';
+
+const LoadingSpinner = () => (
+  <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-stone-900 dark:via-stone-800 dark:to-stone-900 flex items-center justify-center">
+    <div className="text-center space-y-6">
+      <div className="relative w-20 h-20 mx-auto">
+        <div className="w-20 h-20 border-4 border-blue-200 dark:border-stone-600 rounded-full animate-spin border-t-blue-600 dark:border-t-blue-400"></div>
+        <div className="absolute inset-4 border-2 border-purple-200 dark:border-stone-700 rounded-full animate-spin border-t-purple-600 dark:border-t-purple-400 animate-reverse"></div>
+      </div>
+    </div>
+  </div>
+);
 
 const StadiumClientPage = () => {
   const [stadiums, setStadiums] = useState<Stadium[]>([]);
@@ -31,6 +44,24 @@ const StadiumClientPage = () => {
   const [priceRange, setPriceRange] = useState({ min: 0, max: 1000000 });
   const [selectedLocation, setSelectedLocation] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  const { user } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user === null) {
+      router.replace('/auth/signin');
+    } else if (user) {
+      setAuthChecked(true);
+    }
+  }, [user, router]);
+
+  useEffect(() => {
+    if (authChecked) {
+      fetchStadiums();
+    }
+  }, [authChecked]);
 
   const fetchStadiums = async (showRefreshAnimation = false) => {
     try {
@@ -41,7 +72,7 @@ const StadiumClientPage = () => {
       }
       const stadiumList = await getAllStadiums();
       setStadiums(stadiumList);
-      
+
       // Set initial price range based on data
       if (stadiumList.length > 0) {
         const prices = stadiumList.map((s: Stadium) => s.pricePerMatch).filter((p: number) => p);
@@ -58,10 +89,6 @@ const StadiumClientPage = () => {
     }
   };
 
-  useEffect(() => {
-    fetchStadiums();
-  }, []);
-
   // Get unique locations for filter
   const uniqueLocations = useMemo(() => {
     return Array.from(new Set(stadiums.map(stadium => stadium.location).filter(Boolean)));
@@ -71,10 +98,10 @@ const StadiumClientPage = () => {
   const filteredAndSortedStadiums = useMemo(() => {
     const filtered = stadiums.filter(stadium => {
       const matchesSearch = stadium.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           stadium.location.toLowerCase().includes(searchTerm.toLowerCase());
+        stadium.location.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesPrice = stadium.pricePerMatch >= priceRange.min && stadium.pricePerMatch <= priceRange.max;
       const matchesLocation = !selectedLocation || stadium.location === selectedLocation;
-      
+
       return matchesSearch && matchesPrice && matchesLocation;
     });
 
@@ -96,6 +123,11 @@ const StadiumClientPage = () => {
 
     return filtered;
   }, [stadiums, searchTerm, sortBy, priceRange, selectedLocation]);
+
+  if (!authChecked) {
+    // Show spinner while auth check is running
+    return <LoadingSpinner />;
+  }
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -143,16 +175,16 @@ const StadiumClientPage = () => {
               <MapPin className="mr-2 h-4 w-4" />
               Stadium Directory
             </div>
-            
-            <h1 className="text-5xl font-black tracking-tight text-gray-900 dark:text-white sm:text-6xl" style={{marginBottom: '1rem'}}>
+
+            <h1 className="text-5xl font-black tracking-tight text-gray-900 dark:text-white sm:text-6xl" style={{ marginBottom: '1rem' }}>
               <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent">
                 Explore
               </span>
               <br />
               <span className="text-gray-700 dark:text-stone-300">Premium Stadiums</span>
             </h1>
-            
-            <p className="text-xl text-gray-600 dark:text-stone-300 mx-auto font-medium leading-relaxed" style={{marginBottom: '1rem'}}>
+
+            <p className="text-xl text-gray-600 dark:text-stone-300 mx-auto font-medium leading-relaxed" style={{ marginBottom: '1rem' }}>
               Discover world-class stadiums near you. Book your perfect venue for an unforgettable match experience.
             </p>
 
@@ -218,11 +250,10 @@ const StadiumClientPage = () => {
               {/* Filter Toggle */}
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className={`flex items-center px-6 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl ${
-                  showFilters 
-                    ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white' 
-                    : 'bg-gray-100 dark:bg-stone-700 text-gray-700 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'
-                }`}
+                className={`flex items-center px-6 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl ${showFilters
+                  ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
+                  : 'bg-gray-100 dark:bg-stone-700 text-gray-700 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'
+                  }`}
               >
                 <SlidersHorizontal className="mr-2 h-5 w-5" />
                 Filters
@@ -232,21 +263,19 @@ const StadiumClientPage = () => {
               <div className="flex bg-gray-100 dark:bg-stone-700 rounded-2xl p-1 shadow-lg">
                 <button
                   onClick={() => setViewMode('grid')}
-                  className={`p-3 rounded-xl transition-all duration-300 ${
-                    viewMode === 'grid' 
-                      ? 'bg-white dark:bg-stone-600 shadow-md text-blue-600 dark:text-blue-400' 
-                      : 'text-gray-600 dark:text-stone-400 hover:text-gray-800 dark:hover:text-stone-200'
-                  }`}
+                  className={`p-3 rounded-xl transition-all duration-300 ${viewMode === 'grid'
+                    ? 'bg-white dark:bg-stone-600 shadow-md text-blue-600 dark:text-blue-400'
+                    : 'text-gray-600 dark:text-stone-400 hover:text-gray-800 dark:hover:text-stone-200'
+                    }`}
                 >
                   <Grid3X3 className="h-5 w-5" />
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`p-3 rounded-xl transition-all duration-300 ${
-                    viewMode === 'list' 
-                      ? 'bg-white dark:bg-stone-600 shadow-md text-blue-600 dark:text-blue-400' 
-                      : 'text-gray-600 dark:text-stone-400 hover:text-gray-800 dark:hover:text-stone-200'
-                  }`}
+                  className={`p-3 rounded-xl transition-all duration-300 ${viewMode === 'list'
+                    ? 'bg-white dark:bg-stone-600 shadow-md text-blue-600 dark:text-blue-400'
+                    : 'text-gray-600 dark:text-stone-400 hover:text-gray-800 dark:hover:text-stone-200'
+                    }`}
                 >
                   <List className="h-5 w-5" />
                 </button>
@@ -409,10 +438,10 @@ const StadiumClientPage = () => {
               {(searchTerm || selectedLocation || sortBy !== 'name') && (
                 <div className="flex items-center space-x-2">
                   {searchTerm && (
-                     <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-sm font-medium">
-                       &ldquo;{searchTerm}&rdquo;
-                     </span>
-                   )}
+                    <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-sm font-medium">
+                      &ldquo;{searchTerm}&rdquo;
+                    </span>
+                  )}
                   {selectedLocation && (
                     <span className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-sm font-medium">
                       📍 {selectedLocation}
@@ -443,11 +472,10 @@ const StadiumClientPage = () => {
               </button>
             </div>
           ) : (
-            <div className={`${
-              viewMode === 'grid' 
-                ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8' 
-                : 'space-y-6'
-            } animate-fadeIn`}>
+            <div className={`${viewMode === 'grid'
+              ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'
+              : 'space-y-6'
+              } animate-fadeIn`}>
               {filteredAndSortedStadiums.map((stadium, index) => (
                 <div
                   key={stadium._id}
