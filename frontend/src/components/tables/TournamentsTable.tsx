@@ -216,7 +216,7 @@ export default function TournamentsTable({
                         <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                             {loading ? (
                                 <TableRow>
-                                    <TableCell className="px-5 py-4 text-center">
+                                    <TableCell className="py-10 text-center" colSpan={9}>
                                         <div className="flex justify-center">
                                             <Loading />
                                         </div>
@@ -224,7 +224,7 @@ export default function TournamentsTable({
                                 </TableRow>
                             ) : currentTournaments.length === 0 ? (
                                 <TableRow>
-                                    <TableCell className="px-5 py-4 text-center">
+                                    <TableCell className="py-10 text-center" colSpan={9}>
                                         <div className="flex justify-center">
                                             No tournaments found
                                         </div>
