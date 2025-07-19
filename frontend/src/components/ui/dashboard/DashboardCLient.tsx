@@ -13,9 +13,11 @@ export default function DashboardClient() {
       <div className="col-span-12 space-y-6">
         <EcommerceMetrics />
 
-        {
-          user?.role === "admin" || "academyOwner" ? <MonthlyRegisterUserChart /> : <StatisticsChart />
-        }
+        {user?.role === "admin" || user?.role === "academyOwner" ? (
+          <MonthlyRegisterUserChart />
+        ) : (
+          <StatisticsChart />
+        )}
       </div>
     </div>
   );

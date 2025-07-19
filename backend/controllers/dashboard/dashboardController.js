@@ -89,7 +89,7 @@ exports.getStatistics = asyncHandler(async (req, res) => {
     yearly: { $year: "$createdAt" },
   }[type];
 
-  if (role === "admin" || "academyOwner") {
+  if (role === "admin" || role === "academyOwner") {
     const users = await User.aggregate([
       { $match: { createdAt: { $gte: startOfYear } } },
       { $group: { _id: groupBy, count: { $sum: 1 } } },
