@@ -8,6 +8,7 @@ import Link from "next/link";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
+import { register } from "@/lib/api/auth";
 
 export default function SignUpForm() {
 
