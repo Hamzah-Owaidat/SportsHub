@@ -1,5 +1,11 @@
 const User = require("../../models/userModel");
 const Role = require("../../models/roleModel");
+const Booking = require("../../models/bookingModel");
+const Stadium = require("../../models/stadiumModel");
+const Tournament = require("../../models/tournamentModel");
+const Academy = require("../../models/academyModel");
+const Team = require("../../models/teamModel");
+const Notification = require("../../models/notificationModel");
 const asyncHandler = require("express-async-handler");
 
 // @desc    Get all users
@@ -278,20 +284,55 @@ exports.deleteUser = asyncHandler(async (req, res) => {
     });
   }
 
-  const deletedUser = await User.findByIdAndDelete(userId);
-
-  if (!deletedUser) {
+  const user = await User.findById(userId);
+  if (!user) {
     return res.status(404).json({
       status: "error",
       message: "User not found",
     });
   }
 
-  res.status(200).json({
+  // 1. Delete Bookings made by the user
+  await Booking.deleteMany({ userId });
+
+  // 2. If user is a stadiumOwner
+  if (user.role.name === "stadiumOwner") {
+    const stadiums = await Stadium.find({ ownerId: userId });
+    const stadiumIds = stadiums.map(s => s._id);
+
+    // Delete bookings for each stadium
+    await Booking.deleteMany({ stadiumId: { $in: stadiumIds } });
+
+    // Delete tournaments held in these stadiums
+    await Tournament.deleteMany({ stadiumId: { $in: stadiumIds } });
+
+    // Delete stadiums themselves
+    await Stadium.deleteMany({ ownerId: userId });
+  }
+
+  // 3. If user is an academyOwner
+  if (user.role.name === "academyOwner") {
+    await Academy.deleteMany({ ownerId: userId });
+  }
+
+  // 4. If user is a teamLeader
+  if (user.role.name === "teamLeader") {
+    await Team.deleteOne({ leader: userId });
+  }
+
+  // 5. Remove notifications related to user
+  await Notification.deleteMany({ user: userId });
+
+  // 6. Finally, delete the user
+  await User.findByIdAndDelete(userId);
+
+  return res.status(200).json({
     status: "success",
-    message: "User deleted successfully",
+    message: "User and related data deleted successfully",
+    forceLogout: true,
   });
 });
+
 
 exports.getAcademyOwners = async (req, res) => {
   try {

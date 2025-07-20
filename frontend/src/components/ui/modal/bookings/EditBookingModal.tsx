@@ -35,7 +35,7 @@ export const EditBookingModal: React.FC<EditBookingModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       if (user?.role === "admin") {
-        getAllStadiums().then((res) => setStadiums(res.data));
+        getAllStadiums().then((res) => setStadiums(res));
       } else {
         getStadiumsByOwner(user?.id).then((res) => setStadiums(res.data));
       }
@@ -109,8 +109,8 @@ export const EditBookingModal: React.FC<EditBookingModalProps> = ({
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Stadium Select */}
         <div>
-          <label className="block text-sm mb-1">Stadium</label>
-          <select value={stadiumId} onChange={e => setStadiumId(e.target.value)} className="w-full p-2 border rounded">
+          <label className="block text-sm dark:text-white mb-1">Stadium</label>
+          <select value={stadiumId} onChange={e => setStadiumId(e.target.value)} className="w-full p-2 dark:bg-stone-000 border rounded dark:text-white">
             {stadiums.map((s: any) => (
               <option key={s._id} value={s._id}>{s.name}</option>
             ))}
@@ -119,8 +119,8 @@ export const EditBookingModal: React.FC<EditBookingModalProps> = ({
 
         {/* User Select */}
         <div>
-          <label className="block text-sm mb-1">User</label>
-          <select value={userId} onChange={e => setUserId(e.target.value)} className="w-full p-2 border rounded">
+          <label className="block text-sm mb-1 dark:text-white">User</label>
+          <select value={userId} onChange={e => setUserId(e.target.value)} className="w-full p-2 border rounded dark:bg-stone-900 dark:text-white">
             {users.map((u: any) => (
               <option key={u._id} value={u._id}>{u.username}</option>
             ))}
@@ -129,14 +129,14 @@ export const EditBookingModal: React.FC<EditBookingModalProps> = ({
 
         {/* Match Date */}
         <div>
-          <label className="block text-sm mb-1">Match Date</label>
-          <input type="date" value={matchDate} onChange={e => setMatchDate(e.target.value)} className="w-full p-2 border rounded" />
+          <label className="block text-sm mb-1 dark:text-white">Match Date</label>
+          <input type="date" value={matchDate} onChange={e => setMatchDate(e.target.value)} className="w-full p-2 border rounded dark:text-white" />
         </div>
 
         {/* Time Slot */}
         <div>
-          <label className="block text-sm mb-1">Time Slot</label>
-          <select value={timeSlot} onChange={e => setTimeSlot(e.target.value)} className="w-full p-2 border rounded">
+          <label className="block text-sm mb-1 dark:text-white">Time Slot</label>
+          <select value={timeSlot} onChange={e => setTimeSlot(e.target.value)} className="w-full p-2 border rounded dark:bg-stone-900 dark:text-white">
             {availableSlots.length ? (
               availableSlots.map(slot => (
                 <option key={slot} value={slot}>{slot}</option>
