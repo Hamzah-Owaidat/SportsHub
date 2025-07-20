@@ -38,7 +38,8 @@ export default function ProfileContent() {
     return (
         <>
             <UserMetaCard />
-            {user?.role === "user" || user?.role === "TeamLeader" && <TeamInfoCard />}
+            {console.log("User role:", user?.role)}
+            {(user?.role && ["user", "teamleader"].includes(user.role.toLowerCase())) && <TeamInfoCard />}
         </>
     );
 }
