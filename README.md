@@ -17,7 +17,7 @@ SportsHub is a comprehensive web platform designed to connect sports enthusiasts
 - **Team Management:** Create and manage teams for tournaments
 - **User Profiles:** Personalized user accounts with booking history
 - **Admin Dashboard:** Comprehensive administrative tools for platform management
-- **Notification System:** Real-time updates and alerts for bookings and events
+- **Notification System:** Updates and alerts for bookings and events
 
 ## 🚀 Technology Stack
 
@@ -27,7 +27,7 @@ SportsHub is a comprehensive web platform designed to connect sports enthusiasts
 - **JWT Authentication:** Secure user authentication and authorization
 - **Nodemailer:** Email service integration for notifications and verifications
 - **Multer:** File upload handling for images and documents
-- **Node-cron:** Scheduled tasks for booking cleanup
+- **Interval-based Cleanup:** Automatic completion of expired bookings
 
 ### Frontend
 - **Next.js 15:** React framework with server-side rendering
@@ -145,10 +145,10 @@ SportsHub offers authentication features including:
 - Detailed facility information
 
 ### Booking System
-- Real-time availability checking
+- Availability checking
 - Slot-based booking system
-- Payment integration
 - Booking history and management
+- Automatic completion of expired bookings
 
 ### Academy System
 - Academy profiles with training programs
@@ -161,6 +161,12 @@ SportsHub offers authentication features including:
 - Team registration and management
 - Scheduling and fixture generation
 - Results tracking
+
+### Notification System
+- User notifications for important events
+- Team invitation notifications
+- Stadium, academy and tournament updates
+- Notification management
 
 ### User Roles and Permissions
 - User
