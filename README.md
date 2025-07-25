@@ -27,7 +27,7 @@ SportsHub is a comprehensive web platform designed to connect sports enthusiasts
 - **JWT Authentication:** Secure user authentication and authorization
 - **Nodemailer:** Email service integration for notifications and verifications
 - **Multer:** File upload handling for images and documents
-- **Google OAuth:** Third-party authentication option
+- **Node-cron:** Scheduled tasks for booking cleanup
 
 ### Frontend
 - **Next.js 15:** React framework with server-side rendering
@@ -116,7 +116,6 @@ sportshub-web/
 3. Create a `.env.local` file in the frontend directory:
    ```
    NEXT_PUBLIC_API_URL=http://localhost:5000/api
-   NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id
    ```
 
 4. Start the development server:
@@ -131,13 +130,11 @@ sportshub-web/
 
 ## 🔒 Authentication
 
-SportsHub offers multiple authentication methods:
+SportsHub offers authentication features including:
 - Email/password registration and login
-- Google OAuth integration
-- Password reset functionality
-- Email verification
-
-For Google OAuth setup, refer to [GOOGLE_AUTH_SETUP.md](./frontend/GOOGLE_AUTH_SETUP.md).
+- JWT-based authentication
+- Password reset functionality with email verification
+- User session management
 
 ## 📱 Features in Detail
 
@@ -199,6 +196,6 @@ This project is licensed under the ISC License - see the LICENSE file for detail
 ---
 
 <div align="center">
-  <p>Developed by <a href="https://github.com/YourGithubUsername">Hamzah Owaidat</a></p>
+  <p>Developed by <a href="https://github.com/hamzahowaidat">Hamzah Owaidat</a></p>
   <p>© 2025 SportsHub. All rights reserved.</p>
 </div>
